@@ -1,5 +1,6 @@
 import { Body, Controller, HttpCode, Post } from '@nestjs/common';
-import { IsString, IsStrongPassword } from 'class-validator';
+import { Transform } from 'class-transformer';
+import { IsNumber, IsString, IsStrongPassword } from 'class-validator';
 import { AuthService } from '../auth.service';
 import { Roles } from '../decorators/roles.decorator';
 import { Role } from '../enums/roles.enum';
@@ -11,6 +12,11 @@ export class AuthenticateUserDTO {
   @IsString()
   @IsStrongPassword({})
   password: string;
+
+  @Transform(({ value }) => Number(value))
+  @IsNumber()
+  empresaId: number;
+
 }
 
 @Roles(Role.PUBLIC)
@@ -22,8 +28,8 @@ export class AuthenticateUserController {
   @HttpCode(200)
   async handle(@Body() data: AuthenticateUserDTO) {
 
-    const { login, password } = data;
-    const result = await this.authService.authenticateUser(login, password);
+    const { login, password, empresaId } = data;
+    const result = await this.authService.authenticateUser(login, password, empresaId);
     return {
       access_token: result,
     };

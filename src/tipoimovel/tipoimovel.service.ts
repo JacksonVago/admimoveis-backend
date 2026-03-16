@@ -10,7 +10,10 @@ export class TipoImovelService {
     const { name, empresaId } = createTipoDto;
     const checkIfUserExists = await this.PrismaService.imovelTipo.findUnique({
       where: {
-        name: name,
+        empresaId_name: {
+          name: name,
+          empresaId: empresaId,
+        }
       },
     });
 

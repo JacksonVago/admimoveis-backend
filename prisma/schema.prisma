@@ -52,7 +52,7 @@ model Empresa {
 
 model LancamentoTipo {
   id             Int            @id @default(autoincrement())
-  name           String         @unique
+  name           String
   tipo           lancamentoTipo @default(DEBITO)
   automatico     String         @default("S")
   parcelas       Int            @default(0)
@@ -68,12 +68,13 @@ model LancamentoTipo {
   empresa   Empresa @relation(fields: [empresaId], references: [id])
   empresaId Int
 
+  @@unique([empresaId, name])
   @@map("lancamentotipos")
 }
 
 model ImovelTipo {
   id        Int          @id @default(autoincrement())
-  name      String       @unique
+  name      String
   status    PessoaStatus @default(ATIVA)
   createdAt DateTime     @default(now())
   updatedAt DateTime     @updatedAt
@@ -82,12 +83,13 @@ model ImovelTipo {
   empresa   Empresa @relation(fields: [empresaId], references: [id])
   empresaId Int
 
+  @@unique([empresaId, name])
   @@map("imoveltipos")
 }
 
 model User {
   id          String       @id @default(uuid())
-  login       String       @unique
+  login       String
   name        String
   email       String
   password    String
@@ -103,6 +105,7 @@ model User {
   empresa   Empresa @relation(fields: [empresaId], references: [id])
   empresaId Int
 
+  @@unique([empresaId, login])
   @@map("users")
 }
 
@@ -129,7 +132,7 @@ model Endereco {
 //migrate to it's instead of proprietario and locatario
 model Pessoa {
   id          Int          @id @default(autoincrement())
-  documento   String       @unique() //CPF ou CNPJ 
+  documento   String //CPF ou CNPJ 
   nome        String
   profissao   String?
   estadoCivil EstadoCivil?
@@ -143,10 +146,12 @@ model Pessoa {
   proprietarios Proprietario[]
   locatarios    Locatario[]
   documentos    GenericAnexo[]
+  moradores     Morador[]
 
   empresa   Empresa @relation(fields: [empresaId], references: [id])
   empresaId Int
 
+  @@unique([empresaId, documento])
   @@map("pessoas")
 }
 
@@ -247,6 +252,16 @@ model Proprietario {
   imovelId   Int
 
   @@map("proprietarios")
+}
+
+model Morador {
+  id        Int     @id @default(autoincrement())
+  pessoa    Pessoa  @relation(fields: [pessoaId], references: [id])
+  pessoaId  Int
+  locacao   Locacao @relation(fields: [locacaoId], references: [id])
+  locacaoId Int
+
+  @@map("moradores")
 }
 
 model Locatario {
@@ -356,6 +371,7 @@ model Locacao {
   boletos     Boleto[]
   reajustes   Reajuste[]
   lancamentos LancamentoLocacao[]
+  moradores   Morador[]
 
   empresa   Empresa @relation(fields: [empresaId], references: [id])
   empresaId Int
@@ -756,6 +772,12 @@ enum Permission {
   PAGSEGURO_UPDATE_ORDER
   PAGSEGURO_DELETE_ORDER
   PAGSEGURO_VIEW_ORDERS
+
+  //Moradores
+  CREATE_MORADOR
+  UPDATE_MORADOR
+  DELETE_MORADOR
+  VIEW_MORADORES
 }
 
 enum UserRole {

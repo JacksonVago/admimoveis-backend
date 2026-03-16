@@ -14,10 +14,13 @@ export class AuthService {
     private prismaService: PrismaService,
   ) { }
 
-  async validateUser(login: string, password: string): Promise<any> {
+  async validateUser(login: string, password: string, empresaId: number): Promise<any> {
     const user = await this.prismaService.user.findUnique({
       where: {
-        login,
+        empresaId_login: {
+          login,
+          empresaId,
+        }
       },
     });
 
@@ -36,10 +39,13 @@ export class AuthService {
   //   };
   // }
 
-  async authenticateUser(login: string, password: string) {
+  async authenticateUser(login: string, password: string, empresaId: number) {
     const user = await this.prismaService.user.findUnique({
       where: {
-        login,
+        empresaId_login: {
+          login,
+          empresaId,
+        }
       },
     });
 

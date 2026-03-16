@@ -186,6 +186,11 @@ export class LocacaoService {
             lancamentotipo: true,
           }
         },
+        moradores: {
+          include: {
+            pessoa: true,
+          }
+        }
       }
     });
   }
@@ -356,6 +361,11 @@ export class LocacaoService {
             }
           },
           seguroIncendio: true,
+          moradores: {
+            include: {
+              pessoa: true,
+            }
+          }
         },
         skip,
         take: pageSize,
@@ -407,7 +417,12 @@ export class LocacaoService {
           include: {
             endereco: true,
           }
-        }
+        },
+        moradores: {
+          include: {
+            pessoa: true,
+          }
+        },
       },
     });
 
@@ -586,6 +601,16 @@ export class LocacaoService {
               endereco: true,
             },
           },
+          locatarios: {
+            include: {
+              pessoa: true,
+            }
+          },
+          moradores: {
+            include: {
+              pessoa: true,
+            }
+          }
         },
         skip,
         take: pageSize,

@@ -11,7 +11,11 @@ export class UsersService {
     const { login, name, email, permissions, empresaId } = createUserDto;
     const checkIfUserExists = await this.PrismaService.user.findUnique({
       where: {
-        login: email,
+        empresaId_login: {
+          login,
+          empresaId,
+        }
+        ,
       },
     });
 

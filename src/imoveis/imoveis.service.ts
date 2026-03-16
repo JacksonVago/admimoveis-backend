@@ -303,7 +303,7 @@ export class ImoveisService {
   }
 
   //Persquisa imóveis para locação
-  async findManyLocacao(
+  async findManyLocacao(empresaId: number,
     searchTerm: string,
     page: number = 1,
     pageSize: number = DEFAULT_PAGE_SIZE,
@@ -384,7 +384,8 @@ export class ImoveisService {
         (arr_id.length === 0 ? {} : { id: { notIn: arr_id } }),
         {
           status: ImovelStatus.DISPONIVEL,
-        }
+        },
+        empresaId ? { empresaId: empresaId } : {},
       ]
     };
 

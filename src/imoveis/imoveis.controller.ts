@@ -40,7 +40,7 @@ export const IMOVEIS_ROUTES: BaseRoutes = {
   },
   searchLocacao: {
     name: 'Search Imoveis locacao',
-    route: '/locacao/',
+    route: '/locacao/:empresaId',
     permission: Permission.VIEW_IMOVELS,
   },
   get: {
@@ -81,8 +81,8 @@ export class ImoveisController {
 
   @Get(IMOVEIS_ROUTES.searchLocacao.route)
   @Permissions(IMOVEIS_ROUTES.searchLocacao.permission)
-  async getImovelLocacao(@Query() { limit, page, search, tipo, exclude }: BaseGetPaginatedQueryDto) {
-    const data = await this.imoveisService.findManyLocacao(search, page, limit, tipo, exclude);
+  async getImovelLocacao(@Param() { empresaId }: BaseParamsIdEmpresaDto, @Query() { limit, page, search, tipo, exclude }: BaseGetPaginatedQueryDto) {
+    const data = await this.imoveisService.findManyLocacao(Number(empresaId), search, page, limit, tipo, exclude);
 
     return data;
   }

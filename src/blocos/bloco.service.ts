@@ -274,6 +274,7 @@ export class BlocoService {
       //Quando quiser excluir id´s
       AND: [
         (exclude === null ? {} : { id: { notIn: arr_id } }),
+        { condominio: { empresaId: empresaId } },
       ]
 
     };

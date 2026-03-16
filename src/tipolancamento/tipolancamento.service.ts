@@ -10,7 +10,10 @@ export class TipoLancamentoService {
     const createTipo = createTipoDto;
     const checkIfUserExists = await this.PrismaService.lancamentoTipo.findUnique({
       where: {
-        name: createTipo.name,
+        empresaId_name: {
+          name: createTipo.name,
+          empresaId: createTipo.empresaId,
+        }
       },
       include: { empresa: true },
     });
