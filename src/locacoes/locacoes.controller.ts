@@ -12,7 +12,7 @@ import {
   Query
 } from '@nestjs/common';
 import { PartialType } from '@nestjs/mapped-types';
-import { GarantiaLocacaoTypes, LocacaoStatus, LocalDeposito, Permission } from '@prisma/client';
+import { GarantiaLocacaoTypes, lancamentoStatus, LocacaoStatus, LocalDeposito, Permission } from '@prisma/client';
 import { Transform } from 'class-transformer';
 import {
   IsArray,
@@ -170,6 +170,11 @@ export class GetLancamentosDto {
   dataFinal: Date;
 }
 
+export class GetStatusPeriodoDto extends PartialType(GetLancamentosDto) {
+  @IsOptional()
+  status?: lancamentoStatus | null;
+}
+
 export class CreatePreLinkLocacaoDto {
   @Transform(({ value }) => Number(value))
   @IsInt()
@@ -285,8 +290,9 @@ export class LocacaoController {
 
   @Get(LOCACAO_ROUTES.findById.route)
   @Permissions(LOCACAO_ROUTES.findById.permission)
-  async findById(@Param() { id }: BaseParamsByIdDto) {
-    return await this.locacaoService.findById(id);
+  async findById(@Param() { id }: BaseParamsByIdDto, @Query() data: GetStatusPeriodoDto) {
+    const { status, dataInicial, dataFinal } = data;
+    return await this.locacaoService.findById(id, status, dataInicial, dataFinal);
   }
 
   @Get(LOCACAO_ROUTES.Lancamentos.route)
@@ -311,14 +317,14 @@ export class LocacaoController {
   @Delete(LOCACAO_ROUTES.delete.route)
   @Permissions(LOCACAO_ROUTES.delete.permission)
   async delete(@Param() { id }: BaseParamsByIdDto) {
-    return this.locacaoService.deleteLocatario(id);
+    return this.locacaoService.deleteLocacao(id);
   }
 
   //end rent
   @Delete(LOCACAO_ROUTES.unlinkLocacao.route)
   @Permissions(LOCACAO_ROUTES.unlinkLocacao.permission)
   async unlinkLocacao(@Param() { id }: BaseParamsByIdDto) {
-    return this.locacaoService.deleteLocacao(id);
+    return this.locacaoService.deleteLocatario(id);
   }
 
 }

@@ -8,7 +8,7 @@ import {
   ConflictException,
   Injectable,
 } from '@nestjs/common';
-import { GarantiaLocacaoTypes, ImovelStatus, Locacao, LocacaoStatus, Prisma } from '@prisma/client';
+import { BoletoStatus, GarantiaLocacaoTypes, ImovelStatus, lancamentoStatus, Locacao, LocacaoStatus, Prisma } from '@prisma/client';
 import { MemoryStoredFile } from 'nestjs-form-data';
 import { randomUUID } from 'node:crypto';
 import {
@@ -145,7 +145,16 @@ export class LocacaoService {
     return result;
   }
 
-  async findById(id: number) {
+  async findById(id: number, statusLancamento: lancamentoStatus | null | undefined, dataInicial: Date, dataFinal: Date) {
+
+    let dataFim: Date = dataFinal; if (statusLancamento !== undefined) {
+      if (statusLancamento.toString() === 'undefined') {
+        statusLancamento = undefined;
+      }
+    }
+
+    dataFim.setDate(dataFinal.getDate() + 1);
+
     return await this.prismaService.locacao.findUnique({
       where: {
         id: id,
@@ -179,9 +188,34 @@ export class LocacaoService {
         garantiaSeguroFianca: true,
         garantiaTituloCapitalizacao: true,
         seguroIncendio: true,
-        boletos: true,
+        boletos: {
+          where: {
+            status: BoletoStatus.ATRASADO,
+            OR: [
+              {
+                status: BoletoStatus.PENDENTE,
+              }
+            ]
+
+          }
+        },
         reajustes: true,
         lancamentos: {
+          where: {
+            //((statusLancamento === null || statusLancamento === undefined) ? {} : { status: { equals: statusLancamento } }),            
+            AND: [
+              {
+                status: statusLancamento ? { equals: statusLancamento } : undefined,
+              },
+              {
+                dataLancamento: {
+                  gte: dataInicial,
+                  lte: dataFim,
+                },
+              }
+            ]
+          },
+
           include: {
             lancamentotipo: true,
           }

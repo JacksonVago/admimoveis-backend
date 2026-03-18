@@ -119,6 +119,7 @@ export class CreatePessoaDto extends EnderecoDto {
   email: string;
 
   @IsString()
+  @IsOptional()
   //TODO: create custom decorator to validate phone number
   telefone: string;
 
