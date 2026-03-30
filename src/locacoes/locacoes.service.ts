@@ -147,13 +147,17 @@ export class LocacaoService {
 
   async findById(id: number, statusLancamento: lancamentoStatus | null | undefined, dataInicial: Date, dataFinal: Date) {
 
-    let dataFim: Date = dataFinal; if (statusLancamento !== undefined) {
+    let dataFim: Date = dataFinal;
+
+    if (statusLancamento !== undefined) {
       if (statusLancamento.toString() === 'undefined') {
         statusLancamento = undefined;
       }
     }
 
-    dataFim.setDate(dataFinal.getDate() + 1);
+    if (dataFim !== undefined) {
+      dataFim.setDate(dataFinal.getDate() + 1);
+    }
 
     return await this.prismaService.locacao.findUnique({
       where: {
