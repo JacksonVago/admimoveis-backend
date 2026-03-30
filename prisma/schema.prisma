@@ -36,7 +36,6 @@ model Empresa {
   emissaoBoletoAntecedencia Int                 @default(5) //Número de dias de antecedência para emissão de boletos  
   porcentagemMultaAtraso    Float               @default(2) //Porcentagem de multa por atraso no pagamento
   porcentagemJurosAtraso    Float               @default(0.1) //Porcentagem de juros por atraso no pagamento  
-  logo                      String //Logotipo da empresa
   createdAt                 DateTime            @default(now())
   updatedAt                 DateTime            @updatedAt
   imovelTipos               ImovelTipo[]
