@@ -30,6 +30,7 @@ export class EmpresasService {
         avisosTituloCapitalizacao: createEmpresaDto.avisosTituloCapitalizacao,
         avisosDepositoCalcao: createEmpresaDto.avisosDepositoCalcao,
         porcentagemComissao: createEmpresaDto.porcentagemComissao,
+        logo: createEmpresaDto.logo,
         emiteBoleto: createEmpresaDto.emiteBoleto,
         valorTaxaBoleto: createEmpresaDto.valorTaxaBoleto,
         emissaoBoletoAntecedencia: createEmpresaDto.emissaoBoletoAntecedencia,
@@ -91,6 +92,7 @@ export class EmpresasService {
         porcentagemMultaAtraso: data.porcentagemMultaAtraso,
         porcentagemJurosAtraso: data.porcentagemJurosAtraso,
         tipoLancamento: data.tipoId,
+        logo: data.logo,
 
         //if we have any address data, update it
         endereco:

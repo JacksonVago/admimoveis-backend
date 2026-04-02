@@ -83,6 +83,10 @@ export class CreateEmpresaDto extends EnderecoDto {
   @IsOptional()
   porcentagemJurosAtraso: number;
 
+  @IsString()
+  @IsOptional()
+  logo: string;
+
   @IsOptional()
   @Transform(({ value }) => Number(value))
   @IsInt()

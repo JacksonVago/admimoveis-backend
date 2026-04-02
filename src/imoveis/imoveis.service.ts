@@ -429,10 +429,6 @@ export class ImoveisService {
       ]
     };
 
-    console.log(tipoImovel === 0);
-    console.log(`tipo imovel|${tipoImovel}|`);
-    console.log('where ', where);
-
     const [data, totalItems] = await this.prismaService.$transaction([
       this.prismaService.imovel.findMany({
         take: pageSize,
@@ -599,20 +595,35 @@ export class ImoveisService {
         }
       })*/
 
-      await this.prismaService.genericAnexo.deleteMany({
+      if (documentosToDeleteIds) {
+        //Exclui arquivo da nuvem
+        documentosToDeleteIds.forEach(async (docId) => {
+          const doc = await this.prismaService.genericAnexo.findUnique({
+            where: {
+              id: docId,
+            },
+          });
+          await this.filesAzureService.deleteFile(doc.url);
+
+          await this.prismaService.genericAnexo.delete({
+            where: {
+              id: docId,
+            },
+          });
+
+        }
+        );
+
+      }
+
+      /*await this.prismaService.genericAnexo.deleteMany({
         where: {
           id: {
             in: documentosToDeleteIds,
           },
         },
-      });
-      //TODO: Remover imagens do storage
-      // removeImageIds?.forEach(async (fileId) => {
-      // await this.filesService.deleteFile(fileId);
-      // })
+      });*/
     }
-
-    //TODO: Reordenar imagens, se solicitado
 
     // Adiciona novas imagens, se fornecidas
     if (documentos?.length) {

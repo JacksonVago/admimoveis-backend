@@ -255,7 +255,6 @@ export class PessoasService {
             id: docId,
           },
         });
-        console.log('Deleting file from Azure:', doc.url);
         await this.filesAzureService.deleteFile(doc.url);
 
         await this.prismaService.genericAnexo.delete({
