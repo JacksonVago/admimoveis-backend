@@ -401,9 +401,12 @@ export class PessoasService {
         },
       });
     } catch (error) {
-      if (error.code === 'P2025') {
-        throw new Error('Pessoa não encontrado');
+      if (error instanceof Prisma.PrismaClientKnownRequestError) {
+        if (error.code === 'P2025') {
+          throw new Error('Pessoa não encontrado');
+        }
       }
+      throw error;
     }
   }
 

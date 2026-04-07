@@ -266,7 +266,7 @@ export class LocacaoService {
         },*/
         {
           locatarios: {
-            every: {
+            some: {
               pessoa: {
                 nome: {
                   contains: search,
@@ -278,7 +278,7 @@ export class LocacaoService {
         },
         {
           locatarios: {
-            every: {
+            some: {
               pessoa: {
                 email: {
                   contains: search,
@@ -290,7 +290,7 @@ export class LocacaoService {
         },
         {
           locatarios: {
-            every: {
+            some: {
               pessoa: {
                 telefone: {
                   contains: search,
@@ -302,7 +302,7 @@ export class LocacaoService {
         },
         {
           locatarios: {
-            every: {
+            some: {
               pessoa: {
                 endereco: {
                   logradouro: {
@@ -316,7 +316,7 @@ export class LocacaoService {
         },
         {
           locatarios: {
-            every: {
+            some: {
               pessoa: {
                 endereco: {
                   bairro: {
@@ -330,7 +330,7 @@ export class LocacaoService {
         },
         {
           locatarios: {
-            every: {
+            some: {
               pessoa: {
                 endereco: {
                   cidade: {
@@ -344,7 +344,7 @@ export class LocacaoService {
         },
         {
           locatarios: {
-            every: {
+            some: {
               pessoa: {
                 endereco: {
                   estado: {
@@ -358,7 +358,7 @@ export class LocacaoService {
         },
         {
           locatarios: {
-            every: {
+            some: {
               pessoa: {
                 endereco: {
                   estado: {
@@ -373,7 +373,7 @@ export class LocacaoService {
       ],
       AND: [
         ((statusLocacao === null || statusLocacao === undefined) ? {} : { status: { equals: statusLocacao } }),
-        (exclude === null ? {} : { id: { notIn: arr_id } }),
+        ((exclude === null || exclude === undefined || exclude === '') ? {} : { id: { notIn: arr_id } }),
         empresaId ? { empresaId: empresaId } : {},
       ]
     };
@@ -475,9 +475,13 @@ export class LocacaoService {
         },
       });
     } catch (error) {
-      if (error.code === 'P2025') {
-        throw new Error('Locatario não encontrado');
+      if (error instanceof Prisma.PrismaClientKnownRequestError) {
+        if (error.code === 'P2025') {
+          throw new Error('Locatario não encontrado');
+        }
       }
+      throw error;
+
     }
   }
 
@@ -911,13 +915,16 @@ export class LocacaoService {
 
       //TODO: clean the type documents and data if it changes
     } catch (error) {
-      if (error.code === 'P2002') {
-        throw new ConflictException(
-          'A location already exists for this property',
-        );
-      } else {
-        throw error;
+      if (error instanceof Prisma.PrismaClientKnownRequestError) {
+        if (error.code === 'P2002') {
+          throw new ConflictException(
+            'A location already exists for this property',
+          );
+        } else {
+          throw error;
+        }
       }
+      throw error;
     }
   }
 

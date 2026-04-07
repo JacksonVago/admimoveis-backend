@@ -265,7 +265,7 @@ export class LancamentosService {
       OR: [
         {
           lancamentos: {
-            every: {
+            some: {
               observacao: {
                 contains: search,
                 mode: 'insensitive'
@@ -280,8 +280,43 @@ export class LancamentosService {
               mode: 'insensitive'
             },
           },
+        },
+        {
+          imovel: {
+            endereco: {
+              logradouro: {
+                contains: search,
+                mode: 'insensitive'
+              }
+            }
+          },
+        },
+        {
+          imovel: {
+            endereco: {
+              complemento: {
+                contains: search,
+                mode: 'insensitive'
+              }
+            }
+          },
+        },
+        {
           locatarios: {
-            every: {
+            some: {
+              pessoa: {
+                nome: {
+                  contains: search,
+                  mode: 'insensitive',
+                },
+              }
+
+            }
+          },
+        },
+        {
+          locatarios: {
+            some: {
               pessoa: {
                 email: {
                   contains: search,
@@ -290,8 +325,8 @@ export class LancamentosService {
               }
 
             }
-          }
-        },
+          },
+        }
       ],
       AND: [
         {
@@ -528,13 +563,16 @@ export class LancamentosService {
 
       //TODO: clean the type documents and data if it changes
     } catch (error) {
-      if (error.code === 'P2002') {
-        throw new ConflictException(
-          'A lancamento already exists for this property',
-        );
-      } else {
-        throw error;
+      if (error instanceof Prisma.PrismaClientKnownRequestError) {
+        if (error.code === 'P2002') {
+          throw new ConflictException(
+            'A lancamento already exists for this property',
+          );
+        } else {
+          throw error;
+        }
       }
+      throw error;
     }
   }
 
@@ -565,13 +603,16 @@ export class LancamentosService {
 
       //TODO: clean the type documents and data if it changes
     } catch (error) {
-      if (error.code === 'P2002') {
-        throw new ConflictException(
-          'A lancamento already exists for this property',
-        );
-      } else {
-        throw error;
+      if (error instanceof Prisma.PrismaClientKnownRequestError) {
+        if (error.code === 'P2002') {
+          throw new ConflictException(
+            'A lancamento already exists for this property',
+          );
+        } else {
+          throw error;
+        }
       }
+      throw error;
     }
   }
 
