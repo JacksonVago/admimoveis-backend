@@ -1,7 +1,7 @@
 import { Roles } from '@/auth/decorators/roles.decorator';
 import { Role } from '@/auth/enums/roles.enum';
 import { Body, Controller, Get, Post, Put } from '@nestjs/common';
-import { ApiTags } from '@nestjs/swagger';
+//import { ApiTags } from '@nestjs/swagger';
 import { Queue } from 'bullmq';
 import { jobMessageDto } from './dto/job-message.dto';
 import { QueueService } from './queue.service';
@@ -24,7 +24,7 @@ interface param_pause {
 
 export const queuePool: Set<Queue> = new Set<Queue>();
 
-@ApiTags('Queues')
+//@ApiTags('Queues')
 @Roles(Role.PUBLIC)
 @Controller('queue')
 export class QueueController {
