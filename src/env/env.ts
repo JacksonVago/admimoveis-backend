@@ -39,6 +39,11 @@ export const envSChema = z.object({
   AZURE_SAS_TOKEN: z.string(),
   AZURE_CONTAINER_NAME: z.string(),
   AZURE_CONTAINER_CONNECTSTRING: z.string(),
+
+  /** Redis configs */
+  REDIS_HOST: z.string(),
+  REDIS_PORT: z.coerce.number().default(6379),
+
 });
 
 export type Env = z.infer<typeof envSChema>;

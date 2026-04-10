@@ -69,6 +69,7 @@ export class LancamentosService {
         dataEmissao: new Date(),
         dataVencimento: gerarPagamentoDto.lancamentos[0].vencimentoLancamento,
         dataPagamento: null,
+        observacao: 'pagamento gerado automaticamente para locação ' + gerarPagamentoDto.id,
         locacao: { connect: { id: gerarPagamentoDto.id } },
         locatario: {
           connect: { id: gerarPagamentoDto.locatarios[0].id },

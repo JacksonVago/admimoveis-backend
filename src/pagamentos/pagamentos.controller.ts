@@ -18,7 +18,8 @@ import {
   IsDate,
   IsEnum,
   IsNumber,
-  IsOptional
+  IsOptional,
+  IsString
 } from 'class-validator';
 import {
   FormDataRequest,
@@ -66,6 +67,10 @@ export class CreateBoletoDto {
   @IsOptional()
   valorPago: number;
 
+  @IsString()
+  @IsOptional()
+  observacao: string;
+
   @IsFiles()
   @IsOptional()
   //Limiting to 50 for supabase free tier limit
@@ -83,6 +88,10 @@ export class CreateBoletoDto {
     },
   )
   documentos?: MemoryStoredFile[];
+
+  @Transform(({ value }) => Number(value))
+  @IsNumber()
+  empresaId: number;
 }
 
 export class UpdateBoletoDto extends PartialType(CreateBoletoDto) {

@@ -1,5 +1,6 @@
 import { BasePaginationData } from '@/common/interfaces/base-pagination';
 import { FileData } from '@/common/interfaces/file-data';
+import { FilesAzureService } from '@/files/azurefiles.service';
 import { FilesService } from '@/files/files.service';
 import { PrismaService } from '@/prisma/prisma.service';
 import { getFileType } from '@/proprietarios/proprietarios.service';
@@ -18,6 +19,7 @@ export class PagamentosService {
   constructor(
     private filesService: FilesService,
     private readonly prismaService: PrismaService,
+    private filesAzureService: FilesAzureService,
   ) { }
 
   async create(createBoletoDto: CreateBoletoDto) {
@@ -43,6 +45,7 @@ export class PagamentosService {
         dataVencimento: createBoletoDto.dataVencimento,
         valorOriginal: createBoletoDto.valorOriginal,
         valorPago: createBoletoDto.valorPago,
+        observacao: createBoletoDto.observacao,
       },
       include: {
         locacao: true
@@ -51,7 +54,7 @@ export class PagamentosService {
 
     //Verifica se tem anexos
     if (createBoletoDto?.documentos?.length) {
-      await this.createPagamentoDocuments(result.id, createBoletoDto.documentos);
+      await this.createPagamentoDocuments(createBoletoDto.empresaId, result.id, createBoletoDto.documentos);
     }
 
     return result;
@@ -110,6 +113,7 @@ export class PagamentosService {
             imovel: {
               include: {
                 endereco: true,
+                condominio: true,
               }
             },
           }
@@ -315,6 +319,7 @@ export class PagamentosService {
               imovel: {
                 include: {
                   endereco: true,
+                  condominio: true,
                 }
               },
             },
@@ -431,6 +436,7 @@ export class PagamentosService {
           imovel: {
             include: {
               endereco: true,
+              condominio: true,
             },
           },
         },
@@ -474,6 +480,7 @@ export class PagamentosService {
           dataVencimento: data.dataVencimento,
           valorOriginal: data.valorOriginal,
           valorPago: data.valorPago,
+          observacao: data.observacao,
         },
         include: {
           locacao: true
@@ -482,17 +489,35 @@ export class PagamentosService {
 
       console.log(data);
       if (data.documentos) {
-        await this.createPagamentoDocuments(pagamentoId, data.documentos);
+        await this.createPagamentoDocuments(data.empresaId, pagamentoId, data.documentos);
       }
 
       if (data.documentosToDeleteIds) {
-        await this.prismaService.genericAnexo.deleteMany({
+        //Exclui arquivo da nuvem
+        data.documentosToDeleteIds.forEach(async (docId) => {
+          const doc = await this.prismaService.genericAnexo.findUnique({
+            where: {
+              id: docId,
+            },
+          });
+          await this.filesAzureService.deleteFile(doc.url);
+
+          await this.prismaService.genericAnexo.delete({
+            where: {
+              id: docId,
+            },
+          });
+
+        }
+        );
+
+        /*await this.prismaService.genericAnexo.deleteMany({
           where: {
             id: {
               in: data.documentosToDeleteIds,
             },
           },
-        });
+        });*/
 
         //Exlcui arquivos do storage
         //await this.filesService.deleteFile(data.documentosToDeleteIds.map(d => d.file));
@@ -509,13 +534,17 @@ export class PagamentosService {
 
       //TODO: clean the type documents and data if it changes
     } catch (error) {
-      if (error.code === 'P2002') {
-        throw new ConflictException(
-          'A lancamento already exists for this property',
-        );
-      } else {
-        throw error;
+      if (error instanceof Prisma.PrismaClientKnownRequestError) {
+        if (error.code === 'P2002') {
+          throw new ConflictException(
+            'A lancamento already exists for this property',
+          );
+        } else {
+          throw error;
+        }
       }
+      throw error;
+
     }
   }
 
@@ -550,17 +579,21 @@ export class PagamentosService {
 
       //TODO: clean the type documents and data if it changes
     } catch (error) {
-      if (error.code === 'P2002') {
-        throw new ConflictException(
-          'A lancamento already exists for this property',
-        );
-      } else {
-        throw error;
+      if (error instanceof Prisma.PrismaClientKnownRequestError) {
+        if (error.code === 'P2002') {
+          throw new ConflictException(
+            'A lancamento already exists for this property',
+          );
+        } else {
+          throw error;
+        }
       }
+      throw error;
     }
   }
 
   async createPagamentoDocuments(
+    EmpresaId: number,
     pagamentoId: number,
     files: MemoryStoredFile[],
   ) {
@@ -579,6 +612,10 @@ export class PagamentosService {
 
         const str_url = await this.filesService.uploadFile(adaptedFile);
         const fileType = getFileType(file);
+
+        const folder = 'admimoveis/' + EmpresaId.toString() + '/pagamentos/' + pagamentoId.toString() + '/' + file.originalName.replaceAll(' ', '_');
+
+        const url = await this.filesAzureService.uploadFile(folder, file);
 
         return this.prismaService.genericAnexo.create({
           data: {

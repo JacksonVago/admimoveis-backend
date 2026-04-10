@@ -497,6 +497,7 @@ model Boleto {
 
   locatario   Locatario? @relation(fields: [locatarioId], references: [id])
   locatarioId Int?
+  observacao  String?
 
   documentos       GenericAnexo[]
   lanctoLocacao    LancamentoLocacao[]
@@ -680,6 +681,15 @@ model PagamentoLinks {
   method String?
 
   @@map("pagamentolinks")
+}
+
+model Session {
+  id        Int      @id @unique @default(autoincrement())
+  sessionID String   @unique @default(cuid())
+  creds     String? //store a json with the credentials
+  createdAt DateTime @default(now())
+
+  @@map("sessions")
 }
 
 enum Permission {

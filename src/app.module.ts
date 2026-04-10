@@ -17,6 +17,9 @@ import { PagSeguroModule } from './pagseguro/pagseguro.module';
 import { PessoasModule } from './pessoas/pessoas.module';
 import { PrismaModule } from './prisma/prisma.module';
 import { ProprietariosModule } from './proprietarios/proprietarios.module';
+import { bullboardConfig } from './queue/config/bull-board.config';
+import { queueConfig } from './queue/config/queue.config';
+import { QueueModule } from './queue/queue.module';
 import { ReajusteModule } from './reajustes/reajustes.module';
 import { RepasseModule } from './repasses/repasses.module';
 import { TipoImovelModule } from './tipoimovel/tipoimovel.module';
@@ -25,6 +28,8 @@ import { UsersModule } from './users/users.module';
 
 @Module({
   imports: [
+    queueConfig,
+    bullboardConfig,
     EnvModule,
     PrismaModule,
     UsersModule,
@@ -48,6 +53,7 @@ import { UsersModule } from './users/users.module';
     BlocoModule,
     LancamentoCondominioModule,
     MoradoresModule,
+    QueueModule,
   ],
   controllers: [],
   providers: [],

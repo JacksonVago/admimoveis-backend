@@ -642,6 +642,7 @@ export class LocacaoService {
           imovel: {
             include: {
               endereco: true,
+              condominio: true,
             },
           },
           locatarios: {
