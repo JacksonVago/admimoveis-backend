@@ -157,7 +157,7 @@ export class PagamentosService {
               },
             },
             locatarios: {
-              every: {
+              some: {
                 pessoa: {
                   email: {
                     contains: search,
@@ -167,6 +167,18 @@ export class PagamentosService {
 
               }
             }
+          },
+        },
+        {
+          locacao: {
+            imovel: {
+              endereco: {
+                complemento: {
+                  contains: search,
+                  mode: 'insensitive'
+                }
+              },
+            },
           },
         },
       ],

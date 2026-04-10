@@ -632,6 +632,16 @@ export class LocacaoService {
             },
           },
         },
+        {
+          imovel: {
+            endereco: {
+              complemento: {
+                contains: search,
+                mode: 'insensitive',
+              },
+            },
+          },
+        },
       ],
     };
 
