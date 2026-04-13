@@ -260,7 +260,7 @@ export class PagamentosService {
       OR: [
         {
           lanctoLocacao: {
-            every: {
+            some: {
               observacao: {
                 contains: search,
                 mode: 'insensitive'
@@ -268,7 +268,7 @@ export class PagamentosService {
             }
           },
           lanctoCondominio: {
-            every: {
+            some: {
               observacao: {
                 contains: search,
                 mode: 'insensitive'
@@ -285,7 +285,7 @@ export class PagamentosService {
               },
             },
             locatarios: {
-              every: {
+              some: {
                 pessoa: {
                   email: {
                     contains: search,
@@ -296,6 +296,32 @@ export class PagamentosService {
             },
           },
         },
+        {
+          locacao: {
+            locatarios: {
+              some: {
+                pessoa: {
+                  nome: {
+                    contains: search,
+                    mode: 'insensitive',
+                  },
+                },
+              },
+            },
+          },
+        },
+        {
+          locacao: {
+            imovel: {
+              endereco: {
+                complemento: {
+                  contains: search,
+                  mode: 'insensitive'
+                }
+              },
+            },
+          }
+        }
       ],
       AND: [
         ((statusPagamento === null || statusPagamento === undefined || statusPagamento.toString() === "") ? {} : {
@@ -313,6 +339,7 @@ export class PagamentosService {
 
     };
 
+    console.log('where', where);
     const [data, total] = await this.prismaService.$transaction([
       this.prismaService.boleto.findMany({
         where,
