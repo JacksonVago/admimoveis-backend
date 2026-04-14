@@ -1,10 +1,17 @@
+import { FileData } from '@/common/interfaces/file-data';
+import { FilesAzureService } from '@/files/azurefiles.service';
 import { PrismaService } from '@/prisma/prisma.service';
 import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
+import { randomUUID } from 'crypto';
+import { MemoryStoredFile } from 'nestjs-form-data';
 import { CreateEmpresaDto } from './empresas.controller';
 
 @Injectable()
 export class EmpresasService {
-  constructor(private PrismaService: PrismaService) { }
+  constructor(
+    private readonly PrismaService: PrismaService,
+    private filesAzureService: FilesAzureService,
+  ) { }
   async create(createEmpresaDto: CreateEmpresaDto) {
     const checkIfUserExists = await this.PrismaService.empresa.findUnique({
       where: {
@@ -16,7 +23,7 @@ export class EmpresasService {
       throw new ConflictException(' empresa exists');
     }
 
-    return await this.PrismaService.empresa.create({
+    const result = await this.PrismaService.empresa.create({
       data: {
         nome: createEmpresaDto.nome,
         cnpj: createEmpresaDto.cnpj,
@@ -54,10 +61,23 @@ export class EmpresasService {
         endereco: true
       },
     });
+
+    //Verifica se tem anexos
+    if (createEmpresaDto?.documentos?.length) {
+      await this.createEmpresaDocuments(result.id, createEmpresaDto.documentos);
+    }
+
+    return result;
   }
 
   async update(id: number, data: CreateEmpresaDto) {
     await this.checkEmpresaExists(id);
+
+    const existingEmpresa = await this.PrismaService.empresa.findUnique({
+      where: {
+        id,
+      },
+    });
 
     const {
       logradouro,
@@ -70,6 +90,8 @@ export class EmpresasService {
       ...empresaData
     } = data;
     // Atualiza os dados do imóvel
+
+    console.log('data', data);
 
     const result = await this.PrismaService.empresa.update({
       where: { id },
@@ -120,6 +142,14 @@ export class EmpresasService {
     });
     //check if we have a new valores to gerenate ImovelValorHistorico
 
+    if (existingEmpresa.logo && data.logo !== existingEmpresa.logo && (existingEmpresa.logo !== "" && existingEmpresa.logo !== null)) {
+      //Exclui arquivo da nuvem
+      await this.filesAzureService.deleteFile(existingEmpresa.logo);
+    }
+    else if (data.documentos?.length) {
+      await this.createEmpresaDocuments(id, data.documentos);
+    }
+
     return result;
   }
 
@@ -151,6 +181,36 @@ export class EmpresasService {
 
     if (!empresa) {
       throw new NotFoundException('Empresa not found');
+    }
+  }
+
+  async createEmpresaDocuments(
+    EmpresaId: number,
+    files: MemoryStoredFile[],
+  ) {
+    try {
+      // Crie uma lista de promessas para processar cada arquivo
+      files.map(async (file) => {
+        // Converta o MemoryStoredFile para o formato necessário
+        const adaptedFile: FileData = {
+          filename: `${randomUUID()}.${file.originalName?.split('.').pop()}`,
+          originalname: file.originalName,
+          buffer: file.buffer,
+          mimetype: file.mimetype,
+          size: file.size,
+          encoding: file.encoding,
+        };
+
+        const folder = 'admimoveis/' + EmpresaId.toString() + '/empresas/' + file.originalName.replaceAll(' ', '_');
+
+        const url = await this.filesAzureService.uploadFile(folder, file);
+      });
+
+      const results = await Promise.all("ok");
+
+      return results;
+    } catch (error) {
+      console.error('Error on createEmpresaDocuments', error);
     }
   }
 }

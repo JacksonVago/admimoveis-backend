@@ -1,7 +1,6 @@
 import { BasePaginationData } from '@/common/interfaces/base-pagination';
 import { FileData } from '@/common/interfaces/file-data';
 import { FilesAzureService } from '@/files/azurefiles.service';
-import { FilesService } from '@/files/files.service';
 import { PrismaService } from '@/prisma/prisma.service';
 import { getFileType } from '@/proprietarios/proprietarios.service';
 import {
@@ -17,7 +16,6 @@ import { CreateBoletoDto, UpdateBoletoDto } from './pagamentos.controller';
 @Injectable()
 export class PagamentosService {
   constructor(
-    private filesService: FilesService,
     private readonly prismaService: PrismaService,
     private filesAzureService: FilesAzureService,
   ) { }
@@ -649,7 +647,6 @@ export class PagamentosService {
           encoding: file.encoding,
         };
 
-        const str_url = await this.filesService.uploadFile(adaptedFile);
         const fileType = getFileType(file);
 
         const folder = 'admimoveis/' + EmpresaId.toString() + '/pagamentos/' + pagamentoId.toString() + '/' + file.originalName.replaceAll(' ', '_');
@@ -660,7 +657,7 @@ export class PagamentosService {
           data: {
             tipoArquivo: fileType,
             size: file.size,
-            url: str_url,
+            url,
             type: file.mimetype,
             name: file.originalName,
             pagamento: {

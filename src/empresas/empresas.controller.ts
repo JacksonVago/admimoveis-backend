@@ -5,7 +5,7 @@ import { Body, Controller, Get, Param, Post, Put } from '@nestjs/common';
 import { PessoaStatus } from '@prisma/client';
 import { Transform } from 'class-transformer';
 import { IsEnum, IsInt, IsNumber, IsOptional, IsString } from 'class-validator';
-import { FormDataRequest } from 'nestjs-form-data';
+import { FormDataRequest, HasMimeType, IsFiles, MaxFileSize, MemoryStoredFile } from 'nestjs-form-data';
 import { EmpresasService } from './empresas.service';
 
 export class CreateEmpresaDto extends EnderecoDto {
@@ -92,6 +92,23 @@ export class CreateEmpresaDto extends EnderecoDto {
   @IsInt()
   tipoId: number;
 
+  @IsFiles()
+  @IsOptional()
+  //Limiting to 50 for supabase free tier limit
+  @MaxFileSize(50 * 1024 * 1024, { each: true })
+  @HasMimeType(
+    [
+      'application/pdf', // PDF
+      'image/jpeg', // Imagem JPEG
+      'image/png', // Imagem PNG
+      'application/msword', // Documento Word (.doc)
+      'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+    ],
+    {
+      each: true,
+    },
+  )
+  documentos?: MemoryStoredFile[];
 }
 
 export const EMPRESA_ROUTES = {

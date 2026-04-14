@@ -1,6 +1,6 @@
 import { BasePaginationData } from '@/common/interfaces/base-pagination';
 import { FileData } from '@/common/interfaces/file-data';
-import { FilesService } from '@/files/files.service';
+import { FilesAzureService } from '@/files/azurefiles.service';
 import { PrismaService } from '@/prisma/prisma.service';
 import { getFileType } from '@/proprietarios/proprietarios.service';
 import {
@@ -8,7 +8,7 @@ import {
   ConflictException,
   Injectable,
 } from '@nestjs/common';
-import { BoletoStatus, GarantiaLocacaoTypes, ImovelStatus, lancamentoStatus, Locacao, LocacaoStatus, Prisma } from '@prisma/client';
+import { GarantiaLocacaoTypes, ImovelStatus, lancamentoStatus, Locacao, LocacaoStatus, Prisma } from '@prisma/client';
 import { MemoryStoredFile } from 'nestjs-form-data';
 import { randomUUID } from 'node:crypto';
 import {
@@ -19,7 +19,7 @@ import {
 export class LocacaoService {
   constructor(
     private readonly prismaService: PrismaService,
-    private filesService: FilesService,
+    private filesAzureService: FilesAzureService,
   ) { }
 
   async create(createLocacaoDto: CreateLocacaoDto) {
@@ -117,7 +117,7 @@ export class LocacaoService {
 
     //Grava documento anexados
     if (documentos) {
-      await this.createLocacaoDocuments(result.id, documentos);
+      await this.createLocacaoDocuments(createLocacaoDto.empresaId, result.id, documentos);
     }
 
     if (documentosToDeleteIds) {
@@ -192,7 +192,8 @@ export class LocacaoService {
         garantiaSeguroFianca: true,
         garantiaTituloCapitalizacao: true,
         seguroIncendio: true,
-        boletos: {
+        boletos: true,
+        /*{
           where: {
             status: BoletoStatus.ATRASADO,
             OR: [
@@ -202,7 +203,7 @@ export class LocacaoService {
             ]
 
           }
-        },
+        },*/
         reajustes: true,
         lancamentos: {
           where: {
@@ -862,7 +863,7 @@ export class LocacaoService {
       });
 
       if (documentos) {
-        await this.createLocacaoDocuments(locatarioId, documentos);
+        await this.createLocacaoDocuments(data.empresaId, locacaoId, documentos);
       }
 
       if (documentosToDeleteIds) {
@@ -1021,7 +1022,7 @@ export class LocacaoService {
     }
   }
 
-  async createPessoaDocuments(pessoaId: number, files: MemoryStoredFile[]) {
+  async createPessoaDocuments(EmpresaId: number, pessoaId: number, files: MemoryStoredFile[]) {
     try {
       // Crie uma lista de promessas para processar cada arquivo
       const documentPromisses = files.map(async (file) => {
@@ -1035,9 +1036,10 @@ export class LocacaoService {
           encoding: file.encoding,
         };
 
-        const url = await this.filesService.uploadFile(adaptedFile);
 
         const fileType = getFileType(file);
+        const folder = 'admimoveis/' + EmpresaId.toString() + '/locacoes/' + pessoaId.toString() + '/' + file.originalName.replaceAll(' ', '_');
+        const url = await this.filesAzureService.uploadFile(folder, file);
 
         return this.prismaService.genericAnexo.create({
           data: {
@@ -1062,7 +1064,7 @@ export class LocacaoService {
     }
   }
 
-  async createLocacaoDocuments(locacaoId: number, files: MemoryStoredFile[]) {
+  async createLocacaoDocuments(EmpresaId: number, locacaoId: number, files: MemoryStoredFile[]) {
     try {
       // Crie uma lista de promessas para processar cada arquivo
       const documentPromisses = files.map(async (file) => {
@@ -1076,9 +1078,9 @@ export class LocacaoService {
           encoding: file.encoding,
         };
 
-        const url = await this.filesService.uploadFile(adaptedFile);
-
         const fileType = getFileType(file);
+        const folder = 'admimoveis/' + EmpresaId.toString() + '/locacoes/' + locacaoId.toString() + '/' + file.originalName.replaceAll(' ', '_');
+        const url = await this.filesAzureService.uploadFile(folder, file);
 
         return this.prismaService.genericAnexo.create({
           data: {
