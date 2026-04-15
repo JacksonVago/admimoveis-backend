@@ -1,6 +1,6 @@
 import { Permissions } from '@/auth/decorators/permissions.decorator';
 import { BaseRoutes } from '@/common/interfaces/base-routes';
-import { BaseParamsByIdDto, DEFAULT_PAGE_SIZE } from '@/common/interfaces/base-search';
+import { BaseParamsByIdDto, BaseParamsIdEmpresaDto, DEFAULT_PAGE_SIZE } from '@/common/interfaces/base-search';
 import {
   Body,
   Controller,
@@ -154,7 +154,7 @@ export const PAGAMENTO_ROUTES: BaseRoutes = {
   },
   search: {
     name: 'Search Pagamentos',
-    route: '/',
+    route: '/:empresaId',
     permission: Permission.VIEW_PAGAMENTOS,
   },
   statusPagamento: {
@@ -187,9 +187,9 @@ export class PagamentoController {
 
   @Get(PAGAMENTO_ROUTES.search.route)
   @Permissions(PAGAMENTO_ROUTES.search.permission)
-  async search(@Query() data: GetBoletosQueryDto) {
+  async search(@Param() { empresaId }: BaseParamsIdEmpresaDto, @Query() data: GetBoletosQueryDto) {
     const { search, page, limit, status, exclude, dataInicial, dataFinal } = data;
-    const response = await this.PagamentoService.findManyPagamento(search, page, limit, status, exclude, dataInicial, dataFinal);
+    const response = await this.PagamentoService.findManyPagamento(empresaId, search, page, limit, status, exclude, dataInicial, dataFinal);
     return response;
   }
 

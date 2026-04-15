@@ -225,7 +225,7 @@ export class PagamentosService {
     };
   }
 
-  async findManyPagamento(
+  async findManyPagamento(empresaId: number,
     search: string,
     page: number,
     pageSize: number,
@@ -263,7 +263,7 @@ export class PagamentosService {
                 contains: search,
                 mode: 'insensitive'
               },
-            }
+            },
           },
           lanctoCondominio: {
             some: {
@@ -333,6 +333,11 @@ export class PagamentosService {
             lt: dataFim,
           },
         },
+        {
+          locacao: {
+            empresaId: empresaId,
+          }
+        }
       ]
 
     };
