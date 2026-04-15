@@ -82,7 +82,6 @@ export class ImoveisController {
   @Get(IMOVEIS_ROUTES.searchLocacao.route)
   @Permissions(IMOVEIS_ROUTES.searchLocacao.permission)
   async getImovelLocacao(@Param() { empresaId }: BaseParamsIdEmpresaDto, @Query() { limit, page, search, tipo, exclude }: BaseGetPaginatedQueryDto) {
-    console.log(search);
     const data = await this.imoveisService.findManyLocacao(Number(empresaId), search, page, limit, tipo, exclude);
 
     return data;

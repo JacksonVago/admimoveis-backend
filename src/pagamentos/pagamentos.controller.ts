@@ -139,7 +139,7 @@ export const PAGAMENTO_ROUTES: BaseRoutes = {
   },
   findById: {
     name: 'findById',
-    route: ':id',
+    route: 'findbyid/:id',
     permission: Permission.VIEW_PAGAMENTOS,
   },
   update: {

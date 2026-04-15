@@ -362,7 +362,7 @@ export class LocacaoService {
             some: {
               pessoa: {
                 endereco: {
-                  estado: {
+                  complemento: {
                     contains: search,
                     mode: 'insensitive',
                   },

@@ -2,6 +2,7 @@ import { CurrentUser } from '@/auth/decorators/current-user.decorator';
 import { Roles } from '@/auth/decorators/roles.decorator';
 import { Role } from '@/auth/enums/roles.enum';
 import { UserPayload } from '@/auth/estrategies/jwt.strategy';
+import { BaseParamsIdEmpresaDto } from '@/common/interfaces/base-search';
 import { Body, Controller, Delete, Get, Param, Post, Put } from '@nestjs/common';
 import { IsString } from 'class-validator';
 import { CreateUserDto } from './dtos/users.dto';
@@ -11,7 +12,7 @@ export const USER_ROUTES = {
   CREATE: '/',
   INFO: '/info',
   REGISTER_ADMIN: '/register-admin',
-  GET_COLLABORATORS: '/collaborators',
+  GET_COLLABORATORS: '/collaborators/:empresaId',
   GET_USER_LOGIN: '/:login',
   UPDATE_USER: '/:id',
   UPDATE_PWD: '/updatepwd/:id',
@@ -95,11 +96,9 @@ export class UsersController {
 
   @Get(USER_ROUTES.GET_COLLABORATORS)
   @Roles(Role.ADMIN)
-  async getCollaborators() {
+  async getCollaborators(@Param() { empresaId }: BaseParamsIdEmpresaDto) {
     //Get all collaborators
-    console.log('antes');
-    const collaborators = await this.UsersService.getCollaborators();
-    console.log('collaborators', collaborators);
+    const collaborators = await this.UsersService.getCollaborators(empresaId);
     return collaborators
   }
 

@@ -141,10 +141,11 @@ export class UsersService {
   }*/
 
   //get all users
-  async getCollaborators() {
+  async getCollaborators(empresaId: number) {
     return await this.PrismaService.user.findMany({
       where: {
         role: UserRole.COLLABORATOR,
+        empresaId: empresaId,
       },
     });
   }

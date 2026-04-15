@@ -279,8 +279,6 @@ export class ImoveisService {
       ]
     };
 
-    console.log('where ', where);
-
     const [data, totalItems] = await this.prismaService.$transaction([
       this.prismaService.imovel.findMany({
         take: pageSize,
@@ -351,9 +349,6 @@ export class ImoveisService {
       tipoImovel = 0;
     }
 
-    console.log('pesquisa');
-    console.log(searchTerm);
-
     const where: Prisma.ImovelWhereInput = {
       OR: [
         {
@@ -422,9 +417,9 @@ export class ImoveisService {
       AND: [
         (tipoImovel.toString() === '0' ? {} : { tipoId: { equals: Number(tipoImovel) } }),
         (arr_id.length === 0 ? {} : { id: { notIn: arr_id } }),
-        {
+        /*{
           status: ImovelStatus.DISPONIVEL,
-        },
+        },*/
         empresaId ? { empresaId: empresaId } : {},
       ]
     };
