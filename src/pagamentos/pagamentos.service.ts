@@ -393,6 +393,38 @@ export class PagamentosService {
     };
   }
 
+  async PagamentosStatus(empresaId: number,
+    statusPagamento: BoletoStatus): Promise<Boleto[]> {
+
+    const pagamentos = this.prismaService.boleto.findMany({
+      where: {
+        locacao: {
+          empresaId: empresaId,
+        },
+        status: statusPagamento,
+      },
+      include: {
+        locatario: {
+          include: {
+            pessoa: true
+          }
+        },
+        locacao: {
+          include: {
+            imovel: {
+              include: {
+                condominio: true,
+                endereco: true,
+              }
+            }
+          }
+        }
+      }
+    });
+
+    return pagamentos;
+  }
+
   async findLocacoesByLocatarioId(id: number) {
     return this.prismaService.locatario.findUnique({
       where: {

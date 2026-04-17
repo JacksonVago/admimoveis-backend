@@ -1,6 +1,6 @@
 import { Permissions } from '@/auth/decorators/permissions.decorator';
 import { BaseRoutes } from '@/common/interfaces/base-routes';
-import { BaseParamsByIdDto, BaseParamsIdEmpresaDto, DEFAULT_PAGE_SIZE } from '@/common/interfaces/base-search';
+import { BaseParamsByIdDto, BaseParamsdiaVenctoDto, BaseParamsIdEmpresaDto, DEFAULT_PAGE_SIZE } from '@/common/interfaces/base-search';
 import {
   Body,
   Controller,
@@ -241,6 +241,11 @@ export const LOCACAO_ROUTES: BaseRoutes = {
     route: '/:empresaId',
     permission: Permission.VIEW_LOCACOES,
   },
+  findVencimento: {
+    name: 'findVencimento',
+    route: '/:empresaId/:diaVencimento',
+    permission: Permission.VIEW_LOCACOES,
+  },
   delete: {
     name: 'delete Locacao',
     route: ':id',
@@ -285,6 +290,13 @@ export class LocacaoController {
   async search(@Param() { empresaId }: BaseParamsIdEmpresaDto, @Query() data: GetLocacoesQueryDto) {
     const { search, page, limit, status, exclude } = data;
     const response = await this.locacaoService.findMany(Number(empresaId), search, page, limit, status, exclude);
+    return response;
+  }
+
+  @Get(LOCACAO_ROUTES.findVencimento.route)
+  @Permissions(LOCACAO_ROUTES.findVencimento.permission)
+  async findVencimento(@Param() { empresaId, diaVencimento }: BaseParamsdiaVenctoDto) {
+    const response = await this.locacaoService.findDiaVencimento(Number(empresaId), Number(diaVencimento));
     return response;
   }
 

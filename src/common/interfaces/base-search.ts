@@ -1,4 +1,4 @@
-import { ImovelStatus } from '@prisma/client';
+import { BoletoStatus, ImovelStatus } from '@prisma/client';
 import { Transform } from 'class-transformer';
 import { IsNumber, IsOptional } from 'class-validator';
 
@@ -55,6 +55,24 @@ export class BaseParamsIdEmpresaDto {
   @Transform(({ value }) => Number(value))
   @IsNumber()
   empresaId: number;
+}
+
+export class BaseParamsdiaVenctoDto {
+  @Transform(({ value }) => Number(value))
+  @IsNumber()
+  empresaId: number;
+
+  @Transform(({ value }) => Number(value))
+  @IsNumber()
+  diaVencimento: number;
+}
+
+export class BaseParamsSatatusPagamentoDto {
+  @Transform(({ value }) => Number(value))
+  @IsNumber()
+  empresaId: number;
+
+  status: BoletoStatus;
 }
 
 export class BaseGetSearchQueryDto {

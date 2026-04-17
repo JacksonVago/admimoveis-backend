@@ -468,6 +468,38 @@ export class LocacaoService {
 
   }
 
+  async findDiaVencimento(
+    empresaId: number,
+    diaVencimento: number,
+  ) {
+
+    return this.prismaService.locacao.findMany({
+      where: {
+        empresaId: empresaId,
+        diaVencimento: {
+          gte: diaVencimento,
+        }
+      },
+      orderBy: {
+        diaVencimento: 'asc'
+      },
+      include: {
+        locatarios: {
+          include: {
+            pessoa: true
+          }
+        },
+        imovel: {
+          include: {
+            endereco: true,
+            condominio: true
+          }
+        }
+      }
+    });
+
+  }
+
   async deleteLocatario(id: number) {
     try {
       return this.prismaService.locatario.delete({
