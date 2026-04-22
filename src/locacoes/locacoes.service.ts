@@ -8,7 +8,7 @@ import {
   ConflictException,
   Injectable,
 } from '@nestjs/common';
-import { GarantiaLocacaoTypes, ImovelStatus, lancamentoStatus, Locacao, LocacaoStatus, Prisma } from '@prisma/client';
+import { BoletoStatus, GarantiaLocacaoTypes, ImovelStatus, Locacao, LocacaoStatus, Prisma } from '@prisma/client';
 import { MemoryStoredFile } from 'nestjs-form-data';
 import { randomUUID } from 'node:crypto';
 import {
@@ -145,7 +145,55 @@ export class LocacaoService {
     return result;
   }
 
-  async findById(id: number, statusLancamento: lancamentoStatus | null | undefined, dataInicial: Date, dataFinal: Date) {
+  async findById(id: number) {
+
+    return await this.prismaService.locacao.findUnique({
+      where: {
+        id: id,
+      },
+      include: {
+        locatarios: {
+          include: {
+            pessoa: {
+              include: {
+                endereco: true,
+              }
+            }
+          }
+        },
+        documentos: true,
+        fiadores: {
+          include: {
+            pessoa: {
+              include: {
+                endereco: true,
+              }
+            }
+          }
+        },
+        imovel: {
+          include: {
+            endereco: true,
+            condominio: true,
+          }
+        },
+        garantiaDepositoCalcao: true,
+        garantiaSeguroFianca: true,
+        garantiaTituloCapitalizacao: true,
+        seguroIncendio: true,
+        boletos: true,
+        lancamentos: true,
+        reajustes: true,
+        moradores: {
+          include: {
+            pessoa: true,
+          }
+        }
+      }
+    });
+  }
+
+  async findByIdVencto(id: number, statusLancamento: BoletoStatus | null | undefined, dataInicial: Date, dataFinal: Date) {
 
     let dataFim: Date = dataFinal;
 
@@ -192,22 +240,26 @@ export class LocacaoService {
         garantiaSeguroFianca: true,
         garantiaTituloCapitalizacao: true,
         seguroIncendio: true,
-        boletos: true,
-        /*{
+        boletos:
+        {
           where: {
-            status: BoletoStatus.ATRASADO,
-            OR: [
+            AND: [
               {
-                status: BoletoStatus.PENDENTE,
+                status: statusLancamento ? { equals: statusLancamento } : undefined
+              },
+
+              {
+                dataVencimento: {
+                  gte: dataInicial,
+                  lte: dataFim,
+                },
               }
             ]
-
           }
-        },*/
+        },
         reajustes: true,
-        lancamentos: {
+        /*lancamentos: {
           where: {
-            //((statusLancamento === null || statusLancamento === undefined) ? {} : { status: { equals: statusLancamento } }),            
             AND: [
               {
                 status: statusLancamento ? { equals: statusLancamento } : undefined,
@@ -224,7 +276,7 @@ export class LocacaoService {
           include: {
             lancamentotipo: true,
           }
-        },
+        },*/
         moradores: {
           include: {
             pessoa: true,

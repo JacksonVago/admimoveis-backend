@@ -12,7 +12,7 @@ import {
   Query
 } from '@nestjs/common';
 import { PartialType } from '@nestjs/mapped-types';
-import { GarantiaLocacaoTypes, lancamentoStatus, LocacaoStatus, LocalDeposito, Permission } from '@prisma/client';
+import { BoletoStatus, GarantiaLocacaoTypes, LocacaoStatus, LocalDeposito, Permission } from '@prisma/client';
 import { Transform } from 'class-transformer';
 import {
   IsArray,
@@ -170,9 +170,19 @@ export class GetLancamentosDto {
   dataFinal: Date;
 }
 
-export class GetStatusPeriodoDto extends PartialType(GetLancamentosDto) {
+export class GetStatusPeriodoDto {
   @IsOptional()
-  status?: lancamentoStatus | null;
+  status?: BoletoStatus | null;
+
+  @IsOptional()
+  @Transform(({ value }) => new Date(value))
+  @IsDate()
+  dataInicial: Date;
+
+  @IsOptional()
+  @Transform(({ value }) => new Date(value))
+  @IsDate()
+  dataFinal: Date;
 }
 
 export class CreatePreLinkLocacaoDto {
@@ -226,20 +236,20 @@ export const LOCACAO_ROUTES: BaseRoutes = {
     route: '/',
     permission: Permission.CREATE_LOCACAO,
   },
-  findById: {
-    name: 'findById',
-    route: 'findbyid/:id',
+  findbyid: {
+    name: 'find By Id',
+    route: '/findbyid/:id',
+    permission: Permission.VIEW_LOCACOES,
+  },
+  findByIdVencimento: {
+    name: 'findById vencimento',
+    route: 'findbyidVencto/:id',
     permission: Permission.VIEW_LOCACOES,
   },
   update: {
     name: 'update Locacao',
-    route: ':id',
+    route: '/:id',
     permission: Permission.UPDATE_LOCACAO,
-  },
-  findMany: {
-    name: 'findMany',
-    route: '/:empresaId',
-    permission: Permission.VIEW_LOCACOES,
   },
   findVencimento: {
     name: 'findVencimento',
@@ -248,7 +258,7 @@ export const LOCACAO_ROUTES: BaseRoutes = {
   },
   delete: {
     name: 'delete Locacao',
-    route: ':id',
+    route: '/:id',
     permission: Permission.DELETE_LOCACAO,
   },
   search: {
@@ -258,17 +268,17 @@ export const LOCACAO_ROUTES: BaseRoutes = {
   },
   createPreLinkLocacao: {
     name: 'prelinkLocacao',
-    route: 'preLinklocacao/create',
+    route: '/preLinklocacao/create',
     permission: Permission.CREATE_LOCACAO,
   },
   Lancamentos: {
     name: 'locacoes',
-    route: 'lancamentos/:id',
+    route: '/lancamentos/:id',
     permission: Permission.VIEW_LOCACAO_LANCAMENTOS,
   },
   unlinkLocacao: {
     name: 'unlinkLocacao',
-    route: 'locacao/:id',
+    route: '/locacao/:id',
     permission: Permission.DELETE_LOCACAO,
   },
 };
@@ -293,6 +303,12 @@ export class LocacaoController {
     return response;
   }
 
+  @Get(LOCACAO_ROUTES.findbyid.route)
+  @Permissions(LOCACAO_ROUTES.findbyid.permission)
+  async findById(@Param() { id }: BaseParamsByIdDto) {
+    return await this.locacaoService.findById(id);
+  }
+
   @Get(LOCACAO_ROUTES.findVencimento.route)
   @Permissions(LOCACAO_ROUTES.findVencimento.permission)
   async findVencimento(@Param() { empresaId, diaVencimento }: BaseParamsdiaVenctoDto) {
@@ -300,12 +316,12 @@ export class LocacaoController {
     return response;
   }
 
-  @Get(LOCACAO_ROUTES.findById.route)
-  @Permissions(LOCACAO_ROUTES.findById.permission)
-  async findById(@Param() { id }: BaseParamsByIdDto, @Query() data: GetStatusPeriodoDto) {
+  /*@Get(LOCACAO_ROUTES.findByIdVencimento.route)
+  @Permissions(LOCACAO_ROUTES.findByIdVencimento.permission)
+  async findByIdVencimento(@Param() { id }: BaseParamsByIdDto, @Query() data: GetStatusPeriodoDto) {
     const { status, dataInicial, dataFinal } = data;
-    return await this.locacaoService.findById(id, status, dataInicial, dataFinal);
-  }
+    return await this.locacaoService.findByIdVencto(id, status, dataInicial, dataFinal);
+  }*/
 
   @Get(LOCACAO_ROUTES.Lancamentos.route)
   @Permissions(LOCACAO_ROUTES.Lancamentos.permission)
