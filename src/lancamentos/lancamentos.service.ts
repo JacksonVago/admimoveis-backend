@@ -49,6 +49,10 @@ export class LancamentosService {
 
   async createPagamento(gerarPagamentoDto: gerarBoletoDto) {
 
+    let currentMonth = new Date().getMonth();
+    let currentYear = new Date().getFullYear();
+    let dataVencimento = currentYear + '-' + (currentMonth + 1).toString().padStart(2, '0') + '-' + gerarPagamentoDto.diaVencimento.toString().padStart(2, '0');
+
     const locacao = await this.prismaService.locacao.findUnique({
       where: {
         id: gerarPagamentoDto.id,
@@ -67,7 +71,7 @@ export class LancamentosService {
         valorOriginal: gerarPagamentoDto.lancamentos.reduce((sum, lancamento) => sum + lancamento.valorLancamento, 0) + gerarPagamentoDto.valorAluguel,
         valorPago: null,
         dataEmissao: new Date(),
-        dataVencimento: gerarPagamentoDto.lancamentos[0].vencimentoLancamento,
+        dataVencimento: (gerarPagamentoDto.lancamentos && gerarPagamentoDto.lancamentos.length > 0) ? gerarPagamentoDto.lancamentos[0].vencimentoLancamento : new Date(dataVencimento),
         dataPagamento: null,
         observacao: 'pagamento gerado automaticamente para locação ' + gerarPagamentoDto.id,
         locacao: { connect: { id: gerarPagamentoDto.id } },
@@ -105,8 +109,6 @@ export class LancamentosService {
         const novaDataLancamento = new Date();
         const novoVencimentoLancamento = new Date(lancamento.vencimentoLancamento);
         novoVencimentoLancamento.setMonth(novoVencimentoLancamento.getMonth() + 1);
-
-        console.log('Gerando novo lancamento automatico para locacaoId:', lancamento.lancamentotipo.name);
 
         await this.prismaService.lancamentoLocacao.create({
           data: {

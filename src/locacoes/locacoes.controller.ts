@@ -272,7 +272,7 @@ export const LOCACAO_ROUTES: BaseRoutes = {
     permission: Permission.CREATE_LOCACAO,
   },
   Lancamentos: {
-    name: 'locacoes',
+    name: 'locacoes lançamentos',
     route: '/lancamentos/:id',
     permission: Permission.VIEW_LOCACAO_LANCAMENTOS,
   },
@@ -309,6 +309,15 @@ export class LocacaoController {
     return await this.locacaoService.findById(id);
   }
 
+  @Get(LOCACAO_ROUTES.Lancamentos.route)
+  @Permissions(LOCACAO_ROUTES.Lancamentos.permission)
+  async lancamentos(@Param() { id }: BaseParamsByIdDto,
+    @Query() data: GetLancamentosDto) {
+    const { dataInicial, dataFinal } = data;
+    const response = await this.locacaoService.findLancamentos(id, dataInicial, dataFinal);
+    return response;
+  }
+
   @Get(LOCACAO_ROUTES.findVencimento.route)
   @Permissions(LOCACAO_ROUTES.findVencimento.permission)
   async findVencimento(@Param() { empresaId, diaVencimento }: BaseParamsdiaVenctoDto) {
@@ -322,15 +331,6 @@ export class LocacaoController {
     const { status, dataInicial, dataFinal } = data;
     return await this.locacaoService.findByIdVencto(id, status, dataInicial, dataFinal);
   }*/
-
-  @Get(LOCACAO_ROUTES.Lancamentos.route)
-  @Permissions(LOCACAO_ROUTES.Lancamentos.permission)
-  async lancamentos(@Param() { id }: BaseParamsByIdDto,
-    @Query() data: GetLancamentosDto) {
-    const { dataInicial, dataFinal } = data;
-    const response = await this.locacaoService.findLancamentos(id, dataInicial, dataFinal);
-    return response;
-  }
 
   @Put(LOCACAO_ROUTES.update.route)
   @Permissions(LOCACAO_ROUTES.update.permission)

@@ -182,7 +182,11 @@ export class LocacaoService {
         garantiaTituloCapitalizacao: true,
         seguroIncendio: true,
         boletos: true,
-        lancamentos: true,
+        lancamentos: {
+          include: {
+            lancamentotipo: true,
+          }
+        },
         reajustes: true,
         moradores: {
           include: {
@@ -524,12 +528,23 @@ export class LocacaoService {
     empresaId: number,
     diaVencimento: number,
   ) {
+    let currentMonth = new Date().getMonth();
+    let currentYear = new Date().getFullYear();
+    let dataVencimento = currentYear + '-' + (currentMonth + 1).toString().padStart(2, '0') + '-' + diaVencimento.toString().padStart(2, '0');
 
     return this.prismaService.locacao.findMany({
       where: {
         empresaId: empresaId,
         diaVencimento: {
           gte: diaVencimento,
+        },
+        boletos: {
+          none: {
+            dataVencimento: {
+              lte: new Date(dataVencimento)
+            },
+            status: BoletoStatus.PENDENTE
+          }
         }
       },
       orderBy: {
@@ -545,6 +560,11 @@ export class LocacaoService {
           include: {
             endereco: true,
             condominio: true
+          }
+        },
+        lancamentos: {
+          include: {
+            lancamentotipo: true,
           }
         }
       }
@@ -789,6 +809,7 @@ export class LocacaoService {
         dataInicio,
         dataFim,
         valorAluguel,
+        diaVencimento,
         // locatarioId,
         // imovelId,
         status,
@@ -862,6 +883,7 @@ export class LocacaoService {
           dataInicio,
           dataFim,
           valorAluguel,
+          diaVencimento,
           status,
           garantiaLocacaoTipo,
           garantiaTituloCapitalizacao:

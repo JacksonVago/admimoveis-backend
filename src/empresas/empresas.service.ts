@@ -91,8 +91,6 @@ export class EmpresasService {
     } = data;
     // Atualiza os dados do imóvel
 
-    console.log('data', data);
-
     const result = await this.PrismaService.empresa.update({
       where: { id },
       data: {

@@ -138,7 +138,6 @@ export class CondominioController {
   @Get(CONDOMINIO_ROUTES.findById.route)
   @Permissions(CONDOMINIO_ROUTES.findById.permission)
   async findById(@Param() { id }: BaseParamsByIdDto) {
-    console.log('empresaId', id);
     return await this.CondominioService.findById(id);
   }
 

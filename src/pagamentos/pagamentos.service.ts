@@ -330,7 +330,7 @@ export class PagamentosService {
         {
           dataVencimento: {
             gte: dataInicial,
-            lt: dataFim,
+            lte: dataFim,
           },
         },
         {
@@ -342,7 +342,6 @@ export class PagamentosService {
 
     };
 
-    console.log('where', where);
     const [data, total] = await this.prismaService.$transaction([
       this.prismaService.boleto.findMany({
         where,
@@ -561,7 +560,6 @@ export class PagamentosService {
         },
       });
 
-      console.log(data);
       if (data.documentos) {
         await this.createPagamentoDocuments(data.empresaId, pagamentoId, data.documentos);
       }
