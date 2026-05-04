@@ -536,7 +536,7 @@ export class LocacaoService {
       where: {
         empresaId: empresaId,
         diaVencimento: {
-          gte: diaVencimento,
+          lte: diaVencimento,
         },
         boletos: {
           none: {

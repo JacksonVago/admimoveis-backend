@@ -495,9 +495,10 @@ model Boleto {
   valorOriginal Float //Valor do boleto
   valorPago     Float? //Valor do boleto
 
-  locatario   Locatario? @relation(fields: [locatarioId], references: [id])
-  locatarioId Int?
-  observacao  String?
+  locatario      Locatario? @relation(fields: [locatarioId], references: [id])
+  locatarioId    Int?
+  linhaDigitavel String?
+  observacao     String?
 
   documentos       GenericAnexo[]
   lanctoLocacao    LancamentoLocacao[]

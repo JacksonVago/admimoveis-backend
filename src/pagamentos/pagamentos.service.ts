@@ -44,6 +44,7 @@ export class PagamentosService {
         valorOriginal: createBoletoDto.valorOriginal,
         valorPago: createBoletoDto.valorPago,
         observacao: createBoletoDto.observacao,
+        linhaDigitavel: createBoletoDto.linhaDigitavel,
       },
       include: {
         locacao: true
@@ -554,6 +555,7 @@ export class PagamentosService {
           valorOriginal: data.valorOriginal,
           valorPago: data.valorPago,
           observacao: data.observacao,
+          linhaDigitavel: data.linhaDigitavel,
         },
         include: {
           locacao: true

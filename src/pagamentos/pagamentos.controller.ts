@@ -71,6 +71,10 @@ export class CreateBoletoDto {
   @IsOptional()
   observacao: string;
 
+  @IsString()
+  @IsOptional()
+  linhaDigitavel: string;
+
   @IsFiles()
   @IsOptional()
   //Limiting to 50 for supabase free tier limit
@@ -198,17 +202,17 @@ export class PagamentoController {
     return response;
   }
 
+  @Get(PAGAMENTO_ROUTES.findById.route)
+  @Permissions(PAGAMENTO_ROUTES.findById.permission)
+  async findById(@Param() { id }: BaseParamsByIdDto) {
+    return await this.PagamentoService.findById(id);
+  }
+
   @Get(PAGAMENTO_ROUTES.PagamentosStatus.route)
   @Permissions(PAGAMENTO_ROUTES.PagamentosStatus.permission)
   async pagamentosStatus(@Param() { empresaId, status }: BaseParamsSatatusPagamentoDto) {
     const response = await this.PagamentoService.PagamentosStatus(empresaId, status);
     return response;
-  }
-
-  @Get(PAGAMENTO_ROUTES.findById.route)
-  @Permissions(PAGAMENTO_ROUTES.findById.permission)
-  async findById(@Param() { id }: BaseParamsByIdDto) {
-    return await this.PagamentoService.findById(id);
   }
 
   @Put(PAGAMENTO_ROUTES.update.route)
