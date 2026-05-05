@@ -538,6 +538,7 @@ export class LocacaoService {
         diaVencimento: {
           lte: diaVencimento,
         },
+        status: LocacaoStatus.ATIVA,
         boletos: {
           none: {
             dataVencimento: {
