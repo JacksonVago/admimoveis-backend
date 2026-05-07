@@ -17,10 +17,22 @@ import {
   Query,
 } from '@nestjs/common';
 import { Permission } from '@prisma/client';
+import { Transform } from 'class-transformer';
+import { IsDate } from 'class-validator';
 import { FormDataRequest } from 'nestjs-form-data';
 import { CreateImovelDto } from './dtos/create-imovel.dto';
 import { UpdateImovelDto } from './dtos/update-imovel.dto';
 import { ImoveisService } from './imoveis.service';
+
+export class GetLancamentosDto {
+  @Transform(({ value }) => new Date(value))
+  @IsDate()
+  dataInicial: Date;
+
+  @Transform(({ value }) => new Date(value))
+  @IsDate()
+  dataFinal: Date;
+}
 
 export const IMOVEIS_ROUTES: BaseRoutes = {
   create: {
@@ -58,6 +70,12 @@ export const IMOVEIS_ROUTES: BaseRoutes = {
     route: '/:id',
     permission: Permission.DELETE_IMOVEL,
   },
+  Lancamentos: {
+    name: 'imovel lançamentos',
+    route: '/lancamentos/:id',
+    permission: Permission.VIEW_LOCACAO_LANCAMENTOS,
+  },
+
 };
 
 @Controller('imoveis')
@@ -99,6 +117,15 @@ export class ImoveisController {
   @Permissions(IMOVEIS_ROUTES.get.permission)
   async get(@Param() { id }: BaseParamsByIdDto) {
     return await this.imoveisService.findById(id);
+  }
+
+  @Get(IMOVEIS_ROUTES.Lancamentos.route)
+  @Permissions(IMOVEIS_ROUTES.Lancamentos.permission)
+  async lancamentos(@Param() { id }: BaseParamsByIdDto,
+    @Query() data: GetLancamentosDto) {
+    const { dataInicial, dataFinal } = data;
+    const response = await this.imoveisService.findLancamentos(id, dataInicial, dataFinal);
+    return response;
   }
 
   @Put(IMOVEIS_ROUTES.update.route)

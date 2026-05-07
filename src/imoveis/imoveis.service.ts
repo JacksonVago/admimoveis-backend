@@ -297,6 +297,12 @@ export class ImoveisService {
               }
             }
           },
+          proprietarios: {
+            include: {
+              pessoa: true,
+            }
+          },
+          documentos: true,
           empresa: true,
         },
         where,
@@ -741,6 +747,42 @@ export class ImoveisService {
     } catch (error) {
       console.error('Error on createPessoaDocuments', error);
     }
+  }
+
+  async findLancamentos(
+    id: number,
+    dataInicial: Date,
+    dataFinal: Date,
+  ) {
+
+    let dataFim: Date = dataFinal;
+    dataFim.setDate(dataFinal.getDate() + 1);
+
+    return this.prismaService.imovel.findUnique({
+      where: {
+        id: id,
+      },
+      include: {
+        lancamentos: {
+          where: {
+            dataLancamento: {
+              gte: dataInicial,
+              lte: dataFim,
+            },
+          },
+          include: {
+            lancamentotipo: true,
+          },
+        },
+        proprietarios: {
+          include: {
+            pessoa: true
+          }
+        },
+        endereco: true,
+      },
+    });
+
   }
 
 }

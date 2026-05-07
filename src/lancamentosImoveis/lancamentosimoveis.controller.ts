@@ -11,7 +11,7 @@ import {
   Put,
   Query
 } from '@nestjs/common';
-import { lancamentoStatus, LancamentoTipo, LocacaoStatus, Locatario, Permission } from '@prisma/client';
+import { lancamentoStatus, LancamentoTipo, Permission, Proprietario } from '@prisma/client';
 import { Transform } from 'class-transformer';
 import {
   IsDate,
@@ -24,7 +24,7 @@ import {
 import {
   FormDataRequest
 } from 'nestjs-form-data';
-import { LancamentosService } from './lancamentos.service';
+import { LancamentosImoveisService } from './lancamentosimoveis.service';
 
 export class LancamentoDto {
   id: number;
@@ -36,20 +36,15 @@ export class LancamentoDto {
   vencimentoLancamento: Date;
   observacao: string;
   status: lancamentoStatus;
-  locacaoId: number;
+  imovelId: number;
 }
 
 export class gerarBoletoDto {
-  id: number;
-  dataInicio: Date;
-  dataFim: Date;
-  valorAluguel: number;
-  status: LocacaoStatus;
-  imovelId: number;
-  diaVencimento: number;
-  lancamentos: LancamentoDto[];
-  locatarios: Locatario[];
   empresaId: number;
+  imovelId: number;
+  dataVencimento: Date;
+  lancamentos: LancamentoDto[];
+  proprietarios: Proprietario[]
 }
 
 export class CreateLancamentoDto {
@@ -89,7 +84,7 @@ export class CreateLancamentoDto {
 
   @Transform(({ value }) => Number(value))
   @IsInt()
-  locacaoId: number;
+  imovelId: number;
 
 }
 
@@ -159,9 +154,9 @@ export const LANCAMENTO_ROUTES: BaseRoutes = {
   },
 };
 
-@Controller('lancamentos')
-export class LancamentoController {
-  constructor(private readonly lancamentoService: LancamentosService) { }
+@Controller('lancamentosimoveis')
+export class LancamentoImovelController {
+  constructor(private readonly lancamentoService: LancamentosImoveisService) { }
 
   @Post(LANCAMENTO_ROUTES.create.route)
   @Permissions(LANCAMENTO_ROUTES.create.permission)
@@ -191,7 +186,7 @@ export class LancamentoController {
   @Permissions(LANCAMENTO_ROUTES.search.permission)
   async search(@Param() { empresaId }: BaseParamsIdEmpresaDto, @Query() data: GetLancamentosQueryDto) {
     const { search, page, limit, status, exclude, dataInicial, dataFinal } = data;
-    const response = await this.lancamentoService.findManyLocacao(Number(empresaId), search, page, limit, status, exclude, dataInicial, dataFinal);
+    const response = await this.lancamentoService.findManyImovel(Number(empresaId), search, page, limit, status, exclude, dataInicial, dataFinal);
     return response;
   }
 

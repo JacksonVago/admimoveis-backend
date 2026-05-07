@@ -10,6 +10,7 @@ import { FilesModule } from './files/files.module';
 import { ImoveisModule } from './imoveis/imoveis.module';
 import { LancamentoModule } from './lancamentos/lancamentos.module';
 import { LancamentoCondominioModule } from './lancamentosCondominios/lanctosCondominios.module';
+import { LancamentoImoveisModule } from './lancamentosImoveis/lancamentosimoveis.module';
 import { LocacaoModule } from './locacoes/locacoes.module';
 import { MoradoresModule } from './moradores/moradores.module';
 import { PagamentoModule } from './pagamentos/pagamentos.module';
@@ -50,6 +51,7 @@ import { UsersModule } from './users/users.module';
     BlocoModule,
     LancamentoCondominioModule,
     MoradoresModule,
+    LancamentoImoveisModule,
     //QueueModule,
   ],
   controllers: [],

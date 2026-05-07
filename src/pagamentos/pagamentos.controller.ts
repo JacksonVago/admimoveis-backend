@@ -34,7 +34,13 @@ export class CreateBoletoDto {
 
   @Transform(({ value }) => Number(value))
   @IsNumber()
+  @IsOptional()
   locacaoId: number;
+
+  @Transform(({ value }) => Number(value))
+  @IsNumber()
+  @IsOptional()
+  imovelId: number;
 
   @Transform(({ value }) => Number(value))
   @IsNumber()

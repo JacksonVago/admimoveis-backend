@@ -47,8 +47,32 @@ model Empresa {
   locacoes                  Locacao[]
   lancamentoTipos           LancamentoTipo[]
   empresaAssinaturas        EmpresaAssinatura[]
+  contasCorrentes           ContaCorrente[]
+  boletos                   Boleto[]
 
   @@map("empresas")
+}
+
+model ContaCorrente {
+  id              Int     @id @default(autoincrement())
+  banco           String
+  agencia         String
+  conta           String
+  digito          String
+  descricao       String?
+  usuarioBancoAPI String?
+  senhaBancoAPI   String?
+  chaveAppAPI     String?
+  urlPIX          String?
+  urlWebhookPIX   String?
+
+  pessoa   Pessoa? @relation(fields: [pessoaId], references: [id])
+  pessoaId Int?
+
+  empresa   Empresa @relation(fields: [empresaId], references: [id])
+  empresaId Int
+
+  @@map("contascorrentes")
 }
 
 model LancamentoTipo {
@@ -68,8 +92,9 @@ model LancamentoTipo {
   lancamentosLocacoes    LancamentoLocacao[]
   lancamentosCondominios LancamentoCondominio[]
 
-  empresa   Empresa @relation(fields: [empresaId], references: [id])
-  empresaId Int
+  empresa           Empresa            @relation(fields: [empresaId], references: [id])
+  empresaId         Int
+  lancamentoImovels LancamentoImovel[]
 
   @@unique([empresaId, name])
   @@map("lancamentotipos")
@@ -151,8 +176,9 @@ model Pessoa {
   documentos    GenericAnexo[]
   moradores     Morador[]
 
-  empresa   Empresa @relation(fields: [empresaId], references: [id])
-  empresaId Int
+  empresa        Empresa         @relation(fields: [empresaId], references: [id])
+  empresaId      Int
+  contaCorrentes ContaCorrente[]
 
   @@unique([empresaId, documento])
   @@map("pessoas")
@@ -239,9 +265,11 @@ model Imovel {
   //anexar obervaçoes, exemplo: "Imóvel precisa de reforma, isso mostra as fotos"
   observacoes  Observacao[]
   documentos   GenericAnexo[]
+  lancamentos  LancamentoImovel[]
 
-  empresa   Empresa @relation(fields: [empresaId], references: [id])
+  empresa   Empresa  @relation(fields: [empresaId], references: [id])
   empresaId Int
+  boletos   Boleto[]
 
   @@map("imoveis")
 }
@@ -479,13 +507,38 @@ model LancamentoLocacao {
   @@map("lancamentoslocacoes")
 }
 
+model LancamentoImovel {
+  id                   Int              @id @default(autoincrement())
+  lancamentotipo       LancamentoTipo   @relation(fields: [tipoId], references: [id])
+  parcela              Int? //Parcela do lançamento no caso de lançamento com número de parcelas
+  tipoId               Int //Tipo de lançamnto (IPTU, CONDOMINIO, ÁGUA, LUZ, etc..)
+  valorLancamento      Float //Valor do lançamento
+  dataLancamento       DateTime
+  vencimentoLancamento DateTime
+  linhaDigitavel       String? //Linha digitável do boleto gerado para esse lançamento
+  observacao           String
+  status               lancamentoStatus @default(ABERTO)
+  createdAt            DateTime         @default(now())
+  updatedAt            DateTime         @updatedAt
+
+  imovel   Imovel  @relation(fields: [imovelId], references: [id])
+  imovelId Int
+  boleto   Boleto? @relation(fields: [boletoId], references: [id])
+  boletoId Int?
+
+  @@map("lancamentosimoveis")
+}
+
 model Boleto {
   id        Int      @id @default(autoincrement())
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  locacao   Locacao @relation(fields: [locacaoId], references: [id])
-  locacaoId Int
+  locacao   Locacao? @relation(fields: [locacaoId], references: [id])
+  locacaoId Int?
+
+  imovel   Imovel? @relation(fields: [imovelId], references: [id])
+  imovelId Int?
 
   status         BoletoStatus @default(PENDENTE) //Status do boleto (pendente, pago, atrasado...)  
   dataEmissao    DateTime //date de emissão do boleto
@@ -500,10 +553,14 @@ model Boleto {
   linhaDigitavel String?
   observacao     String?
 
-  documentos       GenericAnexo[]
-  lanctoLocacao    LancamentoLocacao[]
-  boletosBancarios BoletoBancario[]
-  lanctoCondominio LancamentoCondominio[]
+  documentos        GenericAnexo[]
+  lanctoLocacao     LancamentoLocacao[]
+  boletosBancarios  BoletoBancario[]
+  lanctoCondominio  LancamentoCondominio[]
+  lancamentoImovels LancamentoImovel[]
+
+  empresa   Empresa @relation(fields: [empresaId], references: [id])
+  empresaId Int
 
   @@map("boletos")
 }

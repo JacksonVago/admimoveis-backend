@@ -22,20 +22,37 @@ export class PagamentosService {
 
   async create(createBoletoDto: CreateBoletoDto) {
 
-    const locacao = await this.prismaService.locacao.findUnique({
-      where: {
-        id: createBoletoDto.locacaoId,
-        status: LocacaoStatus.ATIVA,
-      },
-    });
+    //Caso seja lançamento de locação, verifica se a locação existe e está ativa
+    if (createBoletoDto.locacaoId && createBoletoDto.locacaoId > 0) {
+      const locacao = await this.prismaService.locacao.findUnique({
+        where: {
+          id: createBoletoDto.locacaoId,
+          status: LocacaoStatus.ATIVA,
+        },
+      });
 
-    if (!locacao) {
-      throw new BadRequestException('Locacao not found');
+      if (!locacao) {
+        throw new BadRequestException('Locacao not found');
+      }
+    }
+
+    //Caso seja lançamento de imovel sem locação
+    if (createBoletoDto.imovelId && createBoletoDto.imovelId > 0) {
+      const imovel = await this.prismaService.imovel.findUnique({
+        where: {
+          id: createBoletoDto.imovelId,
+        },
+      });
+
+      if (!imovel) {
+        throw new BadRequestException('Imovel not found');
+      }
     }
 
     const result = await this.prismaService.boleto.create({
       data: {
         locacao: createBoletoDto.locacaoId ? { connect: { id: createBoletoDto.locacaoId } } : undefined,
+        imovel: createBoletoDto.imovelId ? { connect: { id: createBoletoDto.imovelId } } : undefined,
         locatario: createBoletoDto.locatarioId ? { connect: { id: createBoletoDto.locatarioId } } : undefined,
         status: createBoletoDto.status,
         dataEmissao: createBoletoDto.dataEmissao,
@@ -45,6 +62,7 @@ export class PagamentosService {
         valorPago: createBoletoDto.valorPago,
         observacao: createBoletoDto.observacao,
         linhaDigitavel: createBoletoDto.linhaDigitavel,
+        empresa: { connect: { id: createBoletoDto.empresaId } },
       },
       include: {
         locacao: true
@@ -87,6 +105,16 @@ export class PagamentosService {
       },
       include: {
         documentos: true,
+        imovel: {
+          include: {
+            endereco: true,
+            proprietarios: {
+              include: {
+                pessoa: true
+              }
+            }
+          }
+        },
         lanctoLocacao: {
           include: {
             lancamentotipo: true
@@ -115,6 +143,11 @@ export class PagamentosService {
                 condominio: true,
               }
             },
+          }
+        },
+        lancamentoImovels: {
+          include: {
+            lancamentotipo: true,
           }
         }
       }
@@ -208,6 +241,25 @@ export class PagamentosService {
                 }
               },
             }
+          },
+          imovel: {
+            include: {
+              endereco: true,
+              proprietarios: {
+                include: {
+                  pessoa: {
+                    include: {
+                      endereco: true
+                    }
+                  }
+                }
+              },
+              lancamentos: {
+                include: {
+                  lancamentotipo: true
+                }
+              }
+            }
           }
         },
         skip,
@@ -274,6 +326,14 @@ export class PagamentosService {
               },
             }
           },
+          lancamentoImovels: {
+            some: {
+              observacao: {
+                contains: search,
+                mode: 'insensitive'
+              },
+            }
+          }
         },
         {
           locacao: {
@@ -320,9 +380,63 @@ export class PagamentosService {
               },
             },
           }
-        }
+        },
+
+        {
+          imovel: {
+            description: {
+              contains: search,
+              mode: 'insensitive'
+            },
+            proprietarios: {
+              some: {
+                pessoa: {
+                  nome: {
+                    contains: search,
+                    mode: 'insensitive',
+                  },
+                },
+              },
+            },
+          },
+        },
+        {
+          imovel: {
+            description: {
+              contains: search,
+              mode: 'insensitive'
+            },
+            proprietarios: {
+              some: {
+                pessoa: {
+                  email: {
+                    contains: search,
+                    mode: 'insensitive',
+                  },
+                },
+              },
+            },
+          },
+        },
+        {
+          imovel: {
+            description: {
+              contains: search,
+              mode: 'insensitive'
+            },
+            endereco: {
+              complemento: {
+                contains: search,
+                mode: 'insensitive',
+              },
+            },
+          },
+        },
       ],
       AND: [
+        {
+          empresaId: empresaId,
+        },
         ((statusPagamento === null || statusPagamento === undefined || statusPagamento.toString() === "") ? {} : {
           status: {
             equals: statusPagamento
@@ -334,13 +448,13 @@ export class PagamentosService {
             lte: dataFim,
           },
         },
-        {
-          locacao: {
-            empresaId: empresaId,
-          }
-        }
+        /*{
+          OR: [
+            { locacao: { empresaId: empresaId } },
+            { imovel: { empresaId: empresaId } },
+          ]
+        },*/
       ]
-
     };
 
     const [data, total] = await this.prismaService.$transaction([
@@ -376,6 +490,21 @@ export class PagamentosService {
               lancamentotipo: true
             }
           },
+          imovel: {
+            include: {
+              endereco: true,
+              proprietarios: {
+                include: {
+                  pessoa: true
+                }
+              },
+            }
+          },
+          lancamentoImovels: {
+            include: {
+              lancamentotipo: true
+            }
+          }
         },
         skip,
         take: pageSize,
