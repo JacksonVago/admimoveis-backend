@@ -4,6 +4,7 @@ import { Module } from '@nestjs/common';
 import { EnvModule } from '@/env/env.module';
 import { PrismaModule } from '@/prisma/prisma.module';
 import { CustomRedisModule } from '@/redis/redis.module';
+import { BullModule } from '@nestjs/bullmq';
 import { QueueController } from './queue.controller';
 import { QueueService } from './queue.service';
 
@@ -12,10 +13,9 @@ import { QueueService } from './queue.service';
     PrismaModule,
     EnvModule,
     CustomRedisModule,
-    /*EnvModule,
     BullModule.registerQueue({
       name: 'dynamicQueue',
-    }),*/
+    }),
   ],
   providers: [QueueService,],
   exports: [QueueService,],

@@ -15,42 +15,110 @@ datasource db {
 
 //Configuracões da empresa
 model Empresa {
-  id                        Int                 @id @default(autoincrement())
+  id                        Int          @id @default(autoincrement())
   nome                      String
-  cnpj                      String              @unique
-  endereco                  Endereco            @relation(fields: [enderecoId], references: [id])
+  cnpj                      String       @unique
+  endereco                  Endereco     @relation(fields: [enderecoId], references: [id])
   enderecoId                Int
   telefone                  String?
   email                     String?
-  status                    PessoaStatus        @default(ATIVA)
-  avisosReajusteLocacao     Int                 @default(30) //Número de dias para avisos de reajustes de locação
-  avisosRenovacaoContrato   Int                 @default(30) //Número de dias para avisos de renovação de contratos
-  avisosSeguroFianca        Int                 @default(30) //Número de dias para avisos de seguro fiança
-  avisosSeguroIncendio      Int                 @default(30) //Número de dias para avisos de seguro incêndio
-  avisosTituloCapitalizacao Int                 @default(30) //Número de dias para avisos de título de capitalização
-  avisosDepositoCalcao      Int                 @default(30) //Número de dias para avisos de depósito caução
-  porcentagemComissao       Float               @default(8) //Porcentagem de comissão da imobiliária
-  emiteBoleto               String              @default("N") //Emite boleto S/N
-  valorTaxaBoleto           Float               @default(5) //Valor da taxa de boleto
+  status                    PessoaStatus @default(ATIVA)
+  avisosReajusteLocacao     Int          @default(30) //Número de dias para avisos de reajustes de locação
+  avisosRenovacaoContrato   Int          @default(30) //Número de dias para avisos de renovação de contratos
+  avisosSeguroFianca        Int          @default(30) //Número de dias para avisos de seguro fiança
+  avisosSeguroIncendio      Int          @default(30) //Número de dias para avisos de seguro incêndio
+  avisosTituloCapitalizacao Int          @default(30) //Número de dias para avisos de título de capitalização
+  avisosDepositoCalcao      Int          @default(30) //Número de dias para avisos de depósito caução
+  porcentagemComissao       Float        @default(8) //Porcentagem de comissão da imobiliária
+  emiteBoleto               String       @default("N") //Emite boleto S/N
+  valorTaxaBoleto           Float        @default(5) //Valor da taxa de boleto
   tipoLancamento            Int? //Tipo de lançamnto (TAXA DE BOLETO- deve estar cadastrado)
-  emissaoBoletoAntecedencia Int                 @default(5) //Número de dias de antecedência para emissão de boletos  
-  porcentagemMultaAtraso    Float               @default(2) //Porcentagem de multa por atraso no pagamento
-  porcentagemJurosAtraso    Float               @default(0.1) //Porcentagem de juros por atraso no pagamento  
+  emissaoBoletoAntecedencia Int          @default(5) //Número de dias de antecedência para emissão de boletos  
+  porcentagemMultaAtraso    Float        @default(2) //Porcentagem de multa por atraso no pagamento
+  porcentagemJurosAtraso    Float        @default(0.1) //Porcentagem de juros por atraso no pagamento  
   logo                      String? //Logotipo da empresa
-  createdAt                 DateTime            @default(now())
-  updatedAt                 DateTime            @updatedAt
-  imovelTipos               ImovelTipo[]
-  users                     User[]
-  pessoas                   Pessoa[]
-  condominios               Condominio[]
-  imoveis                   Imovel[]
-  locacoes                  Locacao[]
-  lancamentoTipos           LancamentoTipo[]
-  empresaAssinaturas        EmpresaAssinatura[]
-  contasCorrentes           ContaCorrente[]
-  boletos                   Boleto[]
+
+  smtpHost   String? //Host do servidor SMTP para envio de emails
+  portSmtp   Int? //Porta do servidor SMTP
+  secureSmtp Boolean? //Indica se a conexão SMTP é segura (SSL/TLS)
+  userSmtp   String? //Usuário para autenticação no servidor SMTP
+  pwdSmtp    String? //Senha para autenticação no servidor SMTP
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  imovelTipos         ImovelTipo[]
+  users               User[]
+  pessoas             Pessoa[]
+  condominios         Condominio[]
+  imoveis             Imovel[]
+  locacoes            Locacao[]
+  lancamentoTipos     LancamentoTipo[]
+  empresaAssinaturas  EmpresaAssinatura[]
+  contasCorrentes     ContaCorrente[]
+  boletos             Boleto[]
+  configuracaoAlertas ConfiguracaoAlertas?
+  jobs                Jobs[]
 
   @@map("empresas")
+}
+
+model ConfiguracaoAlertas {
+  id        Int        @id @default(autoincrement())
+  descricao String //Descrição do tipo de alerta (ex: Reajuste de locação, Vencimento de contrato, etc.)
+  ativo     Boolean    @default(false) //Indica se o alerta está ativo ou não
+  empresa   Empresa    @relation(fields: [empresaId], references: [id])
+  empresaId Int        @unique
+  alerta    TipoAlerta @relation(fields: [alertaId], references: [id])
+  alertaId  Int
+
+  tipoAgendamento TipoAgendamento //Tipo agendamento (ex: "UNICO", "RECORRENTE")
+  frequenciaEnvio FrequenciaEnvio? //Frequência de envio dos alertas (ex: "DIARIO", "SEMANAL", "MENSAL", "ANUAL") quando for recorrente
+
+  dataInicio DateTime? //Data e hora de início do envio dos alertas quando for único
+
+  ocorreAcada  Int? //A cada quantos dias, meses, semanas, anos, etc. deve ser enviado o alerta quando for recorrente
+  grupoEnvio   String? //Grupo (dias, meses, semanas, anos) para envio dos alertas, armazenados como string separada por vírgula ou intervalo 
+  // Depende da frequência escolhida
+  // Exemplo:
+  //Dias :
+  //- 30,15,7,1 dias específicos
+  //- [1-10] range de dias
+  //Meses:
+  //- 3,2,1 meses específicos
+  //- [1-3] range de meses
+  //Dias Semanas:
+  //- 7,3,1 dias específicos
+  //- [1-7] range de dias da semana (1=Domingo, 2=Segunda, ..., 7=Sábado)
+  //Anos:
+  //- 1,2,3 anos específicos a partir de 2001
+  //- [1-5] range de anos
+  horarioEnvio String? //Horário do dia para envio dos alertas (ex: "09:00", "18:00", etc.) uma vez ao dia
+
+  tipoIntervaloEnvio TipoIntervaloEnvio? //Tipo de intervalo para envio dos alertas (ex: "HORAS", "MINUTOS", "SEGUNDOS") quando for recorrente e mais de uma vez ao dia
+  intervaloEnvio     Int? //Intervalo envio dos alertas quando for recorrente pode ser (dias, meses, semanas, anos, 1 a cada , 2 a cada 2 dias, etc.) 
+  horarioInicial     String? //Horário inicial para envio dos alertas (ex: "09:00", "18:00", etc.) quando for recorrente e mais de uma vez ao dia
+  horarioFinal       String? //Horário final para envio dos alertas (ex: "17:00", "23:00", etc.) quando for recorrente e mais de uma vez ao dia
+
+  dataInicioEnvio DateTime? //Data e hora de início do envio dos alertas quando for recorrente
+  dataFinalEnvio  DateTime? //Data e hora de finalização do envio dos alertas quando for recorrente sem data será enviado indefinidamente
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  jobs      Jobs[]
+
+  @@map("configuracoesalertas")
+}
+
+model TipoAlerta {
+  id        Int                   @id @default(autoincrement())
+  name      String
+  descricao String?
+  createdAt DateTime              @default(now())
+  updatedAt DateTime              @updatedAt
+  alertas   ConfiguracaoAlertas[]
+
+  @@map("tipoalertas")
 }
 
 model ContaCorrente {
@@ -73,6 +141,29 @@ model ContaCorrente {
   empresaId Int
 
   @@map("contascorrentes")
+}
+
+model Jobs {
+  id             String              @id @default(uuid())
+  empresa        Empresa             @relation(fields: [empresaId], references: [id])
+  empresaId      Int
+  alerta         ConfiguracaoAlertas @relation(fields: [alertaId], references: [id])
+  alertaId       Int
+  str_message    String
+  str_start_date String
+  str_end_date   String
+  str_start_time String
+  str_end_time   String
+  str_cron       String
+  int_delay      Int
+  dtm_created    DateTime            @default(now())
+  dtm_updated    DateTime            @updatedAt
+  status         JobsStatus          @default(WAITING_TO_START)
+
+  user   User   @relation(fields: [userId], references: [id])
+  userId String
+
+  @@map("jobs")
 }
 
 model LancamentoTipo {
@@ -132,6 +223,7 @@ model User {
 
   empresa   Empresa @relation(fields: [empresaId], references: [id])
   empresaId Int
+  jobs      Jobs[]
 
   @@unique([empresaId, login])
   @@map("users")
@@ -945,4 +1037,33 @@ enum LocalDeposito {
 enum FormaRateio {
   IGUALITARIO
   FRACAO_IDEAL
+}
+
+enum TipoAgendamento {
+  RECORRENTE
+  UNICO
+}
+
+enum FrequenciaEnvio {
+  DIARIO
+  SEMANAL
+  MENSAL
+  ANUAL
+}
+
+enum TipoIntervaloEnvio {
+  HORAS
+  MINUTOS
+  SEGUNDOS
+}
+
+enum JobsStatus {
+  CREATING
+  WAITING_TO_START
+  WAITING_TO_PROCESS
+  RUNNING
+  PAUSED
+  PAUSED_BY_SCHEDULE
+  FINISHED
+  ERROR
 }

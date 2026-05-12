@@ -172,6 +172,12 @@ export class ImoveisService {
         empresa: true,
         condominio: true,
         bloco: true,
+        lancamentos: {
+          include: {
+            lancamentotipo: true,
+          }
+        },
+        boletos: true,
       },
     });
 

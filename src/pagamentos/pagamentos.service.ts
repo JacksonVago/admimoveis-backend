@@ -662,15 +662,31 @@ export class PagamentosService {
   async update(pagamentoId: number, data: UpdateBoletoDto) {
     try {
 
-      const existingLocacao = await this.prismaService.locacao.findFirst({
-        where: {
-          id: data.locacaoId,
-        }
-      });
+      if (data.locacaoId && data.locacaoId > 0) {
+        const existingLocacao = await this.prismaService.locacao.findFirst({
+          where: {
+            id: data.locacaoId,
+          }
+        });
 
-      if (!existingLocacao) {
-        throw new BadRequestException('Locacao not found');
+        if (!existingLocacao) {
+          throw new BadRequestException('Locacao not found');
+        }
       }
+
+      //Caso seja lançamento de imovel sem locação
+      if (data.imovelId && data.imovelId > 0) {
+        const imovel = await this.prismaService.imovel.findUnique({
+          where: {
+            id: data.imovelId,
+          },
+        });
+
+        if (!imovel) {
+          throw new BadRequestException('Imovel not found');
+        }
+      }
+
 
       const result = await this.prismaService.boleto.update({
         where: {
@@ -687,7 +703,8 @@ export class PagamentosService {
           linhaDigitavel: data.linhaDigitavel,
         },
         include: {
-          locacao: true
+          locacao: true,
+          imovel: true
         },
       });
 

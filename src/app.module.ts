@@ -4,6 +4,7 @@ import { AuthModule } from './auth/auth.module';
 import { BlocoModule } from './blocos/bloco.module';
 import { CepModule } from './cep/cep.module';
 import { CondominioModule } from './condominios/condominio.module';
+import { MailModule } from './email/email.module';
 import { EmpresaModule } from './empresas/empresas.module';
 import { EnvModule } from './env/env.module';
 import { FilesModule } from './files/files.module';
@@ -18,6 +19,9 @@ import { PagSeguroModule } from './pagseguro/pagseguro.module';
 import { PessoasModule } from './pessoas/pessoas.module';
 import { PrismaModule } from './prisma/prisma.module';
 import { ProprietariosModule } from './proprietarios/proprietarios.module';
+import { bullboardConfig } from './queue/config/bull-board.config';
+import { queueConfig } from './queue/config/queue.config';
+import { QueueModule } from './queue/queue.module';
 import { ReajusteModule } from './reajustes/reajustes.module';
 import { RepasseModule } from './repasses/repasses.module';
 import { TipoImovelModule } from './tipoimovel/tipoimovel.module';
@@ -26,8 +30,8 @@ import { UsersModule } from './users/users.module';
 
 @Module({
   imports: [
-    //queueConfig,
-    //bullboardConfig,
+    queueConfig,
+    bullboardConfig,
     EnvModule,
     PrismaModule,
     UsersModule,
@@ -52,7 +56,8 @@ import { UsersModule } from './users/users.module';
     LancamentoCondominioModule,
     MoradoresModule,
     LancamentoImoveisModule,
-    //QueueModule,
+    QueueModule,
+    MailModule,
   ],
   controllers: [],
   providers: [],
