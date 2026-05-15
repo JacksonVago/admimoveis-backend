@@ -44,7 +44,11 @@ export class EmpresasService {
         porcentagemMultaAtraso: createEmpresaDto.porcentagemMultaAtraso,
         porcentagemJurosAtraso: createEmpresaDto.porcentagemJurosAtraso,
         tipoLancamento: createEmpresaDto.tipoId,
-
+        smtpHost: createEmpresaDto.smtpHost,
+        portSmtp: createEmpresaDto.portSmtp,
+        secureSmtp: createEmpresaDto.secureSmtp,
+        userSmtp: createEmpresaDto.userSmtp,
+        pwdSmtp: createEmpresaDto.pwdSmtp,
         endereco: {
           create: {
             logradouro: createEmpresaDto?.logradouro,
@@ -113,6 +117,11 @@ export class EmpresasService {
         porcentagemJurosAtraso: data.porcentagemJurosAtraso,
         tipoLancamento: data.tipoId,
         logo: data.logo,
+        smtpHost: data.smtpHost,
+        portSmtp: data.portSmtp,
+        secureSmtp: data.secureSmtp,
+        userSmtp: data.userSmtp,
+        pwdSmtp: data.pwdSmtp,
 
         //if we have any address data, update it
         endereco:

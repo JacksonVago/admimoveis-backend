@@ -44,6 +44,11 @@ export const envSChema = z.object({
   REDIS_HOST: z.string(),
   REDIS_PORT: z.coerce.number().default(6379),
 
+  /** Email config teste */
+  SMTP_HOST: z.string(),
+  SMTP_PORT: z.coerce.number().default(465),
+  SMTP_USER: z.string(),
+  SMTP_PASSWORD: z.string(),
 });
 
 export type Env = z.infer<typeof envSChema>;

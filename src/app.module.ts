@@ -22,8 +22,11 @@ import { ProprietariosModule } from './proprietarios/proprietarios.module';
 //import { bullboardConfig } from './queue/config/bull-board.config';
 //import { queueConfig } from './queue/config/queue.config';
 //import { QueueModule } from './queue/queue.module';
+import { ContaCorrenteModule } from './contascorrente/contacorrente.module';
+import { JobsModule } from './jobs/jobs.module';
 import { ReajusteModule } from './reajustes/reajustes.module';
 import { RepasseModule } from './repasses/repasses.module';
+import { TipoAlertaModule } from './tipoalerta/tipoalerta.module';
 import { TipoImovelModule } from './tipoimovel/tipoimovel.module';
 import { TipoLancamentoModule } from './tipolancamento/tipolancamento.module';
 import { UsersModule } from './users/users.module';
@@ -58,6 +61,9 @@ import { UsersModule } from './users/users.module';
     LancamentoImoveisModule,
     //QueueModule,
     MailModule,
+    TipoAlertaModule,
+    ContaCorrenteModule,
+    JobsModule,
   ],
   controllers: [],
   providers: [],

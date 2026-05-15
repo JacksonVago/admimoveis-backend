@@ -1,5 +1,6 @@
 # Use a Node.js base image
-FROM node:20-alpine
+FROM node:alpine AS builder
+#FROM node:20-alpine
 #FROM node:22.19.0-slim
 
 # Set the working directory inside the container

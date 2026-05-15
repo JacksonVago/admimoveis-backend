@@ -504,7 +504,8 @@ export class PagamentosService {
             include: {
               lancamentotipo: true
             }
-          }
+          },
+          documentos: true,
         },
         skip,
         take: pageSize,

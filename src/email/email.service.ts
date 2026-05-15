@@ -1,3 +1,4 @@
+import { EnvService } from '@/env/env.service';
 import { Injectable } from '@nestjs/common';
 import * as nodemailer from 'nodemailer';
 
@@ -12,15 +13,20 @@ interface SendMailConfiguration {
 export class MailService {
     private transporter: nodemailer.Transporter;
 
-    constructor() {
+    constructor(private envService: EnvService) {
+
+        //Buscar dados de acessos 
+
+        const PORT: number | undefined = parseInt(this.envService.get('SMTP_PORT').toString() == void 0 ? "0" : this.envService.get('SMTP_PORT').toString());
+
         this.transporter = nodemailer.createTransport(
             {
-                host: 'email-ssl.com.br', //'smtp.natividadesolucoes.com.br',
-                port: 465,
+                host: this.envService.get('SMTP_HOST').toString(),
+                port: PORT,
                 secure: true,
                 auth: {
-                    user: 'suporte@natividadesolucoes.com.br',
-                    pass: 'Suporte@2020',
+                    user: this.envService.get('SMTP_USER').toString(),
+                    pass: this.envService.get('SMTP_PASSWORD').toString(),
                     //user: 'jackson@natividadesolucoes.com.br',
                     //pass: 'JjmlS2021@',
                 },

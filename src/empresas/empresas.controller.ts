@@ -4,7 +4,7 @@ import { EnderecoDto } from '@/common/interfaces/dtos/endereco.dto';
 import { Body, Controller, Get, Param, Post, Put } from '@nestjs/common';
 import { PessoaStatus } from '@prisma/client';
 import { Transform } from 'class-transformer';
-import { IsEnum, IsInt, IsNumber, IsOptional, IsString } from 'class-validator';
+import { IsBoolean, IsEnum, IsInt, IsNumber, IsOptional, IsString } from 'class-validator';
 import { FormDataRequest, HasMimeType, IsFiles, MaxFileSize, MemoryStoredFile } from 'nestjs-form-data';
 import { EmpresasService } from './empresas.service';
 
@@ -86,6 +86,26 @@ export class CreateEmpresaDto extends EnderecoDto {
   @IsString()
   @IsOptional()
   logo: string;
+
+  @IsString()
+  @IsOptional()
+  smtpHost: string; //Host do servidor SMTP para envio de emails
+
+  @IsNumber()
+  @IsOptional()
+  portSmtp: number; //Porta do servidor SMTP
+
+  @IsBoolean()
+  @IsOptional()
+  secureSmtp: boolean; //Indica se a conexão SMTP é segura (SSL/TLS)
+
+  @IsString()
+  @IsOptional()
+  userSmtp: string; //Usuário para autenticação no servidor SMTP
+
+  @IsString()
+  @IsOptional()
+  pwdSmtp: string; //Senha para autenticação no servidor SMTP
 
   @IsOptional()
   @Transform(({ value }) => Number(value))
