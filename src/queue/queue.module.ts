@@ -1,6 +1,7 @@
 // src/queue/queue.module.ts
 import { Module } from '@nestjs/common';
 //import { BullModule } from '@nestjs/bull';
+import { MailModule } from '@/email/email.module';
 import { EnvModule } from '@/env/env.module';
 import { PrismaModule } from '@/prisma/prisma.module';
 import { CustomRedisModule } from '@/redis/redis.module';
@@ -10,6 +11,7 @@ import { QueueService } from './queue.service';
 
 @Module({
   imports: [
+    MailModule,
     PrismaModule,
     EnvModule,
     CustomRedisModule,

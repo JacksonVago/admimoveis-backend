@@ -5,6 +5,9 @@ import { JobsStatus } from '@prisma/client';
 export class CreateJobDto {
   empresaId: number
   alertaId: number
+  pessoaId: number
+  imovelId: number
+  locacaoId: number
   str_message: string
   str_start_date: string
   str_end_date: string
@@ -54,10 +57,16 @@ export class JobsService {
         user: createJobDto.userId ? { connect: { id: createJobDto.userId } } : undefined,
         alerta: createJobDto.alertaId ? { connect: { id: createJobDto.alertaId } } : undefined,
         empresa: createJobDto.empresaId ? { connect: { id: createJobDto.empresaId } } : undefined,
+        pessoa: createJobDto.pessoaId ? { connect: { id: createJobDto.pessoaId } } : undefined,
+        imovel: createJobDto.imovelId ? { connect: { id: createJobDto.imovelId } } : undefined,
+        locacao: createJobDto.locacaoId ? { connect: { id: createJobDto.locacaoId } } : undefined,
       },
       include: {
         empresa: true,
         alerta: true,
+        pessoa: true,
+        imovel: true,
+        locacao: true,
       },
 
     });
@@ -83,6 +92,9 @@ export class JobsService {
       include: {
         empresa: true,
         alerta: true,
+        pessoa: true,
+        imovel: true,
+        locacao: true,
       },
 
     });
@@ -96,6 +108,9 @@ export class JobsService {
       include: {
         empresa: true,
         alerta: true,
+        pessoa: true,
+        imovel: true,
+        locacao: true,
       },
     });
   }
@@ -119,6 +134,9 @@ export class JobsService {
       include: {
         empresa: true,
         alerta: true,
+        pessoa: true,
+        imovel: true,
+        locacao: true,
       },
 
     });
@@ -135,6 +153,9 @@ export class JobsService {
       include: {
         empresa: true,
         alerta: true,
+        pessoa: true,
+        imovel: true,
+        locacao: true,
       },
 
     });

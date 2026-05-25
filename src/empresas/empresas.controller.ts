@@ -55,6 +55,11 @@ export class CreateEmpresaDto extends EnderecoDto {
   avisosDepositoCalcao: number;
 
   @Transform(({ value }) => Number(value))
+  @IsInt()
+  @IsOptional()
+  avisosVencBoleto: number;
+
+  @Transform(({ value }) => Number(value))
   @IsNumber()
   @IsOptional()
   porcentagemComissao: number;
@@ -91,10 +96,16 @@ export class CreateEmpresaDto extends EnderecoDto {
   @IsOptional()
   smtpHost: string; //Host do servidor SMTP para envio de emails
 
+  @Transform(({ value }) => Number(value))
   @IsNumber()
   @IsOptional()
   portSmtp: number; //Porta do servidor SMTP
 
+  @Transform(({ value }) => {
+    if (String(value).toLowerCase() === 'true') return true;
+    if (String(value).toLowerCase() === 'false') return false;
+    return value;
+  })
   @IsBoolean()
   @IsOptional()
   secureSmtp: boolean; //Indica se a conexão SMTP é segura (SSL/TLS)

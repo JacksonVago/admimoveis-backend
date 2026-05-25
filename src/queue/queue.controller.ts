@@ -1,6 +1,6 @@
 import { Roles } from '@/auth/decorators/roles.decorator';
 import { Role } from '@/auth/enums/roles.enum';
-import { Body, Controller, Get, Post, Put } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, Put } from '@nestjs/common';
 //import { ApiTags } from '@nestjs/swagger';
 import { Queue } from 'bullmq';
 import { jobMessageDto } from './dto/job-message.dto';
@@ -57,7 +57,7 @@ export class QueueController {
     console.log(`${year}-${month}-${day}`);
  
     return 1;*/
-    return this.queueService.getJobsToProcess();
+    return this.queueService.getJobsToProcess(0);
   }
 
   @Post('create')
@@ -71,7 +71,11 @@ export class QueueController {
   }
   @Post('createRecurrence')
   async createRecurrence(): Promise<string | undefined> {
-    return this.queueService.CreateJobsToProcess();
+    return this.queueService.CreateJobsToProcess(0);
   }
 
+  @Post('createJobs/:empresaId')
+  async createJobs(@Param('empresaId') empresaId: number): Promise<string | undefined> {
+    return this.queueService.CreateJobsToProcess(empresaId);
+  }
 }

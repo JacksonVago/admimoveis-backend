@@ -4,13 +4,13 @@ import { BullBoardModule } from '@bull-board/nestjs';
 
 export const bullboardConfig = BullBoardModule.forRoot({
   route: '/queues',
-  adapter: ExpressAdapter,  
+  adapter: ExpressAdapter,
   boardOptions:
   {
     uiConfig: {
-      boardTitle : '',
-      boardLogo : {
-        path:'https://staging.uatychat.com.br/assets/logo-1dcdf6b7.svg',
+      boardTitle: '',
+      boardLogo: {
+        path: 'https://appimg.blob.core.windows.net/appimage/NaIvidade_transp.gif',
         width: '124px',
         height: '60px',
       }

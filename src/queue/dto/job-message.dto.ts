@@ -1,65 +1,86 @@
-import { IsDateString, IsEnum, IsNumber, IsString } from "class-validator";
-import { campaign_type_enum, jobs_status_enum } from "../enums/recurrence.enum";
+import { JobsStatus } from "@prisma/client";
+import { Transform } from "class-transformer";
+import { IsDate, IsEnum, IsNumber, IsOptional, IsString } from "class-validator";
 
 export class jobMessageDto {
   @IsString()
-  id: string;
+  id: string
 
-  @IsString()
-  id_channel: string;
-
-  @IsString()
-  id_recurrence: string;  // Id da recorrência ou do disparo
-
-  @IsString()
-  str_recurrence: string; //Nome da recorrência ou disparo
-
-  @IsString()
-  id_message: string;
-
-  @IsString()
-  id_contact: string;
-
+  @Transform(({ value }) => Number(value))
   @IsNumber()
-  int_sequence: number;
+  empresaId: number
 
+  @Transform(({ value }) => Number(value))
   @IsNumber()
-  int_block: number;
+  alertaId: number
 
   @IsString()
-  str_message: string;
+  descAlerta: string
 
-  @IsString()
-  str_start_date: string;
-
-  @IsString()
-  str_end_date: string;
-
-  @IsString()
-  str_start_time: string;
-
-  @IsString()
-  str_end_time: string;
-
-  @IsString()
-  str_cron: string;
-
+  @Transform(({ value }) => Number(value))
+  @IsOptional()
   @IsNumber()
-  int_delay: number;
+  pessoaId: number
 
-  @IsDateString()
-  dtm_created: string;
+  @Transform(({ value }) => Number(value))
+  @IsOptional()
+  @IsNumber()
+  imovelId: number
 
-  @IsDateString()
-  dtm_updated: string;
+  @Transform(({ value }) => Number(value))
+  @IsOptional()
+  @IsNumber()
+  locacaoId: number
+
+  @IsOptional()
+  @IsString()
+  str_email: string
+
+  @IsOptional()
+  @IsString()
+  str_message: string
+
+  @IsOptional()
+  @IsString()
+  str_error: string
+
+  @IsOptional()
+  @IsString()
+  str_start_date: string
+
+  @IsOptional()
+  @IsString()
+  str_end_date: string
+
+  @IsOptional()
+  @IsString()
+  str_start_time: string
+
+  @IsOptional()
+  @IsString()
+  str_end_time: string
+
+  @IsOptional()
+  @IsString()
+  str_cron: string
+
+  @Transform(({ value }) => Number(value))
+  @IsOptional()
+  @IsNumber()
+  int_delay: number
+
+  @Transform(({ value }) => new Date(value))
+  @IsDate()
+  dtm_created: Date
+
+  @Transform(({ value }) => new Date(value))
+  @IsDate()
+  dtm_updated: Date
+
+  @IsEnum(JobsStatus)
+  status: JobsStatus
 
   @IsString()
-  id_user: string;
-
-  @IsEnum(jobs_status_enum)
-  enum_status: jobs_status_enum;
-
-  @IsEnum(campaign_type_enum)
-  enum_type: campaign_type_enum;
+  userId: string
 }
 

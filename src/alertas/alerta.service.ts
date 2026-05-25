@@ -24,6 +24,7 @@ export class AlertaService {
       data: {
         descricao: createAlertaDto.descricao,
         ativo: createAlertaDto.ativo,
+        textoAlerta: createAlertaDto.textoAlerta,
         tipoAgendamento: createAlertaDto.tipoAgendamento,
         frequenciaEnvio: createAlertaDto.frequenciaEnvio,
         dataInicio: createAlertaDto.dataInicio,
@@ -55,6 +56,7 @@ export class AlertaService {
       },
       data: {
         descricao: data.descricao,
+        textoAlerta: data.textoAlerta,
         ativo: data.ativo,
         tipoAgendamento: data.tipoAgendamento,
         frequenciaEnvio: data.frequenciaEnvio,
@@ -91,6 +93,19 @@ export class AlertaService {
     });
   }
 
+
+  async getAlerta(alertaId: number) {
+    return await this.PrismaService.configuracaoAlertas.findUnique({
+      where: {
+        id: alertaId,
+      },
+      include: {
+        empresa: true,
+        alerta: true,
+        jobs: true,
+      },
+    });
+  }
 
   async deleteAlerta(id: number) {
     return await this.PrismaService.configuracaoAlertas.delete({

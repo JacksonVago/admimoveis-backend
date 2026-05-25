@@ -29,6 +29,7 @@ model Empresa {
   avisosSeguroIncendio      Int          @default(30) //Número de dias para avisos de seguro incêndio
   avisosTituloCapitalizacao Int          @default(30) //Número de dias para avisos de título de capitalização
   avisosDepositoCalcao      Int          @default(30) //Número de dias para avisos de depósito caução
+  avisosVencBoleto          Int          @default(5) //Número de dias para avisos de vencimento de boleto
   porcentagemComissao       Float        @default(8) //Porcentagem de comissão da imobiliária
   emiteBoleto               String       @default("N") //Emite boleto S/N
   valorTaxaBoleto           Float        @default(5) //Valor da taxa de boleto
@@ -73,10 +74,14 @@ model ConfiguracaoAlertas {
   alerta    TipoAlerta @relation(fields: [alertaId], references: [id])
   alertaId  Int
 
+  textoAlerta     String? //Texto do alerta a ser enviado (ex: "O contrato de locação do imóvel X está vencendo em Y dias.")
   tipoAgendamento TipoAgendamento //Tipo agendamento (ex: "UNICO", "RECORRENTE")
   frequenciaEnvio FrequenciaEnvio? //Frequência de envio dos alertas (ex: "DIARIO", "SEMANAL", "MENSAL", "ANUAL") quando for recorrente
 
-  dataInicio DateTime? //Data e hora de início do envio dos alertas quando for único
+  dataInicio DateTime? //Data e hora de início do envio dos alertas quando for único, pode ser a (data de vencimento - dias parametrizados para aviso)
+  //Se estiver vazia será a data de vencimento do tipo de alerta menos o número de dias parametrizados para aviso, 
+  // por exemplo, se for um alerta de vencimento de contrato e o número de dias para aviso for 30, 
+  // a data de início será a data de vencimento do contrato menos 30 dias
 
   ocorreAcada  Int? //A cada quantos dias, meses, semanas, anos, etc. deve ser enviado o alerta quando for recorrente
   grupoEnvio   String? //Grupo (dias, meses, semanas, anos) para envio dos alertas, armazenados como string separada por vírgula ou intervalo 
@@ -154,21 +159,29 @@ model ContaCorrente {
 }
 
 model Jobs {
-  id             String              @id @default(uuid())
-  empresa        Empresa             @relation(fields: [empresaId], references: [id])
-  empresaId      Int
-  alerta         ConfiguracaoAlertas @relation(fields: [alertaId], references: [id])
-  alertaId       Int
+  id        String              @id @default(uuid())
+  empresa   Empresa             @relation(fields: [empresaId], references: [id])
+  empresaId Int
+  alerta    ConfiguracaoAlertas @relation(fields: [alertaId], references: [id])
+  alertaId  Int
+  pessoa    Pessoa?             @relation(fields: [pessoaId], references: [id])
+  pessoaId  Int?
+  imovel    Imovel?             @relation(fields: [imovelId], references: [id])
+  imovelId  Int?
+  locacao   Locacao?            @relation(fields: [locacaoId], references: [id])
+  locacaoId Int?
+
   str_message    String
+  str_error      String?
   str_start_date String
   str_end_date   String
   str_start_time String
   str_end_time   String
   str_cron       String
   int_delay      Int
-  dtm_created    DateTime            @default(now())
-  dtm_updated    DateTime            @updatedAt
-  status         JobsStatus          @default(WAITING_TO_START)
+  dtm_created    DateTime   @default(now())
+  dtm_updated    DateTime   @updatedAt
+  status         JobsStatus @default(WAITING_TO_START)
 
   user   User   @relation(fields: [userId], references: [id])
   userId String
@@ -282,6 +295,7 @@ model Pessoa {
   empresa        Empresa         @relation(fields: [empresaId], references: [id])
   empresaId      Int
   contaCorrentes ContaCorrente[]
+  jobs           Jobs[]
 
   @@unique([empresaId, documento])
   @@map("pessoas")
@@ -373,6 +387,7 @@ model Imovel {
   empresa   Empresa  @relation(fields: [empresaId], references: [id])
   empresaId Int
   boletos   Boleto[]
+  jobs      Jobs[]
 
   @@map("imoveis")
 }
@@ -509,6 +524,7 @@ model Locacao {
 
   empresa   Empresa @relation(fields: [empresaId], references: [id])
   empresaId Int
+  jobs      Jobs[]
 
   @@map("locacoes")
 }
@@ -1074,6 +1090,7 @@ enum TipoAgendamento {
 }
 
 enum FrequenciaEnvio {
+  DIAS_VENCIMENTO
   DIARIO
   SEMANAL
   MENSAL

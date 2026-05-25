@@ -4,12 +4,18 @@ import { Body, Controller, Delete, Get, Param, Patch, Post, Put } from '@nestjs/
 import { FrequenciaEnvio, Permission, TipoAgendamento, TipoIntervaloEnvio } from '@prisma/client';
 import { Transform } from 'class-transformer';
 import { IsBoolean, IsDate, IsEnum, IsNumber, IsOptional, IsString } from 'class-validator';
+import { FormDataRequest } from 'nestjs-form-data';
 import { AlertaService } from './alerta.service';
 
 export class CreateAlertaDto {
   @IsString()
   descricao: string;
 
+  @Transform(({ value }) => {
+    if (String(value).toLowerCase() === 'true') return true;
+    if (String(value).toLowerCase() === 'false') return false;
+    return value;
+  })
   @IsBoolean()
   ativo: boolean;
 
@@ -21,7 +27,12 @@ export class CreateAlertaDto {
   @IsNumber()
   alertaId: number;
 
+  @IsString()
+  @IsOptional()
+  textoAlerta: string;
+
   @IsEnum(TipoAgendamento)
+  @IsOptional()
   tipoAgendamento: TipoAgendamento;
 
   @IsEnum(FrequenciaEnvio)
@@ -30,6 +41,7 @@ export class CreateAlertaDto {
 
   @Transform(({ value }) => new Date(value))
   @IsDate()
+  @IsOptional()
   dataInicio: Date;
 
   @Transform(({ value }) => Number(value))
@@ -82,7 +94,7 @@ export const ALERTA_ROUTES: BaseRoutes = {
   },
   findById: {
     name: 'findById',
-    route: ':id',
+    route: '/findbyid/:id',
     permission: Permission.VIEW_ALERTAS,
   },
   update: {
@@ -130,12 +142,14 @@ export class AlertaController {
 
   @Post(ALERTA_ROUTES.create.route)
   @Permissions(ALERTA_ROUTES.create.permission)
+  @FormDataRequest()
   create(@Body() createAlertaDto: CreateAlertaDto) {
     return this.alertaService.createAlerta(createAlertaDto);
   }
 
   @Put(ALERTA_ROUTES.update.route)
   @Permissions(ALERTA_ROUTES.update.permission)
+  @FormDataRequest()
   update(
     @Param() { id }: BaseParamsByStringIdDto,
     @Body() data: CreateAlertaDto,
@@ -154,6 +168,12 @@ export class AlertaController {
   @Permissions(ALERTA_ROUTES.findMany.permission)
   async getAlertas(@Param() { empresaId }: BaseParamsIdEmpresaDto) {
     return await this.alertaService.getAlertas(empresaId);
+  }
+
+  @Get(ALERTA_ROUTES.findById.route)
+  @Permissions(ALERTA_ROUTES.findById.permission)
+  async getAlerta(@Param() { id }: BaseParamsByStringIdDto) {
+    return await this.alertaService.getAlerta(Number(id));
   }
 
   @Patch(ALERTA_ROUTES.patchAtiva.route)
