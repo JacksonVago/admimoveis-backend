@@ -37,8 +37,8 @@ export class AlertaService {
         horarioFinal: createAlertaDto.horarioFinal,
         dataInicioEnvio: createAlertaDto.dataInicioEnvio,
         dataFinalEnvio: createAlertaDto.dataFinalEnvio,
-        alerta: alertaId ? { connect: { id: alertaId } } : undefined,
-        empresa: empresaId ? { connect: { id: empresaId } } : undefined,
+        alerta: { connect: { id: createAlertaDto.alertaId } },
+        empresa: { connect: { id: createAlertaDto.empresaId } },
       },
       include: {
         empresa: true,

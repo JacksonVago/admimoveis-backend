@@ -478,6 +478,11 @@ export class PagamentosService {
                   condominio: true,
                 }
               },
+              locatarios: {
+                include: {
+                  pessoa: true,
+                }
+              }
             },
           },
           lanctoLocacao: {
@@ -772,6 +777,8 @@ export class PagamentosService {
   async updateStatus(pagamentoId: number, data: CreateBoletoDto) {
     try {
 
+      console.log(pagamentoId);
+      console.log(data);
       const result = await this.prismaService.boleto.update({
         where: {
           id: pagamentoId,

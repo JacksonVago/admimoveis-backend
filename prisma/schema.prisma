@@ -58,7 +58,7 @@ model Empresa {
   empresaAssinaturas  EmpresaAssinatura[]
   contasCorrentes     ContaCorrente[]
   boletos             Boleto[]
-  configuracaoAlertas ConfiguracaoAlertas?
+  configuracaoAlertas ConfiguracaoAlertas[]
   jobs                Jobs[]
   tipoAlertas         TipoAlerta[]
 
@@ -70,7 +70,7 @@ model ConfiguracaoAlertas {
   descricao String //Descrição do tipo de alerta (ex: Reajuste de locação, Vencimento de contrato, etc.)
   ativo     Boolean    @default(false) //Indica se o alerta está ativo ou não
   empresa   Empresa    @relation(fields: [empresaId], references: [id])
-  empresaId Int        @unique
+  empresaId Int
   alerta    TipoAlerta @relation(fields: [alertaId], references: [id])
   alertaId  Int
 

@@ -38,7 +38,7 @@ export class MailService {
             {
                 host: HOST,
                 port: PORT,
-                secure: SECURE,
+                secure: true,
                 auth: {
                     user: USER,
                     pass: PWD,
@@ -82,7 +82,7 @@ export class MailService {
 
         this.transporter.sendMail(
             {
-                from: "suporte@natividadesolucoes.com.br",
+                from: empresa.nome,
                 to: email,
                 subject: subject,
                 text: text || "I hope this message gets delivered!",
@@ -92,8 +92,6 @@ export class MailService {
                     console.error('erro', err);
                     return;
                 }
-                console.log(info.envelope);
-                console.log(info.messageId);
             }
         );
 
