@@ -38,7 +38,7 @@ export class MailService {
             {
                 host: HOST,
                 port: PORT,
-                secure: true,
+                secure: SECURE,
                 auth: {
                     user: USER,
                     pass: PWD,
@@ -47,16 +47,13 @@ export class MailService {
                     rejectUnauthorized: false
                 },
             },
-            {
-                from: {
-                    name: 'NestJs + React Emails Test App',
-                    address: 'Test App',
-                },
-            },
         );
 
         /*const PORT: number | undefined = parseInt(this.envService.get('SMTP_PORT').toString() == void 0 ? "0" : this.envService.get('SMTP_PORT').toString());
 
+        console.log(this.envService.get('SMTP_HOST').toString())
+        console.log(this.envService.get('SMTP_USER').toString());
+        console.log(this.envService.get('SMTP_PASSWORD').toString());
         this.transporter = nodemailer.createTransport(
             {
                 host: this.envService.get('SMTP_HOST').toString(),
@@ -82,7 +79,8 @@ export class MailService {
 
         this.transporter.sendMail(
             {
-                from: empresa.nome,
+
+                from: USER,
                 to: email,
                 subject: subject,
                 text: text || "I hope this message gets delivered!",
@@ -94,12 +92,5 @@ export class MailService {
                 }
             }
         );
-
-
-        /*await this.transporter.sendMail({
-            to: email,
-            subject,
-            html,
-        });*/
     }
 }
