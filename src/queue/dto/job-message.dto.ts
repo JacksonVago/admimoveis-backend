@@ -71,16 +71,19 @@ export class jobMessageDto {
 
   @Transform(({ value }) => new Date(value))
   @IsDate()
+  @IsOptional()
   dtm_created: Date
 
   @Transform(({ value }) => new Date(value))
   @IsDate()
+  @IsOptional()
   dtm_updated: Date
 
   @IsEnum(JobsStatus)
   status: JobsStatus
 
   @IsString()
+  @IsOptional()
   userId: string
 }
 

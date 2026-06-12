@@ -134,19 +134,82 @@ model TipoAlerta {
   @@map("tipoalertas")
 }
 
+model Banco {
+  id                       Int                       @id @default(autoincrement())
+  codigo                   Int                       @unique
+  nome                     String
+  contaCorrentes           ContaCorrente[]
+  instrucaoCobrancas       InstrucaoCobranca[]
+  instrucaoRecebimentos    InstrucaoRecebimentos[]
+  carteiraCobrancas        CarteiraCobranca[]
+  especieCobrancas         EspecieCobranca[]
+  tipoAutorizacaoCobrancas TipoAutorizacaoCobranca[]
+  tipoDescontoCobrancas    TipoDescontoCobranca[]
+  tipoMultaCobrancas       TipoMultaCobranca[]
+  tipoJurosCobrancas       TipoJurosCobranca[]
+
+  @@map("bancos")
+}
+
 model ContaCorrente {
-  id              Int          @id @default(autoincrement())
-  banco           String
-  agencia         String
-  conta           String
-  digito          String
-  descricao       String?
-  usuarioBancoAPI String?
-  senhaBancoAPI   String?
-  chaveAppAPI     String?
-  urlPIX          String?
-  urlWebhookPIX   String?
-  status          PessoaStatus @default(ATIVA)
+  id               Int          @id @default(autoincrement())
+  agencia          String
+  conta            String
+  digito           String
+  descricao        String?
+  usuarioBancoAPI  String?
+  senhaBancoAPI    String?
+  chaveAppAPI      String?
+  urlPIX           String?
+  urlBoleto        String?
+  urlWebhookPIX    String?
+  urlWebhookBoleto String?
+  status           PessoaStatus @default(ATIVA)
+  pagtoParcial     Boolean?     @default(false) //Indica se o alerta está ativo ou não
+  qtdeMaxParcial   Int? //Quantide de pagamentos parcial 1..99
+  formaEnvio       FormaEnvio?
+  assuntoEmail     String?
+  mensagemEmail1   String?
+  mensagemEmail2   String?
+  mensagemEmail3   String?
+
+  tipoJurosCob         TipoJurosCobranca?       @relation(fields: [tipoJurosCobId], references: [id])
+  tipoJurosCobId       Int?
+  tipoMultaCob         TipoMultaCobranca?       @relation(fields: [tipoMultaCobId], references: [id])
+  tipoMultaCobId       Int?
+  tipoDescontoCob      TipoDescontoCobranca?    @relation(fields: [tipoDescontoCobId], references: [id])
+  tipoDescontoCobId    Int?
+  tipoAutorizacaoCob   TipoAutorizacaoCobranca? @relation(fields: [tipoAutorizacaoCobId], references: [id])
+  tipoAutorizacaoCobId Int?
+  protestar            Boolean?
+  qtdeDiasProtesto     Int?
+  negativar            Boolean?
+  qtdeDiasNegativar    Int?
+
+  instrucaoCob1   InstrucaoCobranca? @relation("instrucaoCob1", fields: [instrucaoCobId1], references: [id])
+  instrucaoCobId1 Int?
+  instrucaoCob2   InstrucaoCobranca? @relation("instrucaoCob2", fields: [instrucaoCobId2], references: [id])
+  instrucaoCobId2 Int?
+  instrucaoCob3   InstrucaoCobranca? @relation("instrucaoCob3", fields: [instrucaoCobId3], references: [id])
+  instrucaoCobId3 Int?
+
+  instrucaoRec1   InstrucaoRecebimentos? @relation("instrucaoRec1", fields: [instrucaoRecId1], references: [id])
+  instrucaoRecId1 Int?
+  instrucaoRec2   InstrucaoRecebimentos? @relation("instrucaoRec2", fields: [instrucaoRecId2], references: [id])
+  instrucaoRecId2 Int?
+  instrucaoRec3   InstrucaoRecebimentos? @relation("instrucaoRec3", fields: [instrucaoRecId3], references: [id])
+  instrucaoRecId3 Int?
+  instrucaoRec4   InstrucaoRecebimentos? @relation("instrucaoRec4", fields: [instrucaoRecId4], references: [id])
+  instrucaoRecId4 Int?
+
+  banco   Banco @relation(fields: [bancoId], references: [id])
+  bancoId Int
+
+  carteira   CarteiraCobranca? @relation(fields: [carteiraId], references: [id])
+  carteiraId Int?
+
+  especie   EspecieCobranca? @relation(fields: [especieId], references: [id])
+  especieId Int?
 
   pessoa   Pessoa? @relation(fields: [pessoaId], references: [id])
   pessoaId Int?
@@ -154,8 +217,119 @@ model ContaCorrente {
   empresa   Empresa @relation(fields: [empresaId], references: [id])
   empresaId Int
 
-  @@unique([banco, agencia, conta, digito])
+  @@unique([bancoId, agencia, conta, digito])
   @@map("contascorrentes")
+}
+
+model TipoAutorizacaoCobranca {
+  id        Int    @id @default(autoincrement())
+  codigo    String
+  descricao String
+
+  banco          Banco           @relation(fields: [bancoId], references: [id])
+  bancoId        Int
+  contaCorrentes ContaCorrente[]
+
+  @@unique([bancoId, codigo])
+  @@map("tiposautorizacoescobrancas")
+}
+
+model TipoDescontoCobranca {
+  id        Int    @id @default(autoincrement())
+  codigo    String
+  descricao String
+
+  banco          Banco           @relation(fields: [bancoId], references: [id])
+  bancoId        Int
+  contaCorrentes ContaCorrente[]
+
+  @@unique([bancoId, codigo])
+  @@map("tiposdescontoscobrancas")
+}
+
+model TipoMultaCobranca {
+  id        Int    @id @default(autoincrement())
+  codigo    String
+  descricao String
+
+  banco          Banco           @relation(fields: [bancoId], references: [id])
+  bancoId        Int
+  contaCorrentes ContaCorrente[]
+
+  @@unique([bancoId, codigo])
+  @@map("tiposmultascobrancas")
+}
+
+model TipoJurosCobranca {
+  id        Int    @id @default(autoincrement())
+  codigo    String
+  descricao String
+
+  banco          Banco           @relation(fields: [bancoId], references: [id])
+  bancoId        Int
+  contaCorrentes ContaCorrente[]
+
+  @@unique([bancoId, codigo])
+  @@map("tiposjuroscobrancas")
+}
+
+model InstrucaoCobranca {
+  id        Int    @id @default(autoincrement())
+  codigo    Int
+  descricao String
+
+  banco         Banco           @relation(fields: [bancoId], references: [id])
+  bancoId       Int
+  instrucaoCob1 ContaCorrente[] @relation("instrucaoCob1")
+  instrucaoCob2 ContaCorrente[] @relation("instrucaoCob2")
+  instrucaoCob3 ContaCorrente[] @relation("instrucaoCob3")
+
+  @@unique([bancoId, codigo])
+  @@map("instrucoescobrancas")
+}
+
+model InstrucaoRecebimentos {
+  id        Int    @id @default(autoincrement())
+  codigo    Int
+  descricao String
+
+  banco         Banco           @relation(fields: [bancoId], references: [id])
+  bancoId       Int
+  instrucaoRec1 ContaCorrente[] @relation("instrucaoRec1")
+  instrucaoRec2 ContaCorrente[] @relation("instrucaoRec2")
+  instrucaoRec3 ContaCorrente[] @relation("instrucaoRec3")
+  instrucaoRec4 ContaCorrente[] @relation("instrucaoRec4")
+
+  @@unique([bancoId, codigo])
+  @@map("instrucoesrecebimentos")
+}
+
+model CarteiraCobranca {
+  id               Int             @id @default(autoincrement())
+  carteira         Int
+  descricao        String
+  vencimentoMinimo Int? //Número mínimo de dias para vencimento da carteira
+  vencimentoMaximo Int? //Número máximo de dias para vencimento da carteira
+  banco            Banco           @relation(fields: [bancoId], references: [id])
+  bancoId          Int
+  contaCorrentes   ContaCorrente[]
+
+  @@unique([bancoId, carteira])
+  @@map("carteirascobrancas")
+}
+
+model EspecieCobranca {
+  id        Int    @id @default(autoincrement())
+  codigo    Int
+  descricao String
+  sigla     String
+
+  banco          Banco           @relation(fields: [bancoId], references: [id])
+  bancoId        Int
+  contaCorrentes ContaCorrente[]
+
+  @@unique([bancoId, codigo])
+  @@map("especiescobrancas")
 }
 
 model Jobs {
@@ -986,6 +1160,36 @@ enum Permission {
   UPDATE_CONTA_CORRENTE
   DELETE_CONTA_CORRENTE
   VIEW_CONTAS_CORRENTE
+
+  //Instrucao de cobrança
+  CREATE_INSTRUCAO_COBRANCA
+  UPDATE_INSTRUCAO_COBRANCA
+  DELETE_INSTRUCAO_COBRANCA
+  VIEW_INSTRUCOES_COBRANCA
+
+  //Instrução de recebimento
+  CREATE_INSTRUCAO_RECEBIMENTO
+  UPDATE_INSTRUCAO_RECEBIMENTO
+  DELETE_INSTRUCAO_RECEBIMENTO
+  VIEW_INSTRUCOES_RECEBIMENTO
+
+  //Carteira de cobrança
+  CREATE_CARTEIRA_COBRANCA
+  UPDATE_CARTEIRA_COBRANCA
+  DELETE_CARTEIRA_COBRANCA
+  VIEW_CARTEIRAS_COBRANCA
+
+  //Espécie de cobrança
+  CREATE_ESPECIE_COBRANCA
+  UPDATE_ESPECIE_COBRANCA
+  DELETE_ESPECIE_COBRANCA
+  VIEW_ESPECIES_COBRANCA
+
+  //Banco
+  CREATE_BANCO
+  UPDATE_BANCO
+  DELETE_BANCO
+  VIEW_BANCOS
 }
 
 enum UserRole {
@@ -1112,4 +1316,9 @@ enum JobsStatus {
   PAUSED_BY_SCHEDULE
   FINISHED
   ERROR
+}
+
+enum FormaEnvio {
+  EMAIL
+  IMPRESSAO
 }

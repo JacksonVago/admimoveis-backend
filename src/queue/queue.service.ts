@@ -9,7 +9,7 @@ import { PrismaService } from "@/prisma/prisma.service";
 import { RedisService } from "@/redis/redis.service";
 import { BaseAdapter } from "@bull-board/api/baseAdapter";
 import { BullMQAdapter } from "@bull-board/api/bullMQAdapter";
-import { Prisma } from "@prisma/client";
+import { FrequenciaEnvio, Prisma, TipoAgendamento, TipoIntervaloEnvio } from "@prisma/client";
 import { jobs_status_enum } from "./enums/recurrence.enum";
 //import { WhatsAppService } from "src/whatsapp/whatsapp.service";
 
@@ -36,7 +36,7 @@ export class QueueService {
 
     constructor(
         @InjectBullBoard() private readonly boardInstance: BullBoardInstance,
-        private readonly prismaService: PrismaService,
+        //private readonly prismaService: PrismaService,
         private readonly configService: EnvService,
         private readonly redisService: RedisService,
         private readonly emailService: MailService,
@@ -90,7 +90,8 @@ export class QueueService {
 
         //Verifica se o registro ja exite no banco de dados
         if (dto.id === "") {
-            const result = await this.prismaService.jobs.create({
+            const prismaService: PrismaService = new PrismaService();
+            const result = await prismaService.jobs.create({
                 data: {
                     str_message: dto.str_message,
                     str_start_date: dto.str_start_date,
@@ -119,9 +120,10 @@ export class QueueService {
                 },
             });
             dto.id = result.id;
+            prismaService.$disconnect();
         }
 
-        str_queue = dto.empresaId + ' - ' + dto.alertaId + dto.descAlerta;
+        str_queue = dto.empresaId + '-' + dto.alertaId + ' ' + dto.descAlerta;
 
         if (queues.length > 0) {
             if (queues.find(x => x.name == str_queue) != undefined) {
@@ -164,7 +166,7 @@ export class QueueService {
             );
 
             //Evento quando ativa a JOB
-            workerAux.on('active', (job: Job, returnValue: any) => {
+            await workerAux.on('active', async (job: Job, returnValue: any) => {
                 const { id, name, queueName, finishedOn, returnvalue } = job;
                 const completionTime = finishedOn ? new Date(finishedOn).toISOString() : '';
                 this.logger.log(
@@ -172,32 +174,53 @@ export class QueueService {
                 );
 
                 const data: jobMessageDto = job.data;
-                this.AtualizaStatusJob(data, jobs_status_enum.RUNNING);
+                this.AtualizaStatusJob(data, jobs_status_enum.RUNNING).then(result => {
+                    //Verificar qual tipo de job está sendo processada para executar a ação correspondente
+                    switch (data.descAlerta) {
+                        case "Geração de Alertas":
+                            //console.log('Create JOBS from daily recurrence.');
+                            //console.log('-------------------------------');
+                            //const create_result = await this.CreateJobsToProcess(data.empresaId);
+                            this.CreateJobsToProcess(data.empresaId).then(result => {
+                                //console.log('-------------------------------');
+                                //console.log('Fim Create JOBS from daily recurrence.');
+                                //console.log('Chama jobs para processamento..');
+                                //console.log('-------------------------------');
+                                //console.log('-------------------------------');
+                                //console.log('Fim jobs para processamento..');
+                            });
 
-                //Verificar qual tipo de job está sendo processada para executar a ação correspondente
-                switch (data.descAlerta) {
-                    case "Geração de Alertas":
-                        console.log('Create JOBS from daily recurrence.');
-                        const create_result = this.CreateJobsToProcess(data.empresaId);
-                        console.log(create_result);
-                        console.log('Fim Create JOBS from daily recurrence.');
-                        break;
+                            break;
 
-                    case "Geração de Alertas boletos vencidos":
-                        console.log('Create JOBS from daily recurrence.');
-                        const create_result_ven = this.CreateJobsBoletosVencidos(data.empresaId);
-                        console.log(create_result_ven);
-                        console.log('Fim Create JOBS boletos vencidos.');
-                        break;
+                        case "Geração de Alertas boletos vencidos":
+                            //console.log('Create JOBS from daily recurrence.');
+                            //console.log('-------------------------------');
+                            this.CreateJobsBoletosVencidos(data.empresaId).then(result => {
+                                //console.log('-------------------------------');
+                                //console.log('Fim Create JOBS boletos vencidos.');
+                                //console.log('Chama jobs para processamento..');
+                                //console.log('-------------------------------');
+                                //const processJobsVen = this.getJobsToProcess(data.empresaId);
+                                //console.log('-------------------------------');
+                                //console.log('Fim jobs para processamento..');
+                            });
+                            break;
 
-                    //Demais JOBs são os alertas à serem enviados por email.
-                    default:
-                        this.emailService.sendMail(data.empresaId, { email: data.str_email, subject: data.descAlerta, text: data.str_message });
-                        console.log('Processa envio de mensagem para o alerta ' + data.descAlerta);
-                }
+                        case 'Execução de Alertas':
+                            const processJobsVen = this.getJobsToProcess(data.empresaId);
+                            break;
+
+                        //Demais JOBs são os alertas à serem enviados por email.
+                        default:
+                            this.emailService.sendMail(data.empresaId, { email: data.str_email, subject: data.descAlerta, text: data.str_message });
+                        //console.log('Processa envio de mensagem para o alerta ' + data.descAlerta);
+                    }
+
+                });
+
             });
 
-            workerAux.on('completed', (job: Job, returnValue: any) => {
+            await workerAux.on('completed', async (job: Job, returnValue: any) => {
                 const { id, name, queueName, finishedOn, returnvalue } = job;
                 const completionTime = finishedOn ? new Date(finishedOn).toISOString() : '';
 
@@ -214,20 +237,33 @@ export class QueueService {
                 job.updateData(jobData);
                 job.updateProgress(100);
 
-                //Atualiza status do JOB no banco de dados                
-                console.log('Atualiza status do JOB no banco de dados');
+                //Atualiza status do JOB no banco de dados                                
+                if (jobData.str_cron !== null && jobData.str_cron.length > 0 && jobData.status !== jobs_status_enum.RUNNING) {
+                    this.AtualizaStatusJob(jobData, jobs_status_enum.RUNNING);
+                }
+                else {
+                    this.AtualizaStatusJob(jobData, jobs_status_enum.FINISHED);
+                }
+                /*
                 if (jobData.descAlerta != "Geração de Alertas") {
                     this.AtualizaStatusJob(jobData, jobs_status_enum.FINISHED);
                 }
+                else {                    
+                    this.AtualizaStatusJob(jobData, jobs_status_enum.RUNNING);
+                }*/
             });
 
-            workerAux.on('failed', (job, error: Error) => {
+            workerAux.on('failed', async (job, error: Error) => {
                 const data: jobMessageDto = job.data;
                 this.AtualizaStatusJob(data, jobs_status_enum.ERROR, error.message);
 
-                console.log('Falhou ', job?.id)
+                //console.log('Falhou ', job?.id)
                 //console.error('worker fail', job, error, new Date());
             });
+
+            //Verificar se precisar tratar o evento de finalização do job para atualizar o status no banco de dados, 
+            // ou se é melhor atualizar o status no evento de completed, ou se é necessário tratar ambos para atualizar o status de forma mais precisa, 
+            // considerando possíveis falhas ou erros durante a execução do job.
 
             queues.push({ name: str_queue, queue: queueAux, worker: workerAux })
         }
@@ -252,6 +288,7 @@ export class QueueService {
         }
 
         let jobNew: Job;
+        //console.log(dto);
         if (dto.str_cron.length > 0 && dto.str_cron != null) {
             jobNew = await queueAux.add(dto.id,
                 dto,
@@ -280,19 +317,26 @@ export class QueueService {
 
     async CreateJobsBoletosVencidos(empresaId: number) {
         let now = new Date();
+        let textoAlerta = "";
+        let int_pos: number = 0;
+        let int_tam: number = 0;
+        let str_campo: string = "";
 
         //Identifica parametrização da empresa
-        const empresaConfig = await this.prismaService.empresa.findUnique({
+        //console.log(empresaId);
+        const prismaService: PrismaService = new PrismaService();
+
+        const user = await prismaService.user.findFirst({
             where: {
-                id: empresaId,
+                empresaId: empresaId,
             },
         });
 
         //Idendifica os alertas
-        const element = await this.prismaService.configuracaoAlertas.findFirst({
+        const element = await prismaService.configuracaoAlertas.findFirst({
             where: {
                 empresaId: empresaId,
-                descricao: "Geração de Alertas boletos vencidos",
+                descricao: "Aviso boleto atrasado",
                 ativo: true,
             },
             include: {
@@ -301,12 +345,17 @@ export class QueueService {
             }
         });
 
-        const boletosVenc = await this.prismaService.boleto.findMany({
+        //console.log('alerata: ', element);
+        console.log('Data :', new Date(now.getFullYear() + '-' + (now.getMonth() + 1) + '-' + now.getDate()));
+        //Guarda o texto do alerta para processamento, substituindo os campos dinâmicos pelas informações correspondentes de cada contrato, locação, boleto, etc.
+        textoAlerta = element.textoAlerta ? element.textoAlerta : "O boleto com vencimento em <Data de Vencimento> no valor de <Valor Original> referente a locação do imóvel <Imóvel> está vencido. <Email>";
+
+        const boletosVenc = await prismaService.boleto.findMany({
             where: {
                 empresaId: empresaId,
-                status: 'PENDENTE',
+                status: 'CONFIRMADO',
                 dataVencimento: {
-                    gt: new Date(now.getFullYear() + '-' + (now.getMonth() + 1) + '-' + now.getDate())
+                    lt: new Date(now.getFullYear() + '-' + (now.getMonth() + 1) + '-' + now.getDate())
                 }
             },
             include: {
@@ -328,34 +377,141 @@ export class QueueService {
                             }
                         },
                     }
-                }
+                },
+                documentos: true,
+                lancamentoImovels: true,
+                lanctoCondominio: true,
+                lanctoLocacao: true,
             }
         });
 
-        boletosVenc.forEach(boleto => {
+
+        //console.log('Boletos vencidos: ', boletosVenc.length);
+        //console.log('Texto : ', textoAlerta);
+        boletosVenc.forEach(async boleto => {
+
+            //Muda dados da mensagem de acordo com o boleto para enviar email para o locatário e proprietário do imóvel, caso exista email cadastrado. Se não tiver email cadastrado, não cria o job.
+            if (textoAlerta.length > 0) {
+                while (textoAlerta.indexOf('<', int_pos) > -1) {
+                    int_pos = textoAlerta.indexOf('<', int_pos);
+                    int_tam = textoAlerta.indexOf('>', int_pos);
+                    str_campo = textoAlerta.substring(int_pos, int_tam + 1);
+
+
+                    //Troca campo por dados do boleto
+                    //console.log(str_campo);
+                    switch (str_campo) {
+                        case "<Data de Emissão>":
+                            if (boleto.dataEmissao && boleto.dataEmissao.toISOString().length > 0) {
+                                textoAlerta = textoAlerta.replace(str_campo, boleto.dataEmissao.toISOString().split('T')[0]);
+                            }
+                            else {
+                                textoAlerta = textoAlerta.replace(str_campo, "");
+                            }
+                            break;
+
+                        case "<Data de Vencimento>":
+                            if (boleto.dataVencimento && boleto.dataVencimento.toISOString().length > 0) {
+                                textoAlerta = textoAlerta.replace(str_campo, boleto.dataVencimento.toISOString().split('T')[0]);
+                            }
+                            else {
+                                textoAlerta = textoAlerta.replace(str_campo, "");
+                            }
+                            break;
+
+                        case "<Valor Original>":
+                            if (boleto.dataVencimento && boleto.valorOriginal.toString().length > 0) {
+                                textoAlerta = textoAlerta.replace(str_campo, boleto.valorOriginal.toLocaleString('pt-BR'));
+                            }
+                            else {
+                                textoAlerta = textoAlerta.replace(str_campo, "");
+                            }
+                            break;
+
+                        case "<Email>":
+                            if (boleto.locacao) {
+                                if (boleto.locacao.locatarios && boleto.locacao.locatarios.length > 0) {
+                                    textoAlerta = textoAlerta.replace(str_campo, boleto.locacao.locatarios.map(loc => loc.pessoa.email).join(";"));
+                                }
+                                else {
+                                    textoAlerta = textoAlerta.replace(str_campo, "");
+                                }
+                            }
+                            else {
+                                if (boleto.imovel && boleto.imovel.proprietarios && boleto.imovel.proprietarios.length > 0) {
+                                    textoAlerta = textoAlerta.replace(str_campo, boleto.locacao.locatarios.map(loc => loc.pessoa.email).join(";"));
+                                }
+                                else {
+                                    textoAlerta = textoAlerta.replace(str_campo, "");
+                                }
+                            }
+                            break;
+
+                        case "<Link do Documento>":
+                            if (boleto.documentos && boleto.documentos.length > 0) {
+                                textoAlerta = textoAlerta.replace(str_campo, boleto.documentos.map(doc => doc.url ? this.configService.get('AZURE_BLOB_CONTAINER').toString() + doc.url : "").join("\n"));
+                            }
+                            else {
+                                textoAlerta = textoAlerta.replace(str_campo, "");
+                            }
+                            break;
+
+                        case "<Linha Digitável Boleto>":
+                            if (boleto.linhaDigitavel && boleto.linhaDigitavel.length > 0) {
+                                textoAlerta = textoAlerta.replace(str_campo, boleto.linhaDigitavel);
+                            }
+                            else {
+                                textoAlerta = textoAlerta.replace(str_campo, "");
+                            }
+                            break;
+
+                        case "<Linha Digitável Lançamento>":
+                            if (boleto.lancamentoImovels && boleto.lancamentoImovels.length > 0) {
+                                textoAlerta = textoAlerta.replace(str_campo, boleto.lancamentoImovels.map(lan => lan.linhaDigitavel ? lan.linhaDigitavel : "").join("\n"));
+                            }
+                            else {
+                                if (boleto.lanctoCondominio && boleto.lanctoCondominio.length > 0) {
+                                    textoAlerta = textoAlerta.replace(str_campo, boleto.lanctoCondominio.map(lan => lan.linhaDigitavel ? lan.linhaDigitavel : "").join("\n"));
+                                }
+                                else {
+                                    if (boleto.lanctoLocacao && boleto.lanctoLocacao.length > 0) {
+                                        textoAlerta = textoAlerta.replace(str_campo, boleto.lanctoLocacao.map(lan => lan.linhaDigitavel ? lan.linhaDigitavel : "").join("\n"));
+                                    }
+                                    else {
+                                        textoAlerta = textoAlerta.replace(str_campo, "");
+                                    }
+                                }
+                            }
+                            break;
+                    }
+
+                    int_pos++;
+                }
+            }
+
             const jobData: jobMessageDto = {
                 id: '',
                 empresaId: empresaId,
-                alertaId: element.alertaId,
+                alertaId: element.id,
                 descAlerta: element.alerta.descricao,
                 pessoaId: (boleto.imovelId !== null && boleto.imovelId > 0 ? boleto.imovel.proprietarios[0]?.pessoaId : boleto.locacao.locatarios[0]?.pessoaId),
                 imovelId: boleto.locacao.imovelId,
                 locacaoId: boleto.locacaoId,
                 str_email: (boleto.imovelId !== null && boleto.imovelId > 0 ? boleto.imovel.proprietarios[0]?.pessoa.email : boleto.locacao.locatarios[0]?.pessoa.email),
                 str_error: null,
-                str_message: element.textoAlerta,
+                str_message: textoAlerta,
                 str_start_date: new Date().toISOString().split('T')[0],
                 str_end_date: new Date().toISOString().split('T')[0],
-                str_start_time: null,
-                str_end_time: null,
+                str_start_time: new Date().toTimeString().split(' ')[0],
+                str_end_time: new Date().toTimeString().split(' ')[0],
                 str_cron: '',
                 int_delay: 0,
                 dtm_created: new Date(),
                 dtm_updated: new Date(),
                 status: jobs_status_enum.WAITING_TO_START,
-                userId: '',
+                userId: user.id,
             }
-            this.prismaService.jobs.create({
+            await prismaService.jobs.create({
                 data: {
                     str_message: jobData.str_message,
                     str_start_date: jobData.str_start_date,
@@ -383,7 +539,7 @@ export class QueueService {
                 }
             });
         });
-        this.getJobsToProcess(empresaId);
+        prismaService.$disconnect();
     }
 
     async delayedJob(str_queue: string, str_jobId: string, int_delay: number): Promise<any> {
@@ -415,7 +571,8 @@ export class QueueService {
     async getJobsToProcess(empresaId: number): Promise<any> {
 
         let int_cont = 0;
-        const jobs_data = this.prismaService.jobs.findMany({
+        const prismaService: PrismaService = new PrismaService();
+        const jobs_data = await prismaService.jobs.findMany({
             where: {
                 empresaId: empresaId,
                 status: jobs_status_enum.WAITING_TO_START
@@ -435,10 +592,13 @@ export class QueueService {
         //const jobs: jobMessageDto[] = JSON.parse((await jobs_data).toString());
 
         if (jobs_data != null) {
+            //console.log('Carregando jobs para processamento...');
             (await jobs_data).forEach(element => {
                 int_cont = 1;
-                console.log(element);
-                if (element.pessoa.email == null) {
+                //console.log('job: ', element);
+                //console.log('Tipo: ', element.alerta.descricao.includes("Geração"));
+                //Verificar se é job de envio de e-mail ou apenas geração de JOB´s
+                if (element.alerta.descricao.includes("Geração")) {
                     let jobData: jobMessageDto = {
                         id: element.id,
                         empresaId: element.empresaId,
@@ -447,7 +607,7 @@ export class QueueService {
                         pessoaId: element.pessoaId,
                         imovelId: element.imovelId,
                         locacaoId: element.locacaoId,
-                        str_email: element.pessoa.email,
+                        str_email: element.pessoa ? element.pessoa.email : null,
                         str_message: element.str_message,
                         str_error: null,
                         str_start_date: element.str_start_date,
@@ -461,38 +621,82 @@ export class QueueService {
                         status: element.status,
                         userId: element.userId,
                     }
-
-                    this.createQueue(jobData);
+                    this.AtualizaStatusJob(jobData, jobs_status_enum.WAITING_TO_PROCESS).then(result => {
+                        this.createQueue(jobData);
+                    });
                 }
                 else {
-                    console.log('Não foi possível processar o job ' + element.id + ' pois o contato não possui email cadastrado.');
+                    if (element.pessoa.email !== null) {
+                        let jobData: jobMessageDto = {
+                            id: element.id,
+                            empresaId: element.empresaId,
+                            alertaId: element.alertaId,
+                            descAlerta: element.alerta.alerta.descricao,
+                            pessoaId: element.pessoaId,
+                            imovelId: element.imovelId,
+                            locacaoId: element.locacaoId,
+                            str_email: element.pessoa.email,
+                            str_message: element.str_message,
+                            str_error: null,
+                            str_start_date: element.str_start_date,
+                            str_end_date: element.str_end_date,
+                            str_start_time: element.str_start_time,
+                            str_end_time: element.str_end_time,
+                            str_cron: element.str_cron,
+                            int_delay: element.int_delay,
+                            dtm_created: element.dtm_created,
+                            dtm_updated: element.dtm_updated,
+                            status: element.status,
+                            userId: element.userId,
+                        }
+                        this.AtualizaStatusJob(jobData, jobs_status_enum.WAITING_TO_PROCESS).then(result => {
+                            this.createQueue(jobData);
+                        });
+                    }
+                    else {
+                        console.log('Não foi possível processar o job ' + element.id + ' pois o contato não possui email cadastrado.');
+                    }
                 }
             });
         }
         if (int_cont == 0) {
-            console.log('Não encontrou recurrencias para serem disparadas.')
+            console.log('Não encontrou jobs para serem disparadas.')
         }
+        prismaService.$disconnect();
         return jobs_data;
     }
 
     async CreateJobsToProcess(empresaId: number): Promise<any> {
 
-        /*const result = this.prismaService.$queryRaw(Prisma.sql(["select * from f_create_jobs(" + empresaId + ")"]));
-        console.log(result);
-        console.log('Success jobs created.');
-        console.log('Select jobs created.');
-        this.getJobsToProcess();
-        return result;*/
+        //console.log('Iniciando criação de jobs para processamento.');
+        let textoAlerta = "";
+        let int_pos: number = 0;
+        let int_tam: number = 0;
+        let str_campo: string = "";
+        let str_cron = "";
+        let str_hora = '*';
+        let str_minuto = '*';
+        let str_dia = '*';
+        let str_mes = '*';
+        let str_diaSemana = '*';
+
+        const prismaService: PrismaService = new PrismaService();
 
         //Identifica parametrização da empresa
-        const empresaConfig = await this.prismaService.empresa.findUnique({
+        const empresaConfig = await prismaService.empresa.findUnique({
             where: {
                 id: empresaId,
             },
         });
 
-        //Idendifica os alertas
-        const result = await this.prismaService.configuracaoAlertas.findMany({
+        const user = await prismaService.user.findFirst({
+            where: {
+                empresaId: empresaId,
+            },
+        });
+
+        //Idendifica os alertas        
+        const result = await prismaService.configuracaoAlertas.findMany({
             where: {
                 empresaId: empresaId,
                 ativo: true,
@@ -505,16 +709,137 @@ export class QueueService {
 
         //Criar jobs para cada alerta encontrado
         result.forEach(async element => {
+
+            //Guarda o texto do alerta para processamento, substituindo os campos dinâmicos pelas informações correspondentes de cada contrato, locação, boleto, etc.
+            textoAlerta = element.textoAlerta;
+
+            //Monta o cron de acordo com a confifuração do alerta
+            if (element.tipoAgendamento === TipoAgendamento.UNICO) {
+                str_hora = element.horarioEnvio ? element.horarioEnvio.split(':')[0] : '00';
+                str_minuto = element.horarioEnvio ? element.horarioEnvio.split(':')[1] : '00';
+                str_dia = element.dataInicio ? element.dataInicio.getDate().toString() : '*';
+                str_mes = element.dataInicio ? (element.dataInicio.getMonth() + 1).toString() : '*';
+                str_cron = str_minuto + ' ' + str_hora + ' ' + str_dia + ' ' + str_mes + ' ' + str_diaSemana;
+            }
+            else {
+                switch (element.frequenciaEnvio) {
+                    case FrequenciaEnvio.DIARIO:
+                        switch (element.tipoIntervaloEnvio) {
+                            case TipoIntervaloEnvio.HORAS:
+                                if (element.ocorreAcada === 24) {
+                                    str_hora = element.horarioEnvio ? element.horarioEnvio.split(':')[0] : '00';
+                                    str_minuto = element.horarioEnvio ? element.horarioEnvio.split(':')[1] : '01';
+                                    str_cron = str_minuto + ' ' + str_hora + ' * * *';
+                                }
+                                else {
+                                    str_hora = (element.ocorreAcada ? element.ocorreAcada.toString() : '01');
+                                    str_minuto = '01';
+                                    str_dia = (element.grupoEnvio && element.grupoEnvio.length > 0 ? element.grupoEnvio : '*').toString();
+                                    str_cron = str_minuto + ' */' + str_hora + ' ' + str_dia + ' * *';
+                                }
+                                break;
+
+                            case TipoIntervaloEnvio.MINUTOS:
+                                str_hora = '*';
+                                str_minuto = (element.ocorreAcada ? element.ocorreAcada.toString() : '01');
+                                str_dia = (element.grupoEnvio && element.grupoEnvio.length > 0 ? element.grupoEnvio : '*').toString();
+                                str_cron = '*/' + str_minuto + ' ' + str_hora + ' ' + str_dia + ' * *';
+                                break;
+                        }
+                        break;
+
+                    case FrequenciaEnvio.SEMANAL:
+                        str_cron = '0 0 * * 0';
+                        break;
+                    case FrequenciaEnvio.MENSAL:
+                        str_cron = '0 0 1 * *';
+                        break;
+                }
+            }
+            //console.log(element);
             switch (element.alerta.descricao) {
                 case "Geração de Alertas":
-                    console.log('Job para Geração de Alertas');
+                    //console.log('Geração de Alertas.');
+                    //Veririca se já existe essa JOB criada, para não criar duplicada
+                    const existingJobExec = await prismaService.jobs.findFirst({
+                        where: {
+                            alertaId: element.id,
+                            empresaId: empresaId,
+                            status: jobs_status_enum.WAITING_TO_START,
+                        }
+                    });
+
+                    if (existingJobExec) {
+                        console.log('Job para Execução de Alertas já existe.');
+                        return;
+                    }
+
+                    let jobDataExec: jobMessageDto = {
+                        id: '',
+                        empresaId: empresaId,
+                        alertaId: element.id,
+                        descAlerta: 'Execução de Alertas',
+                        pessoaId: null,
+                        imovelId: null,
+                        locacaoId: null,
+                        str_email: null,
+                        str_message: 'Job responsável por executar os alertas aguardando para serem processados.',
+                        str_error: null,
+                        str_start_date: new Date().toISOString().split('T')[0],
+                        str_end_date: new Date().toISOString().split('T')[0],
+                        str_start_time: new Date().toTimeString().split(' ')[0],
+                        str_end_time: new Date().toTimeString().split(' ')[0],
+                        str_cron: '*/5 * * * *',
+                        int_delay: 0,
+                        dtm_created: new Date(),
+                        dtm_updated: new Date(),
+                        status: jobs_status_enum.WAITING_TO_PROCESS,
+                        userId: user.id,
+                    }
+                    try {
+                        const job = await prismaService.jobs.create({
+                            data: {
+                                str_message: jobDataExec.str_message,
+                                str_start_date: jobDataExec.str_start_date,
+                                str_end_date: jobDataExec.str_end_date,
+                                str_start_time: jobDataExec.str_start_time,
+                                str_end_time: jobDataExec.str_end_time,
+                                str_cron: jobDataExec.str_cron,
+                                int_delay: jobDataExec.int_delay,
+                                dtm_created: jobDataExec.dtm_created,
+                                dtm_updated: jobDataExec.dtm_updated,
+                                status: jobDataExec.status,
+                                alerta: jobDataExec.alertaId ? { connect: { id: jobDataExec.alertaId } } : undefined,
+                                empresa: jobDataExec.empresaId ? { connect: { id: jobDataExec.empresaId } } : undefined,
+                                pessoa: jobDataExec.pessoaId ? { connect: { id: jobDataExec.pessoaId } } : undefined,
+                                imovel: jobDataExec.imovelId ? { connect: { id: jobDataExec.imovelId } } : undefined,
+                                locacao: jobDataExec.locacaoId ? { connect: { id: jobDataExec.locacaoId } } : undefined,
+                                user: jobDataExec.userId ? { connect: { id: jobDataExec.userId } } : undefined,
+                            }
+
+                        });
+                        if (job && job.id.toString() != '') {
+                            jobDataExec.id = job.id;
+                            this.createQueue(jobDataExec);
+                            //console.log('Job para Execução de Alertas criado');
+                        }
+                        else {
+                            console.log('Job para Execução de Alertas não foi criado');
+                        }
+                    }
+                    catch (error) {
+                        console.log('Erro ao criar job para Execução de Alertas: ', error);
+                    }
+
+                    //console.log('Fim Geração de Alertas');
                     break;
 
                 case "Geração de Alertas boletos vencidos":
+                    //console.log('Geração de Alertas boletos vencidos');
                     //Veririca se já existe essa JOB criada, para não criar duplicada
-                    const existingJob = await this.prismaService.jobs.findFirst({
+                    const existingJob = await prismaService.jobs.findFirst({
                         where: {
-                            alertaId: element.alertaId,
+                            alertaId: element.id,
                             empresaId: empresaId,
                         }
                     });
@@ -527,7 +852,7 @@ export class QueueService {
                     const jobData: jobMessageDto = {
                         id: '',
                         empresaId: empresaId,
-                        alertaId: element.alertaId,
+                        alertaId: element.id,
                         descAlerta: element.alerta.descricao,
                         pessoaId: null,
                         imovelId: null,
@@ -535,58 +860,74 @@ export class QueueService {
                         str_email: null,
                         str_message: element.textoAlerta,
                         str_error: null,
-                        str_start_date: null,
-                        str_end_date: null,
-                        str_start_time: null,
-                        str_end_time: null,
-                        str_cron: '0 0 9 * * ?',
+                        str_start_date: new Date().toISOString().split('T')[0],
+                        str_end_date: new Date().toISOString().split('T')[0],
+                        str_start_time: new Date().toTimeString().split(' ')[0],
+                        str_end_time: new Date().toTimeString().split(' ')[0],
+                        str_cron: str_cron,
                         int_delay: 0,
                         dtm_created: new Date(),
                         dtm_updated: new Date(),
                         status: jobs_status_enum.WAITING_TO_START,
-                        userId: '',
+                        userId: user.id,
                     }
-                    const job = await this.prismaService.jobs.create({
-                        data: {
-                            str_message: jobData.str_message,
-                            str_start_date: jobData.str_start_date,
-                            str_end_date: jobData.str_end_date,
-                            str_start_time: jobData.str_start_time,
-                            str_end_time: jobData.str_end_time,
-                            str_cron: jobData.str_cron,
-                            int_delay: jobData.int_delay,
-                            dtm_created: jobData.dtm_created,
-                            dtm_updated: jobData.dtm_updated,
-                            status: jobData.status,
-                            alerta: jobData.alertaId ? { connect: { id: jobData.alertaId } } : undefined,
-                            empresa: jobData.empresaId ? { connect: { id: jobData.empresaId } } : undefined,
-                            pessoa: jobData.pessoaId ? { connect: { id: jobData.pessoaId } } : undefined,
-                            imovel: jobData.imovelId ? { connect: { id: jobData.imovelId } } : undefined,
-                            locacao: jobData.locacaoId ? { connect: { id: jobData.locacaoId } } : undefined,
-                            user: jobData.userId ? { connect: { id: jobData.userId } } : undefined,
-                        }
+                    try {
+                        const job = await prismaService.jobs.create({
+                            data: {
+                                str_message: jobData.str_message,
+                                str_start_date: jobData.str_start_date,
+                                str_end_date: jobData.str_end_date,
+                                str_start_time: jobData.str_start_time,
+                                str_end_time: jobData.str_end_time,
+                                str_cron: jobData.str_cron,
+                                int_delay: jobData.int_delay,
+                                dtm_created: jobData.dtm_created,
+                                dtm_updated: jobData.dtm_updated,
+                                status: jobData.status,
+                                alerta: jobData.alertaId ? { connect: { id: jobData.alertaId } } : undefined,
+                                empresa: jobData.empresaId ? { connect: { id: jobData.empresaId } } : undefined,
+                                pessoa: jobData.pessoaId ? { connect: { id: jobData.pessoaId } } : undefined,
+                                imovel: jobData.imovelId ? { connect: { id: jobData.imovelId } } : undefined,
+                                locacao: jobData.locacaoId ? { connect: { id: jobData.locacaoId } } : undefined,
+                                user: jobData.userId ? { connect: { id: jobData.userId } } : undefined,
+                            }
 
-                    });
-                    console.log('Job para Geração de Alertas boletos vencidos');
+                        });
+                        if (job && job.id.toString() != '') {
+                            console.log('Job para Geração de Alertas boletos vencidos não foi criado');
+                        }
+                        else {
+                            console.log('Job para Geração de Alertas boletos vencidos criado com sucesso');
+                        }
+                    }
+                    catch (error) {
+                        console.log('Erro ao criar job para Geração de Alertas boletos vencidos: ', error);
+                    }
+                    //console.log('Fim Geração de Alertas boletos vencidos');
+
                     break;
 
                 case "Aviso reajuste Locação":
-                    const locacao = await this.prismaService.locacao.findMany({
+                    const locacao = await prismaService.locacao.findMany({
                         where: {
                             empresaId: empresaId,
                             status: 'ATIVA',
                         },
                     });
 
-                    //Cria jobs para aviso de reajuste de locação
-                    console.log('Criar JOB para aviso reajuste Locação');
+                    if (locacao && locacao.length > 0) {
+                        console.log('Criar JOB para aviso reajuste Locação');
+                    }
+                    else {
+
+                    }
                     break;
 
                 case "Aviso renovação contrato":
                     const datInicio = new Date();
                     datInicio.setDate(datInicio.getDate() + empresaConfig?.avisosRenovacaoContrato);
 
-                    const renovacaoContrato = await this.prismaService.locacao.findMany({
+                    const renovacaoContrato = await prismaService.locacao.findMany({
                         where: {
                             empresaId: empresaId,
                             status: 'ATIVA',
@@ -612,7 +953,7 @@ export class QueueService {
                         }
                     });
 
-                    renovacaoContrato.forEach(locacao => {
+                    renovacaoContrato.forEach(async locacao => {
                         if ((
                             (locacao.imovel.proprietarios &&
                                 locacao.imovel.proprietarios.length > 0 &&
@@ -625,7 +966,7 @@ export class QueueService {
                             const jobData: jobMessageDto = {
                                 id: '',
                                 empresaId: empresaId,
-                                alertaId: element.alertaId,
+                                alertaId: element.id,
                                 descAlerta: element.alerta.descricao,
                                 pessoaId: locacao.locatarios[0]?.pessoaId,
                                 imovelId: locacao.imovelId,
@@ -637,12 +978,12 @@ export class QueueService {
                                 str_end_date: new Date().toISOString().split('T')[0],
                                 str_start_time: new Date().toTimeString().split(' ')[0],
                                 str_end_time: new Date().toTimeString().split(' ')[0],
-                                str_cron: '',
+                                str_cron: str_cron,
                                 int_delay: 0,
                                 dtm_created: new Date(),
                                 dtm_updated: new Date(),
                                 status: jobs_status_enum.WAITING_TO_START,
-                                userId: '',
+                                userId: user.id,
                             }
                             /*this.prismaService.jobs.create({
                                 data: {
@@ -671,7 +1012,7 @@ export class QueueService {
                     break;
 
                 case "Aviso seguro fiança":
-                    const seguroFianca = await this.prismaService.locacao.findMany({
+                    const seguroFianca = await prismaService.locacao.findMany({
                         where: {
                             empresaId: empresaId,
                             status: 'ATIVA',
@@ -707,8 +1048,8 @@ export class QueueService {
 
                 case "Aviso vencimento boleto":
                     let now = new Date();
-
-                    const boletos = await this.prismaService.boleto.findMany({
+                    //console.log('Aviso vencimento boleto');
+                    const boletos = await prismaService.boleto.findMany({
                         where: {
                             empresaId: empresaId,
                             status: 'PENDENTE',
@@ -728,36 +1069,177 @@ export class QueueService {
                                     },
                                 }
                             },
+                            imovel: {
+                                include: {
+                                    proprietarios: {
+                                        include: {
+                                            pessoa: true,
+                                        }
+                                    }
+                                }
+                            },
+                            documentos: true,
+                            lanctoCondominio: true,
+                            lanctoLocacao: true,
+                            lancamentoImovels: true,
                         }
                     });
 
-                    boletos.forEach(boleto => {
+                    boletos.forEach(async boleto => {
+
+                        //Muda dados da mensagem de acordo com o boleto para enviar email para o locatário e proprietário do imóvel, caso exista email cadastrado. Se não tiver email cadastrado, não cria o job.
+                        if (textoAlerta.length > 0) {
+                            while (textoAlerta.indexOf('<', int_pos) > -1) {
+                                int_pos = textoAlerta.indexOf('<', int_pos);
+                                int_tam = textoAlerta.indexOf('>', int_pos);
+                                str_campo = textoAlerta.substring(int_pos, int_tam + 1);
+
+
+                                //Troca campo por dados do boleto
+                                //console.log(str_campo);
+                                switch (element.alerta.descricao) {
+                                    case "Aviso reajuste Locação":
+                                        break;
+
+                                    case "Aviso renovação contrato":
+                                        break;
+
+                                    case "Aviso seguro incêndio":
+                                        break;
+
+                                    case "Aviso vencimento boleto":
+                                        switch (str_campo) {
+                                            case "<Data de Emissão>":
+                                                if (boleto.dataEmissao && boleto.dataEmissao.toISOString().length > 0) {
+                                                    textoAlerta = textoAlerta.replace(str_campo, boleto.dataEmissao.toISOString().split('T')[0]);
+                                                }
+                                                else {
+                                                    textoAlerta = textoAlerta.replace(str_campo, "");
+                                                }
+                                                break;
+
+                                            case "<Data de Vencimento>":
+                                                if (boleto.dataVencimento && boleto.dataVencimento.toISOString().length > 0) {
+                                                    textoAlerta = textoAlerta.replace(str_campo, boleto.dataVencimento.toISOString().split('T')[0]);
+                                                }
+                                                else {
+                                                    textoAlerta = textoAlerta.replace(str_campo, "");
+                                                }
+                                                break;
+
+                                            case "<Valor Original>":
+                                                if (boleto.dataVencimento && boleto.valorOriginal.toString().length > 0) {
+                                                    textoAlerta = textoAlerta.replace(str_campo, boleto.valorOriginal.toLocaleString('pt-BR'));
+                                                }
+                                                else {
+                                                    textoAlerta = textoAlerta.replace(str_campo, "");
+                                                }
+                                                break;
+
+                                            case "<Email>":
+                                                if (boleto.locacao) {
+                                                    if (boleto.locacao.locatarios && boleto.locacao.locatarios.length > 0) {
+                                                        textoAlerta = textoAlerta.replace(str_campo, boleto.locacao.locatarios.map(loc => loc.pessoa.email).join(";"));
+                                                    }
+                                                    else {
+                                                        textoAlerta = textoAlerta.replace(str_campo, "");
+                                                    }
+                                                }
+                                                else {
+                                                    if (boleto.imovel && boleto.imovel.proprietarios && boleto.imovel.proprietarios.length > 0) {
+                                                        textoAlerta = textoAlerta.replace(str_campo, boleto.locacao.locatarios.map(loc => loc.pessoa.email).join(";"));
+                                                    }
+                                                    else {
+                                                        textoAlerta = textoAlerta.replace(str_campo, "");
+                                                    }
+                                                }
+                                                break;
+
+                                            case "<Link do Documento>":
+                                                if (boleto.documentos && boleto.documentos.length > 0) {
+                                                    textoAlerta = textoAlerta.replace(str_campo, boleto.documentos.map(doc => doc.url ? this.configService.get('AZURE_BLOB_CONTAINER').toString() + doc.url : "").join("\n"));
+                                                }
+                                                else {
+                                                    textoAlerta = textoAlerta.replace(str_campo, "");
+                                                }
+                                                break;
+
+                                            case "<Linha Digitável Boleto>":
+                                                if (boleto.linhaDigitavel && boleto.linhaDigitavel.length > 0) {
+                                                    textoAlerta = textoAlerta.replace(str_campo, boleto.linhaDigitavel);
+                                                }
+                                                else {
+                                                    textoAlerta = textoAlerta.replace(str_campo, "");
+                                                }
+                                                break;
+
+                                            case "<Linha Digitável Lançamento>":
+                                                if (boleto.lancamentoImovels && boleto.lancamentoImovels.length > 0) {
+                                                    textoAlerta = textoAlerta.replace(str_campo, boleto.lancamentoImovels.map(lan => lan.linhaDigitavel ? lan.linhaDigitavel : "").join("\n"));
+                                                }
+                                                else {
+                                                    if (boleto.lanctoCondominio && boleto.lanctoCondominio.length > 0) {
+                                                        textoAlerta = textoAlerta.replace(str_campo, boleto.lanctoCondominio.map(lan => lan.linhaDigitavel ? lan.linhaDigitavel : "").join("\n"));
+                                                    }
+                                                    else {
+                                                        if (boleto.lanctoLocacao && boleto.lanctoLocacao.length > 0) {
+                                                            textoAlerta = textoAlerta.replace(str_campo, boleto.lanctoLocacao.map(lan => lan.linhaDigitavel ? lan.linhaDigitavel : "").join("\n"));
+                                                        }
+                                                        else {
+                                                            textoAlerta = textoAlerta.replace(str_campo, "");
+                                                        }
+                                                    }
+                                                }
+                                                break;
+                                        }
+                                        break;
+
+                                    case "Aviso boleto atrasado":
+                                        /*arr_campos = [
+                                          { check: false, campo: "dataEmissao", descricao: "Data de Emissão" },
+                                          { check: false, campo: "dataVencimento", descricao: "Data de Vencimento" },
+                                          { check: false, campo: "valorOriginal", descricao: "Valor Original" },
+                                          { check: false, campo: "email", descricao: "Email" },
+                                          { check: false, campo: "linkDocumento", descricao: "Link do Documento" },
+                                          { check: false, campo: "linhaDigitavelBol", descricao: "Linha Digitável Boleto" },
+                                          { check: false, campo: "linhaDigitavelLan", descricao: "Linha Digitável Lançamento" },
+                                        ]*/
+                                        break;
+
+                                    default:
+                                        break;
+                                }
+
+                                int_pos++;
+                            }
+                        }
+
                         let str_data: string = new Date(boleto.dataVencimento.getFullYear() + '-' +
                             (boleto.dataVencimento.getMonth() + 1) + '-' +
                             (boleto.dataVencimento.getDate() - empresaConfig.avisosVencBoleto)).toLocaleDateString('pt-BR', { timeZone: 'UTC' });
                         const jobData: jobMessageDto = {
                             id: '',
                             empresaId: empresaId,
-                            alertaId: element.alertaId,
+                            alertaId: element.id,
                             descAlerta: element.alerta.descricao,
                             pessoaId: boleto.locacao.locatarios[0]?.pessoaId,
                             imovelId: boleto.locacao.imovelId,
                             locacaoId: boleto.locacaoId,
                             str_email: boleto.locacao.locatarios.map(loc => loc.pessoa.email).join(";"),
                             str_error: null,
-                            str_message: element.textoAlerta,
+                            str_message: textoAlerta,
                             str_start_date: str_data,
                             str_end_date: str_data,
-                            str_start_time: "09:00:00",
-                            str_end_time: null,
-                            str_cron: '',
+                            str_start_time: new Date().toTimeString().split(' ')[0],
+                            str_end_time: new Date().toTimeString().split(' ')[0],
+                            str_cron: str_cron,
                             int_delay: 0,
                             dtm_created: new Date(),
                             dtm_updated: new Date(),
                             status: jobs_status_enum.WAITING_TO_START,
-                            userId: '',
+                            userId: user.id,
                         }
-                        this.prismaService.jobs.create({
+                        const job = await prismaService.jobs.create({
                             data: {
                                 str_error: jobData.str_error,
                                 str_message: jobData.str_message,
@@ -785,21 +1267,171 @@ export class QueueService {
                                 locacao: true,
                             }
                         });
+                        if (job && job.id.toString() != '') {
+                            console.log('Job para aviso vencimento boleto não foi criado');
+                        }
                     });
-                    console.log('Criar JOB para aviso vencimento boleto');
+                    //console.log('Fim Aviso vencimento boleto');
                     break;
 
                 case "Aviso boleto atrasado":
-                    console.log('Criar JOB para Aviso boleto atrasado');
+                    /*const boletosVenc = await this.prismaService.boleto.findMany({
+                        where: {
+                            empresaId: empresaId,
+                            status: 'PENDENTE',
+                            dataVencimento: {
+                                gt: new Date(now.getFullYear() + '-' + (now.getMonth() + 1) + '-' + now.getDate())
+                            }
+                        },
+                        include: {
+                            locacao: {
+                                include: {
+                                    imovel: true,
+                                    locatarios: {
+                                        include: {
+                                            pessoa: true,
+                                        }
+                                    },
+                                }
+                            },
+                            imovel: {
+                                include: {
+                                    proprietarios: {
+                                        include: {
+                                            pessoa: true,
+                                        }
+                                    },
+                                }
+                            },
+                            documentos: true,
+                            lancamentoImovels: true,
+                            lanctoCondominio: true,
+                            lanctoLocacao: true,
+                        }
+                    });
 
+                    boletosVenc.forEach(boleto => {
+
+                        //Muda dados da mensagem de acordo com o boleto para enviar email para o locatário e proprietário do imóvel, caso exista email cadastrado. Se não tiver email cadastrado, não cria o job.
+                        if (textoAlerta.length > 0) {
+                            while (textoAlerta.indexOf('<', int_pos) > -1) {
+                                int_pos = textoAlerta.indexOf('<', int_pos);
+                                int_tam = textoAlerta.indexOf('>', int_pos);
+                                str_campo = textoAlerta.substring(int_pos, int_tam + 1);
+
+
+                                //Troca campo por dados do boleto
+                                console.log(str_campo);
+                                switch (str_campo) {
+                                    case "<Data de Emissão>":
+                                        textoAlerta = textoAlerta.replace(str_campo, boleto.dataEmissao.toISOString().split('T')[0]);
+                                        break;
+
+                                    case "<Data de Vencimento>":
+                                        textoAlerta = textoAlerta.replace(str_campo, boleto.dataEmissao.toISOString().split('T')[0]);
+                                        break;
+
+                                    case "<Valor Original>":
+                                        textoAlerta = textoAlerta.replace(str_campo, boleto.valorOriginal.toLocaleString('pt-BR'));
+                                        break;
+
+                                    case "<Email>":
+                                        textoAlerta = textoAlerta.replace(str_campo, boleto.locacao.locatarios.map(loc => loc.pessoa.email).join(";"));
+                                        break;
+
+                                    case "<Link do Documento>":
+                                        if (boleto.documentos && boleto.documentos.length > 0) {
+                                            textoAlerta = textoAlerta.replace(str_campo, boleto.documentos.map(doc => doc.url ? this.configService.get('AZURE_BLOB_CONTAINER').toString() + doc.url : "").join("\n"));
+                                        }
+                                        break;
+
+                                    case "<Linha Digitável Boleto>":
+                                        textoAlerta = textoAlerta.replace(str_campo, boleto.linhaDigitavel);
+                                        break;
+
+                                    case "<Linha Digitável Lançamento>":
+                                        if (boleto.lancamentoImovels && boleto.lancamentoImovels.length > 0) {
+                                            textoAlerta = textoAlerta.replace(str_campo, boleto.lancamentoImovels.map(lan => lan.linhaDigitavel ? lan.linhaDigitavel : "").join("\n"));
+                                        }
+                                        else {
+                                            if (boleto.lanctoCondominio && boleto.lanctoCondominio.length > 0) {
+                                                textoAlerta = textoAlerta.replace(str_campo, boleto.lanctoCondominio.map(lan => lan.linhaDigitavel ? lan.linhaDigitavel : "").join("\n"));
+                                            }
+                                            else {
+                                                if (boleto.lanctoLocacao && boleto.lanctoLocacao.length > 0) {
+                                                    textoAlerta = textoAlerta.replace(str_campo, boleto.lanctoLocacao.map(lan => lan.linhaDigitavel ? lan.linhaDigitavel : "").join("\n"));
+                                                }
+                                                else {
+                                                    textoAlerta = textoAlerta.replace(str_campo, "");
+                                                }
+                                            }
+                                        }
+                                        break;
+                                }
+
+                                int_pos++;
+                            }
+                        }
+
+                        const jobData: jobMessageDto = {
+                            id: '',
+                            empresaId: empresaId,
+                            alertaId: element.alertaId,
+                            descAlerta: element.alerta.descricao,
+                            pessoaId: (boleto.imovelId !== null && boleto.imovelId > 0 ? boleto.imovel.proprietarios[0]?.pessoaId : boleto.locacao.locatarios[0]?.pessoaId),
+                            imovelId: boleto.locacao.imovelId,
+                            locacaoId: boleto.locacaoId,
+                            str_email: (boleto.imovelId !== null && boleto.imovelId > 0 ? boleto.imovel.proprietarios[0]?.pessoa.email : boleto.locacao.locatarios[0]?.pessoa.email),
+                            str_error: null,
+                            str_message: textoAlerta,
+                            str_start_date: new Date().toISOString().split('T')[0],
+                            str_end_date: new Date().toISOString().split('T')[0],
+                            str_start_time: null,
+                            str_end_time: null,
+                            str_cron: '',
+                            int_delay: 0,
+                            dtm_created: new Date(),
+                            dtm_updated: new Date(),
+                            status: jobs_status_enum.WAITING_TO_START,
+                            userId: '',
+                        }
+                        this.prismaService.jobs.create({
+                            data: {
+                                str_message: jobData.str_message,
+                                str_start_date: jobData.str_start_date,
+                                str_end_date: jobData.str_end_date,
+                                str_start_time: jobData.str_start_time,
+                                str_end_time: jobData.str_end_time,
+                                str_cron: jobData.str_cron,
+                                int_delay: jobData.int_delay,
+                                dtm_created: jobData.dtm_created,
+                                dtm_updated: jobData.dtm_updated,
+                                status: jobData.status,
+                                alerta: jobData.alertaId ? { connect: { id: jobData.alertaId } } : undefined,
+                                empresa: jobData.empresaId ? { connect: { id: jobData.empresaId } } : undefined,
+                                pessoa: jobData.pessoaId ? { connect: { id: jobData.pessoaId } } : undefined,
+                                imovel: jobData.imovelId ? { connect: { id: jobData.imovelId } } : undefined,
+                                locacao: jobData.locacaoId ? { connect: { id: jobData.locacaoId } } : undefined,
+                                user: jobData.userId ? { connect: { id: jobData.userId } } : undefined,
+                            },
+                            include: {
+                                empresa: true,
+                                alerta: true,
+                                pessoa: true,
+                                imovel: true,
+                                locacao: true,
+                            }
+                        });
+                    });*/
+                    console.log('Fim Aviso boleto atrasado - vazio');
                     break;
 
                 default:
-                    console.log('Criar JOB para o alerta ' + element.alerta.descricao);
+                    console.log('Default Criar JOB para o alerta ' + element.alerta.descricao);
             }
         });
+        prismaService.$disconnect();
 
-        this.getJobsToProcess(empresaId);
         return result;
     }
 
@@ -818,8 +1450,11 @@ export class QueueService {
         //Junta query e filtros
         str_query += table + '(' + str_filters.substring(0, str_filters.length - 1) + ')'
 
+        const prismaService: PrismaService = new PrismaService();
+
         //Transforma string em query e execurta no banco de dados
-        const result = await this.prismaService.$queryRaw(Prisma.sql([str_query]));
+        const result = await prismaService.$queryRaw(Prisma.sql([str_query]));
+        prismaService.$disconnect();
         return result;
 
     }
@@ -860,8 +1495,10 @@ export class QueueService {
         return `${year}-${month}-${day}`;
     }
 
-    private AtualizaStatusJob(job: jobMessageDto, statusJobs: jobs_status_enum, errorMessage: string = null) {
-        this.prismaService.jobs.update({
+    private async AtualizaStatusJob(job: jobMessageDto, statusJobs: jobs_status_enum, errorMessage: string = null) {
+        //console.log('Inicio Atualiza status do JOB no banco de dados : ', new Date().toISOString());
+        const prismaService: PrismaService = new PrismaService();
+        const result = await prismaService.jobs.update({
             where: {
                 id: job.id,
             },
@@ -870,6 +1507,9 @@ export class QueueService {
                 status: statusJobs,
             },
         });
+        //console.log('Fim Atualiza status do JOB no banco de dados : ', new Date().toISOString());
+        prismaService.$disconnect();
+        return result;
 
     }
 

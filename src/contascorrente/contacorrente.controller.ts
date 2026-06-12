@@ -1,15 +1,13 @@
 import { Permissions } from '@/auth/decorators/permissions.decorator';
 import { BaseRoutes } from '@/common/interfaces/base-routes';
-import { Body, Controller, Delete, Get, Param, Patch, Post, Put } from '@nestjs/common';
-import { Permission, PessoaStatus } from '@prisma/client';
+import { GetPessoasQueryDto } from '@/pessoas/pessoas.controller';
+import { Body, Controller, Delete, Get, Param, Patch, Post, Put, Query } from '@nestjs/common';
+import { FormaEnvio, Permission, PessoaStatus } from '@prisma/client';
 import { Transform } from 'class-transformer';
-import { IsEnum, IsNumber, IsOptional, IsString } from 'class-validator';
+import { IsBoolean, IsEnum, IsNumber, IsOptional, IsString } from 'class-validator';
 import { ContaCorrenteService } from './contacorrente.service';
 
 export class CreateCCDto {
-  @IsString()
-  banco: string;
-
   @IsString()
   agencia: string;
 
@@ -41,10 +39,146 @@ export class CreateCCDto {
 
   @IsString()
   @IsOptional()
+  urlBoleto: string;
+
+  @IsString()
+  @IsOptional()
   urlWebhookPIX: string;
+
+  @IsString()
+  @IsOptional()
+  urlWebhookBoleto: string;
 
   @IsEnum(PessoaStatus)
   status: PessoaStatus;
+
+  @Transform(({ value }) => {
+    if (String(value).toLowerCase() === 'true') return true;
+    if (String(value).toLowerCase() === 'false') return false;
+    return value;
+  })
+  @IsBoolean()
+  @IsOptional()
+  pagtoParcial: boolean;
+
+  @Transform(({ value }) => Number(value))
+  @IsNumber()
+  @IsOptional()
+  qtdeMaxParcial: number;
+
+  @IsEnum(FormaEnvio)
+  formaEnvio: FormaEnvio;
+
+  @IsString()
+  @IsOptional()
+  assuntoEmail: string;
+
+  @IsString()
+  @IsOptional()
+  mensagemEmail1: string;
+
+  @IsString()
+  @IsOptional()
+  mensagemEmail2: string;
+
+  @IsString()
+  @IsOptional()
+  mensagemEmail3: string;
+
+  @Transform(({ value }) => Number(value))
+  @IsNumber()
+  @IsOptional()
+  tipoJurosCobId: number;
+
+  @Transform(({ value }) => Number(value))
+  @IsNumber()
+  @IsOptional()
+  tipoMultaCobId: number;
+
+  @Transform(({ value }) => Number(value))
+  @IsNumber()
+  @IsOptional()
+  tipoDescontoCobId: number;
+
+  @Transform(({ value }) => Number(value))
+  @IsNumber()
+  @IsOptional()
+  tipoAutorizacaoCobId: number;
+
+  @Transform(({ value }) => {
+    if (String(value).toLowerCase() === 'true') return true;
+    if (String(value).toLowerCase() === 'false') return false;
+    return value;
+  })
+  @IsBoolean()
+  @IsOptional()
+  protestar: boolean;
+
+  @Transform(({ value }) => Number(value))
+  @IsNumber()
+  @IsOptional()
+  qtdeDiasProtesto: number;
+
+  @Transform(({ value }) => {
+    if (String(value).toLowerCase() === 'true') return true;
+    if (String(value).toLowerCase() === 'false') return false;
+    return value;
+  })
+  @IsBoolean()
+  @IsOptional()
+  negativar: boolean;
+
+  @Transform(({ value }) => Number(value))
+  @IsNumber()
+  @IsOptional()
+  qtdeDiasNegativar: number;
+
+  @Transform(({ value }) => Number(value))
+  @IsNumber()
+  @IsOptional()
+  instrucaoCobId1: number;
+
+  @Transform(({ value }) => Number(value))
+  @IsNumber()
+  @IsOptional()
+  instrucaoCobId2: number;
+
+  @Transform(({ value }) => Number(value))
+  @IsNumber()
+  @IsOptional()
+  instrucaoCobId3: number;
+
+  @Transform(({ value }) => Number(value))
+  @IsNumber()
+  @IsOptional()
+  instrucaoRecId1: number;
+
+  @Transform(({ value }) => Number(value))
+  @IsNumber()
+  @IsOptional()
+  instrucaoRecId2: number;
+
+  @Transform(({ value }) => Number(value))
+  @IsNumber()
+  @IsOptional()
+  instrucaoRecId3: number;
+
+  @Transform(({ value }) => Number(value))
+  @IsNumber()
+  @IsOptional()
+  instrucaoRecId4: number;
+
+  @Transform(({ value }) => Number(value))
+  @IsNumber()
+  bancoId: number;
+
+  @Transform(({ value }) => Number(value))
+  @IsNumber()
+  carteiraId: number;
+
+  @Transform(({ value }) => Number(value))
+  @IsNumber()
+  especieId: number;
 
   @Transform(({ value }) => Number(value))
   @IsNumber()
@@ -63,8 +197,8 @@ export const CONTA_CORRENTE_ROUTES: BaseRoutes = {
     permission: Permission.CREATE_CONTA_CORRENTE,
   },
   findById: {
-    name: 'findById',
-    route: ':id',
+    name: 'Get Conta Corrente',
+    route: '/findbyid/:id',
     permission: Permission.VIEW_CONTAS_CORRENTE,
   },
   update: {
@@ -72,9 +206,14 @@ export const CONTA_CORRENTE_ROUTES: BaseRoutes = {
     route: ':id',
     permission: Permission.UPDATE_CONTA_CORRENTE,
   },
+  findEmpresa: {
+    name: 'Empresa Conta Corrente',
+    route: '/:empresaId',
+    permission: Permission.VIEW_CONTAS_CORRENTE,
+  },
   findMany: {
     name: 'findMany',
-    route: '/:empresaId',
+    route: 'findmany/:empresaId',
     permission: Permission.VIEW_CONTAS_CORRENTE,
   },
   delete: {
@@ -125,6 +264,12 @@ export class ContaCorrenteController {
     return this.contaCorrenteService.update(Number(id), data);
   }
 
+  @Get(CONTA_CORRENTE_ROUTES.findById.route)
+  @Permissions(CONTA_CORRENTE_ROUTES.findById.permission)
+  async findById(@Param() { id }: BaseParamsByStringIdDto) {
+    return await this.contaCorrenteService.getContaCorrente(Number(id));
+  }
+
 
   @Delete(CONTA_CORRENTE_ROUTES.delete.route)
   @Permissions(CONTA_CORRENTE_ROUTES.delete.permission)
@@ -134,6 +279,15 @@ export class ContaCorrenteController {
 
   @Get(CONTA_CORRENTE_ROUTES.findMany.route)
   @Permissions(CONTA_CORRENTE_ROUTES.findMany.permission)
+  async search(@Param() { empresaId }: BaseParamsIdEmpresaDto, @Query() data: GetPessoasQueryDto) {
+    const { search, page, limit, exclude } = data;
+    const response = await this.contaCorrenteService.findMany(empresaId, search, page, limit, exclude);
+    return response;
+  }
+
+
+  @Get(CONTA_CORRENTE_ROUTES.findEmpresa.route)
+  @Permissions(CONTA_CORRENTE_ROUTES.findEmpresa.permission)
   async getContasCorrente(@Param() { empresaId }: BaseParamsIdEmpresaDto) {
     return await this.contaCorrenteService.getContasCorrente(empresaId);
   }

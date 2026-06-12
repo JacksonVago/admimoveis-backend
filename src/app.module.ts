@@ -2,15 +2,20 @@ import { Module } from '@nestjs/common';
 import { AlertaModule } from './alertas/alerta.module';
 import { AssinaturaModule } from './assinatura/assinatura.module';
 import { AuthModule } from './auth/auth.module';
+import { BancoModule } from './bancos/banco.module';
 import { BlocoModule } from './blocos/bloco.module';
+import { CarteiraCobrancaModule } from './carteiracobranca/carteiracobranca.module';
 import { CepModule } from './cep/cep.module';
 import { CondominioModule } from './condominios/condominio.module';
 import { ContaCorrenteModule } from './contascorrente/contacorrente.module';
 import { MailModule } from './email/email.module';
 import { EmpresaModule } from './empresas/empresas.module';
 import { EnvModule } from './env/env.module';
+import { EspecieCobrancaModule } from './especiecobranca/especiecobranca.module';
 import { FilesModule } from './files/files.module';
 import { ImoveisModule } from './imoveis/imoveis.module';
+import { InstrucaoCobrancaModule } from './instrucaocobranca/instrucaocobranca.module';
+import { InstrucaoRecebimentosModule } from './instrucaorecebimento/instrucaorecebimento.module';
 import { JobsModule } from './jobs/jobs.module';
 import { LancamentoModule } from './lancamentos/lancamentos.module';
 import { LancamentoCondominioModule } from './lancamentosCondominios/lanctosCondominios.module';
@@ -22,6 +27,9 @@ import { PagSeguroModule } from './pagseguro/pagseguro.module';
 import { PessoasModule } from './pessoas/pessoas.module';
 import { PrismaModule } from './prisma/prisma.module';
 import { ProprietariosModule } from './proprietarios/proprietarios.module';
+import { bullboardConfig } from './queue/config/bull-board.config';
+import { queueConfig } from './queue/config/queue.config';
+import { QueueModule } from './queue/queue.module';
 import { ReajusteModule } from './reajustes/reajustes.module';
 import { RepasseModule } from './repasses/repasses.module';
 import { TipoAlertaModule } from './tipoalerta/tipoalerta.module';
@@ -31,8 +39,8 @@ import { UsersModule } from './users/users.module';
 
 @Module({
   imports: [
-    //queueConfig,
-    //bullboardConfig,
+    queueConfig,
+    bullboardConfig,
     EnvModule,
     PrismaModule,
     UsersModule,
@@ -57,12 +65,17 @@ import { UsersModule } from './users/users.module';
     LancamentoCondominioModule,
     MoradoresModule,
     LancamentoImoveisModule,
-    //QueueModule,
+    QueueModule,
     MailModule,
     TipoAlertaModule,
     ContaCorrenteModule,
     JobsModule,
     AlertaModule,
+    InstrucaoCobrancaModule,
+    BancoModule,
+    InstrucaoRecebimentosModule,
+    CarteiraCobrancaModule,
+    EspecieCobrancaModule,
   ],
   controllers: [],
   providers: [],
