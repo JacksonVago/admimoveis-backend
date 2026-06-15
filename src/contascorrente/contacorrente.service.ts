@@ -220,6 +220,7 @@ export class ContaCorrenteService {
           tipoDescontoCob: true,
           tipoAutorizacaoCob: true,
           pessoa: true,
+          banco: true,
         },
         skip,
         take: pageSize,

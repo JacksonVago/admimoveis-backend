@@ -440,6 +440,7 @@ model Endereco {
 
   createdAt   DateTime     @default(now())
   updatedAt   DateTime     @updatedAt
+  codantigo   Int?
   pessoas     Pessoa[]
   empresas    Empresa[]
   condominios Condominio[]
@@ -459,6 +460,7 @@ model Pessoa {
   email       String? //Email 
   telefone    String? //Telefone 
   status      PessoaStatus
+  codantigo   Int?
 
   fiador        Fiador?
   proprietarios Proprietario[]
@@ -539,6 +541,7 @@ model Imovel {
 
   endereco   Endereco @relation(fields: [enderecoId], references: [id])
   enderecoId Int
+  codantigo  Int?
 
   condominio   Condominio? @relation(fields: [condominioId], references: [id])
   condominioId Int?
@@ -662,15 +665,16 @@ model ImovelValorHistorico {
 }
 
 model Locacao {
-  id            Int            @id @default(autoincrement())
+  id            Int           @id @default(autoincrement())
   dataInicio    DateTime
   dataFim       DateTime
   valorAluguel  Float
-  status        LocacaoStatus  @default(ATIVA)
-  imovel        Imovel?        @relation(fields: [imovelId], references: [id])
+  status        LocacaoStatus @default(ATIVA)
+  imovel        Imovel?       @relation(fields: [imovelId], references: [id])
   imovelId      Int?
   diaVencimento Int
-  documentos    GenericAnexo[]
+
+  documentos GenericAnexo[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

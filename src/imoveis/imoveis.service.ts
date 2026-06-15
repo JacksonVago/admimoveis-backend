@@ -310,6 +310,7 @@ export class ImoveisService {
           },
           documentos: true,
           empresa: true,
+          condominio: true,
         },
         where,
       }),
@@ -446,6 +447,7 @@ export class ImoveisService {
           imovelPhotos: true,
           tipo: { select: { id: true, name: true } },
           empresa: true,
+          condominio: true,
         },
         where,
       }),
@@ -481,6 +483,7 @@ export class ImoveisService {
         endereco: true,
         tipo: { select: { id: true, name: true } },
         empresa: true,
+        condominio: true,
       },
       where,
     });

@@ -5,6 +5,7 @@ import { Body, Controller, Delete, Get, Param, Patch, Post, Put, Query } from '@
 import { FormaEnvio, Permission, PessoaStatus } from '@prisma/client';
 import { Transform } from 'class-transformer';
 import { IsBoolean, IsEnum, IsNumber, IsOptional, IsString } from 'class-validator';
+import { FormDataRequest } from 'nestjs-form-data';
 import { ContaCorrenteService } from './contacorrente.service';
 
 export class CreateCCDto {
@@ -174,10 +175,12 @@ export class CreateCCDto {
 
   @Transform(({ value }) => Number(value))
   @IsNumber()
+  @IsOptional()
   carteiraId: number;
 
   @Transform(({ value }) => Number(value))
   @IsNumber()
+  @IsOptional()
   especieId: number;
 
   @Transform(({ value }) => Number(value))
@@ -186,6 +189,7 @@ export class CreateCCDto {
 
   @Transform(({ value }) => Number(value))
   @IsNumber()
+  @IsOptional()
   pessoaId: number;
 
 }
@@ -251,12 +255,14 @@ export class ContaCorrenteController {
 
   @Post(CONTA_CORRENTE_ROUTES.create.route)
   @Permissions(CONTA_CORRENTE_ROUTES.create.permission)
+  @FormDataRequest()
   create(@Body() createContaCorrenteDto: CreateCCDto) {
     return this.contaCorrenteService.createContaCorrente(createContaCorrenteDto);
   }
 
   @Put(CONTA_CORRENTE_ROUTES.update.route)
   @Permissions(CONTA_CORRENTE_ROUTES.update.permission)
+  @FormDataRequest()
   update(
     @Param() { id }: BaseParamsByStringIdDto,
     @Body() data: CreateCCDto,
