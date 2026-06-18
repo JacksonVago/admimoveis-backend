@@ -4,6 +4,7 @@ import { AssinaturaModule } from './assinatura/assinatura.module';
 import { AuthModule } from './auth/auth.module';
 import { BancoModule } from './bancos/banco.module';
 import { BlocoModule } from './blocos/bloco.module';
+import { BoletoBancarioController } from './boletos/boletobancario.controller';
 import { CarteiraCobrancaModule } from './carteiracobranca/carteiracobranca.module';
 import { CepModule } from './cep/cep.module';
 import { CondominioModule } from './condominios/condominio.module';
@@ -30,8 +31,12 @@ import { ProprietariosModule } from './proprietarios/proprietarios.module';
 import { ReajusteModule } from './reajustes/reajustes.module';
 import { RepasseModule } from './repasses/repasses.module';
 import { TipoAlertaModule } from './tipoalerta/tipoalerta.module';
+import { TipoAutorizacaoModule } from './tipoaurizacao/tipoautorizacao.module';
+import { TipoDescontoModule } from './tipodesconto/tipodesconto.module';
 import { TipoImovelModule } from './tipoimovel/tipoimovel.module';
+import { TipoJurosModule } from './tipojuros/tipojuros.module';
 import { TipoLancamentoModule } from './tipolancamento/tipolancamento.module';
+import { TipoMultaModule } from './tipomulta/tipomulta.module';
 import { UsersModule } from './users/users.module';
 
 @Module({
@@ -73,6 +78,11 @@ import { UsersModule } from './users/users.module';
     InstrucaoRecebimentosModule,
     CarteiraCobrancaModule,
     EspecieCobrancaModule,
+    TipoJurosModule,
+    TipoMultaModule,
+    TipoDescontoModule,
+    TipoAutorizacaoModule,
+    BoletoBancarioController,
   ],
   controllers: [],
   providers: [],

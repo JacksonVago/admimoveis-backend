@@ -47,9 +47,27 @@ export class ContaCorrenteService {
         mensagemEmail3: createCCDto.mensagemEmail3,
 
         tipoJurosCob: createCCDto.tipoJurosCobId ? { connect: { id: createCCDto.tipoJurosCobId } } : undefined,
+        valorJuros: createCCDto.valorJuros,
+        percJuros: createCCDto.percJuros,
+        diasInicioJuros: createCCDto.diasInicioJuros,
+
         tipoMultaCob: createCCDto.tipoMultaCobId ? { connect: { id: createCCDto.tipoMultaCobId } } : undefined,
+        valorMulta: createCCDto.valorMulta,
+        percMulta: createCCDto.percMulta,
+        diasInicioMulta: createCCDto.diasInicioMulta,
+
         tipoDescontoCob: createCCDto.tipoDescontoCobId ? { connect: { id: createCCDto.tipoDescontoCobId } } : undefined,
+        valorDesconto: createCCDto.valorDesconto,
+        percDesconto: createCCDto.percDesconto,
+        diasInicioDesconto: createCCDto.diasInicioDesconto,
+
         tipoAutorizacaoCob: createCCDto.tipoAutorizacaoCobId ? { connect: { id: createCCDto.tipoAutorizacaoCobId } } : undefined,
+        tipoRecebimentoDiv: createCCDto.tipoRecebimentoDiv,
+        valorMinDiverg: createCCDto.valorMinDiverg,
+        valorMaxDiverg: createCCDto.valorMaxDiverg,
+        percMinDiverg: createCCDto.percMinDiverg,
+        percMaxDiverg: createCCDto.percMaxDiverg,
+
         protestar: createCCDto.protestar,
         qtdeDiasProtesto: createCCDto.qtdeDiasProtesto,
         negativar: createCCDto.negativar,
@@ -58,6 +76,9 @@ export class ContaCorrenteService {
         instrucaoCob1: createCCDto.instrucaoCobId1 ? { connect: { id: createCCDto.instrucaoCobId1 } } : undefined,
         instrucaoCob2: createCCDto.instrucaoCobId2 ? { connect: { id: createCCDto.instrucaoCobId2 } } : undefined,
         instrucaoCob3: createCCDto.instrucaoCobId3 ? { connect: { id: createCCDto.instrucaoCobId3 } } : undefined,
+        qtdeDiasAposVencto: createCCDto.qtdeDiasAposVencto,
+        cobrancaDiaUtil: createCCDto.cobrancaDiaUtil,
+
         instrucaoRec1: createCCDto.instrucaoRecId1 ? { connect: { id: createCCDto.instrucaoRecId1 } } : undefined,
         instrucaoRec2: createCCDto.instrucaoRecId2 ? { connect: { id: createCCDto.instrucaoRecId2 } } : undefined,
         instrucaoRec3: createCCDto.instrucaoRecId3 ? { connect: { id: createCCDto.instrucaoRecId3 } } : undefined,
@@ -89,7 +110,8 @@ export class ContaCorrenteService {
   }
 
   async update(id: number, data: CreateCCDto) {
-    return await this.PrismaService.contaCorrente.update({
+    console.log('data: ', data)
+    const result = await this.PrismaService.contaCorrente.update({
       where: {
         id,
       },
@@ -112,9 +134,27 @@ export class ContaCorrenteService {
         mensagemEmail3: data.mensagemEmail3,
 
         tipoJurosCob: data.tipoJurosCobId ? { connect: { id: data.tipoJurosCobId } } : undefined,
+        valorJuros: data.valorJuros,
+        percJuros: data.percJuros,
+        diasInicioJuros: data.diasInicioJuros,
+
         tipoMultaCob: data.tipoMultaCobId ? { connect: { id: data.tipoMultaCobId } } : undefined,
+        valorMulta: data.valorMulta,
+        percMulta: data.percMulta,
+        diasInicioMulta: data.diasInicioMulta,
+
         tipoDescontoCob: data.tipoDescontoCobId ? { connect: { id: data.tipoDescontoCobId } } : undefined,
+        valorDesconto: data.valorDesconto,
+        percDesconto: data.percDesconto,
+        diasInicioDesconto: data.diasInicioDesconto,
+
         tipoAutorizacaoCob: data.tipoAutorizacaoCobId ? { connect: { id: data.tipoAutorizacaoCobId } } : undefined,
+        tipoRecebimentoDiv: data.tipoRecebimentoDiv,
+        valorMinDiverg: data.valorMinDiverg,
+        valorMaxDiverg: data.valorMaxDiverg,
+        percMinDiverg: data.percMinDiverg,
+        percMaxDiverg: data.percMaxDiverg,
+
         protestar: data.protestar,
         qtdeDiasProtesto: data.qtdeDiasProtesto,
         negativar: data.negativar,
@@ -123,6 +163,9 @@ export class ContaCorrenteService {
         instrucaoCob1: data.instrucaoCobId1 ? { connect: { id: data.instrucaoCobId1 } } : undefined,
         instrucaoCob2: data.instrucaoCobId2 ? { connect: { id: data.instrucaoCobId2 } } : undefined,
         instrucaoCob3: data.instrucaoCobId3 ? { connect: { id: data.instrucaoCobId3 } } : undefined,
+        qtdeDiasAposVencto: data.qtdeDiasAposVencto,
+        cobrancaDiaUtil: data.cobrancaDiaUtil,
+
         instrucaoRec1: data.instrucaoRecId1 ? { connect: { id: data.instrucaoRecId1 } } : undefined,
         instrucaoRec2: data.instrucaoRecId2 ? { connect: { id: data.instrucaoRecId2 } } : undefined,
         instrucaoRec3: data.instrucaoRecId3 ? { connect: { id: data.instrucaoRecId3 } } : undefined,
@@ -147,6 +190,9 @@ export class ContaCorrenteService {
       },
 
     });
+
+    console.log('result: ', result);
+    return result;
   }
 
   async findMany(
@@ -257,6 +303,7 @@ export class ContaCorrenteService {
         tipoAutorizacaoCob: true,
         empresa: true,
         pessoa: true,
+        banco: true,
       },
     });
   }

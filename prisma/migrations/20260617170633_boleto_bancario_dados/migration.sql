@@ -1,0 +1,15 @@
+-- AlterTable
+ALTER TABLE "boletosbancarios" ADD COLUMN     "diasInicioDesconto" INTEGER,
+ADD COLUMN     "diasInicioJuros" INTEGER,
+ADD COLUMN     "diasInicioMulta" INTEGER,
+ADD COLUMN     "percDesconto" DOUBLE PRECISION,
+ADD COLUMN     "percJuros" DOUBLE PRECISION,
+ADD COLUMN     "percMaxDiverg" DOUBLE PRECISION,
+ADD COLUMN     "percMinDiverg" DOUBLE PRECISION,
+ADD COLUMN     "percMulta" DOUBLE PRECISION,
+ADD COLUMN     "tipoRecebimentoDiv" TEXT,
+ADD COLUMN     "valorDesconto" DOUBLE PRECISION,
+ADD COLUMN     "valorJuros" DOUBLE PRECISION,
+ADD COLUMN     "valorMaxDiverg" DOUBLE PRECISION,
+ADD COLUMN     "valorMinDiverg" DOUBLE PRECISION,
+ADD COLUMN     "valorMulta" DOUBLE PRECISION;

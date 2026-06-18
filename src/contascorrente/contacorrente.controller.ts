@@ -3,7 +3,7 @@ import { BaseRoutes } from '@/common/interfaces/base-routes';
 import { GetPessoasQueryDto } from '@/pessoas/pessoas.controller';
 import { Body, Controller, Delete, Get, Param, Patch, Post, Put, Query } from '@nestjs/common';
 import { FormaEnvio, Permission, PessoaStatus } from '@prisma/client';
-import { Transform } from 'class-transformer';
+import { Transform, Type } from 'class-transformer';
 import { IsBoolean, IsEnum, IsNumber, IsOptional, IsString } from 'class-validator';
 import { FormDataRequest } from 'nestjs-form-data';
 import { ContaCorrenteService } from './contacorrente.service';
@@ -91,20 +91,89 @@ export class CreateCCDto {
   @IsOptional()
   tipoJurosCobId: number;
 
+  @Type(() => Number)
+  @IsNumber()
+  @IsOptional()
+  valorJuros: number;
+
+  @Type(() => Number)
+  @IsNumber()
+  @IsOptional()
+  percJuros: number;
+
+  @Type(() => Number)
+  @IsNumber()
+  @IsOptional()
+  diasInicioJuros: number;
+
   @Transform(({ value }) => Number(value))
   @IsNumber()
   @IsOptional()
   tipoMultaCobId: number;
+
+  @Type(() => Number)
+  @IsNumber()
+  @IsOptional()
+  valorMulta: number;
+
+  @Type(() => Number)
+  @IsNumber()
+  @IsOptional()
+  percMulta: number;
+
+  @Type(() => Number)
+  @IsNumber()
+  @IsOptional()
+  diasInicioMulta: number;
 
   @Transform(({ value }) => Number(value))
   @IsNumber()
   @IsOptional()
   tipoDescontoCobId: number;
 
+  @Type(() => Number)
+  @IsNumber()
+  @IsOptional()
+  valorDesconto: number;
+
+  @Type(() => Number)
+  @IsNumber()
+  @IsOptional()
+  percDesconto: number;
+
+  @Type(() => Number)
+  @IsNumber()
+  @IsOptional()
+  diasInicioDesconto: number;
+
   @Transform(({ value }) => Number(value))
   @IsNumber()
   @IsOptional()
   tipoAutorizacaoCobId: number;
+
+  @IsString()
+  @IsOptional()
+  tipoRecebimentoDiv: string;
+
+  @Type(() => Number)
+  @IsNumber()
+  @IsOptional()
+  valorMinDiverg: number;
+
+  @Type(() => Number)
+  @IsNumber()
+  @IsOptional()
+  valorMaxDiverg: number;
+
+  @Type(() => Number)
+  @IsNumber()
+  @IsOptional()
+  percMinDiverg: number;
+
+  @Type(() => Number)
+  @IsNumber()
+  @IsOptional()
+  percMaxDiverg: number;
 
   @Transform(({ value }) => {
     if (String(value).toLowerCase() === 'true') return true;
@@ -148,6 +217,20 @@ export class CreateCCDto {
   @IsNumber()
   @IsOptional()
   instrucaoCobId3: number;
+
+  @Type(() => Number)
+  @IsNumber()
+  @IsOptional()
+  qtdeDiasAposVencto: number;
+
+  @Transform(({ value }) => {
+    if (String(value).toLowerCase() === 'true') return true;
+    if (String(value).toLowerCase() === 'false') return false;
+    return value;
+  })
+  @IsBoolean()
+  @IsOptional()
+  cobrancaDiaUtil: boolean;
 
   @Transform(({ value }) => Number(value))
   @IsNumber()

@@ -11,13 +11,16 @@ import {
 import { Boleto, BoletoStatus, lancamentoStatus, LocacaoStatus, Prisma } from '@prisma/client';
 import { randomUUID } from 'crypto';
 import { MemoryStoredFile } from 'nestjs-form-data';
+import { BoletoWebService } from '../boletos/boletoweb';
 import { CreateBoletoDto, UpdateBoletoDto } from './pagamentos.controller';
+
 
 @Injectable()
 export class PagamentosService {
   constructor(
     private readonly prismaService: PrismaService,
     private filesAzureService: FilesAzureService,
+    private readonly boletoWeb: BoletoWebService,
   ) { }
 
   async create(createBoletoDto: CreateBoletoDto) {
@@ -866,6 +869,108 @@ export class PagamentosService {
     } catch (error) {
       console.error('Error on createPagamentoDocuments', error);
     }
+  }
+
+  async EnviaBoletoBanco(boletoId: number) {
+    const boleto = await this.prismaService.boleto.findUnique({
+      where: {
+        id: boletoId
+      }
+    });
+
+    if (!boleto) {
+      throw new BadRequestException('Boleto not found');
+    }
+
+    //Envia boleto ao banco
+    const conta = await this.prismaService.contaCorrente.findUnique({
+      where: {
+        id: boleto.contaCorrenteId
+      },
+      include: {
+        banco: true,
+      }
+    })
+
+    if (!conta) {
+      throw new BadRequestException('Conta not found');
+    }
+
+    const bolBancario = await this.prismaService.boletoBancario.create(
+      {
+        data: {
+          boleto: { connect: { id: boleto.id } },
+          valor: boleto.valorOriginal,
+          valorPago: 0,
+          dataBoleto: new Date(),
+          dataVencimento: boleto.dataVencimento, //Vencimento do boleto
+          dataPagamento: boleto.dataPagamento,
+          formaPix: '',
+          codigoBarras: '',
+          linhaDigitavel: '',
+          nossoNumero: boleto.id.toString(),
+          urlBoleto: '',
+          registrado: 'N',
+          emvPIX: '',
+          metodoPagamento: '',
+          status: '',
+          observacao: '',
+          pagtoParcial: conta.pagtoParcial,
+          qtdeMaxParcial: conta.qtdeMaxParcial,
+          formaEnvio: conta.formaEnvio,
+          assuntoEmail: conta.assuntoEmail,
+          mensagemEmail1: conta.mensagemEmail1,
+          mensagemEmail2: conta.mensagemEmail2,
+          mensagemEmail3: conta.mensagemEmail3,
+
+
+          tipoJurosCobId: conta.tipoJurosCobId,
+          valorJuros: conta.valorJuros,
+          percJuros: conta.percJuros,
+          diasInicioJuros: conta.diasInicioJuros,
+
+          tipoMultaCobId: conta.tipoMultaCobId,
+          valorMulta: conta.valorMulta,
+          percMulta: conta.percMulta,
+          diasInicioMulta: conta.diasInicioMulta,
+
+          tipoDescontoCobId: conta.tipoDescontoCobId,
+          valorDesconto: conta.valorDesconto,
+          percDesconto: conta.percDesconto,
+          diasInicioDesconto: conta.diasInicioDesconto,
+
+          tipoAutorizacaoCobId: conta.tipoAutorizacaoCobId,
+          tipoRecebimentoDiv: conta.tipoRecebimentoDiv,
+          valorMinDiverg: conta.valorMinDiverg,
+          valorMaxDiverg: conta.valorMaxDiverg,
+          percMinDiverg: conta.percMinDiverg,
+          percMaxDiverg: conta.percMaxDiverg,
+
+          protestar: conta.protestar,
+          qtdeDiasProtesto: conta.qtdeDiasProtesto,
+          negativar: conta.negativar,
+          qtdeDiasNegativar: conta.qtdeDiasNegativar,
+
+          instrucaoCobId1: conta.instrucaoCobId1,
+          instrucaoCobId2: conta.instrucaoCobId2,
+          instrucaoCobId3: conta.instrucaoCobId3,
+
+          instrucaoRecId1: conta.instrucaoRecId1,
+          instrucaoRecId2: conta.instrucaoRecId2,
+          instrucaoRecId3: conta.instrucaoRecId3,
+          instrucaoRecId4: conta.instrucaoRecId4,
+
+          contacorrente: { connect: { id: conta.id } },
+        }
+
+      }
+    );
+
+    //Envia dados ao banco
+    const banco = "RegistraBoleto" + conta.banco.codigo;
+    const msg = this.boletoWeb[banco as keyof typeof BoletoWebService](bolBancario);
+
+
   }
 
 }
