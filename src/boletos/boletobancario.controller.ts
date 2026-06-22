@@ -5,7 +5,7 @@ import { Permission } from '@prisma/client';
 import { Transform } from 'class-transformer';
 import { IsBoolean, IsDate, IsNumber, IsOptional, IsString } from 'class-validator';
 import { FormDataRequest } from 'nestjs-form-data';
-import { BoletoBancarioService } from './BoletoBancario.service';
+import { BoletoBancarioService } from "./boletobancario.service";
 
 export class CreateBoletoBancarioDto {
   @Transform(({ value }) => Number(value))
