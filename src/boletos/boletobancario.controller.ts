@@ -8,15 +8,6 @@ import { FormDataRequest } from 'nestjs-form-data';
 import { BoletoBancarioService } from './BoletoBancario.service';
 
 export class CreateBoletoBancarioDto {
-  @IsString()
-  codigo: number;
-
-  @IsString()
-  descricao: string;
-
-  @IsString()
-  sigla: string;
-
   @Transform(({ value }) => Number(value))
   @IsNumber()
   bancoId: number;
@@ -108,6 +99,10 @@ export class CreateBoletoBancarioDto {
 
   @IsString()
   @IsOptional()
+  email: string;
+
+  @IsString()
+  @IsOptional()
   assuntoEmail: string;
 
   @IsString()
@@ -122,10 +117,9 @@ export class CreateBoletoBancarioDto {
   @IsOptional()
   mensagemEmail3: string;
 
-  @Transform(({ value }) => Number(value))
-  @IsNumber()
+  @IsString()
   @IsOptional()
-  tipoJurosCobId: number;
+  tipoJurosCobCod: string;
 
   @Transform(({ value }) => Number(value))
   @IsNumber()
@@ -142,10 +136,9 @@ export class CreateBoletoBancarioDto {
   @IsOptional()
   diasInicioJuros: number;
 
-  @Transform(({ value }) => Number(value))
-  @IsNumber()
+  @IsString()
   @IsOptional()
-  tipoMultaCobId: number;
+  tipoMultaCobCod: string;
 
   @Transform(({ value }) => Number(value))
   @IsNumber()
@@ -162,10 +155,9 @@ export class CreateBoletoBancarioDto {
   @IsOptional()
   diasInicioMulta: number;
 
-  @Transform(({ value }) => Number(value))
-  @IsNumber()
+  @IsString()
   @IsOptional()
-  tipoDescontoCobId: number;
+  tipoDescontoCobCod: string;
 
   @Transform(({ value }) => Number(value))
   @IsNumber()
@@ -182,10 +174,9 @@ export class CreateBoletoBancarioDto {
   @IsOptional()
   diasInicioDesconto: number;
 
-  @Transform(({ value }) => Number(value))
-  @IsNumber()
+  @IsString()
   @IsOptional()
-  tipoAutorizacaoCobId: number;
+  tipoAutorizacaoCobCod: string;
 
   @IsString()
   @IsOptional()
@@ -239,46 +230,45 @@ export class CreateBoletoBancarioDto {
   @IsOptional()
   qtdeDiasNegativar: number;
 
-  @Transform(({ value }) => Number(value))
-  @IsNumber()
+  @IsString()
   @IsOptional()
-  instrucaoCobId1: number;
+  instrucaoCobCod1: string;
 
-  @Transform(({ value }) => Number(value))
-  @IsNumber()
+  @IsString()
   @IsOptional()
-  instrucaoCobId2: number;
+  instrucaoCobCod2: string;
 
-  @Transform(({ value }) => Number(value))
-  @IsNumber()
+  @IsString()
   @IsOptional()
-  instrucaoCobId3: number;
+  instrucaoCobCod3: string;
 
-  @Transform(({ value }) => Number(value))
-  @IsNumber()
+  @IsString()
   @IsOptional()
-  instrucaoRecId1: number;
+  instrucaoRecCod1: string;
 
-  @Transform(({ value }) => Number(value))
-  @IsNumber()
+  @IsString()
   @IsOptional()
-  instrucaoRecId2: number;
+  instrucaoRecCod2: string;
 
-  @Transform(({ value }) => Number(value))
-  @IsNumber()
+  @IsString()
   @IsOptional()
-  instrucaoRecId3: number;
+  instrucaoRecCod3: string;
 
-  @Transform(({ value }) => Number(value))
-  @IsNumber()
+  @IsString()
   @IsOptional()
-  instrucaoRecId4: number;
+  instrucaoRecCod4: string;
+
+  @IsString()
+  @IsOptional()
+  carteiraCod: string;
+
+  @IsString()
+  @IsOptional()
+  especieCod: string;
 
   @Transform(({ value }) => Number(value))
   @IsNumber()
   contaId: number;
-
-
 }
 
 export const BOLETO_BANCARIO_ROUTES: BaseRoutes = {
@@ -343,7 +333,7 @@ export class BoletoBancarioController {
   envia(
     @Body() data: CreateBoletoBancarioDto,
   ) {
-    return this.BoletoBancarioService.enviar(data);
+    return this.BoletoBancarioService.EnviaBoletoBanco(data);
   }
 
   @Put(BOLETO_BANCARIO_ROUTES.update.route)

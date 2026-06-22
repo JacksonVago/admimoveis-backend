@@ -909,48 +909,53 @@ model BoletoBancario {
   pagtoParcial   Boolean? @default(false) //Indica se o alerta está ativo ou não
   qtdeMaxParcial Int? //Quantide de pagamentos parcial 1..99
   formaEnvio     String?
+  email          String?
   assuntoEmail   String?
   mensagemEmail1 String?
   mensagemEmail2 String?
   mensagemEmail3 String?
 
-  tipoJurosCobId  Int?
+  tipoJurosCobCod String?
   valorJuros      Float?
   percJuros       Float?
   diasInicioJuros Int?
 
-  tipoMultaCobId  Int?
+  tipoMultaCobCod String?
   valorMulta      Float?
   percMulta       Float?
   diasInicioMulta Int?
 
-  tipoDescontoCobId  Int?
+  tipoDescontoCobCod String?
   valorDesconto      Float?
   percDesconto       Float?
   diasInicioDesconto Int?
 
-  tipoAutorizacaoCobId Int?
-  tipoRecebimentoDiv   String?
-  valorMinDiverg       Float?
-  valorMaxDiverg       Float?
-  percMinDiverg        Float?
-  percMaxDiverg        Float?
+  tipoAutorizacaoCobCod String?
+  tipoRecebimentoDiv    String?
+  valorMinDiverg        Float?
+  valorMaxDiverg        Float?
+  percMinDiverg         Float?
+  percMaxDiverg         Float?
 
   protestar         Boolean?
   qtdeDiasProtesto  Int?
   negativar         Boolean?
   qtdeDiasNegativar Int?
 
-  instrucaoCobId1 Int?
-  instrucaoCobId2 Int?
-  instrucaoCobId3 Int?
+  instrucaoCobCod1 String?
+  instrucaoCobCod2 String?
+  instrucaoCobCod3 String?
 
-  instrucaoRecId1 Int?
-  instrucaoRecId2 Int?
-  instrucaoRecId3 Int?
-  instrucaoRecId4 Int?
+  instrucaoRecCod1 String?
+  instrucaoRecCod2 String?
+  instrucaoRecCod3 String?
+  instrucaoRecCod4 String?
 
-  createdAt DateTime @default(now())
+  carteiraCod String?
+
+  especieCod String?
+  createdAt  DateTime @default(now())
+
   updatedAt DateTime @updatedAt
 
   contacorrente ContaCorrente? @relation(fields: [contaId], references: [id])

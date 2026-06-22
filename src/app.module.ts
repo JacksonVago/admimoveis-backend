@@ -4,7 +4,7 @@ import { AssinaturaModule } from './assinatura/assinatura.module';
 import { AuthModule } from './auth/auth.module';
 import { BancoModule } from './bancos/banco.module';
 import { BlocoModule } from './blocos/bloco.module';
-import { BoletoBancarioController } from './boletos/boletobancario.controller';
+import { BoletoBancarioModule } from './boletos/boletobancario.module';
 import { CarteiraCobrancaModule } from './carteiracobranca/carteiracobranca.module';
 import { CepModule } from './cep/cep.module';
 import { CondominioModule } from './condominios/condominio.module';
@@ -82,7 +82,7 @@ import { UsersModule } from './users/users.module';
     TipoMultaModule,
     TipoDescontoModule,
     TipoAutorizacaoModule,
-    BoletoBancarioController,
+    BoletoBancarioModule,
   ],
   controllers: [],
   providers: [],

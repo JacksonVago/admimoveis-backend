@@ -1,5 +1,31 @@
+import { PrismaService } from '@/prisma/prisma.service';
 import { HttpService } from "@nestjs/axios";
-import { BoletoBancario, ContaCorrente } from "@prisma/client";
+import { BoletoBancario } from "@prisma/client";
+
+/*interface BoletoTT {
+    id: number;
+    createdAt: string;
+    updatedAt: string;
+
+    locacao?: Locacao;
+    locacaoId?: number;
+
+    imovel?: Imovel;
+    imovelId?: number;
+
+    empresaId?: number;
+
+    status: string;
+    dataEmissao: string;
+    dataVencimento: string;
+    dataPagamento: string;
+
+    valorOriginal: number;
+    valorPago: number;
+    observacao: string;
+    linhaDigitavel: string;
+}*/
+
 
 interface registroRetorno {
     id_boleto: string,
@@ -58,9 +84,9 @@ interface EnvioItau {
         },
         assunto_email: string, //O campo pode ser preenchido de forma personalizada. Máximo caracteres: 50
         mensagem_email: string, //O campo pode ser preenchido de forma personalizada. Máximo caracteres: 200
-        lista_mensagem_cobranca: {
-            mensagens: string[], //Pode ser enviado até 3 mensagens com até 50 caracteres. Caso na requisição seja enviado o e-mail do pagador, adicionaremos as mensagens.
-        },
+        lista_mensagem_cobranca: [{
+            mensagens: string, //Pode ser enviado até 3 mensagens com até 50 caracteres. Caso na requisição seja enviado o e-mail do pagador, adicionaremos as mensagens.
+        }],
     },
     pagador: {
         pessoa: {
@@ -145,54 +171,287 @@ interface EnvioItau {
         negativacao: boolean, //Em caso de negativação informar "true".Em caso de não negativar não enviar o bloco de negativação.
         quantidade_dias_negativacao: number, //Em caso de negativação "true"(campo acima) enviar a quantidade de dias, mínimo 2 e máximo 99. Em caso de negativação "false" não enviar o campo.
     },
-    instrucao_cobranca: {
+    instrucao_cobranca: [{
         codigo_instrucao_cobranca: string, //Códigos das instruções de protesto.Podem ser enviadas até 4 instruções de Recebimentos e até 3 instruções de Cobrança, ou seja, até 7 instruções por boleto.Se houverem mais comandos, iremos descartar um instrução aleatoriamente.Ver "Tabela de Instruções de Recebimentos" e "Tabela de Instruções de Cobrança".
         quantidade_dias_apos_vencimento: number, //Quantidade de dias após vencimento do boleto, o prazo deve ser entre 01 e 99 dias.Para baixa também é possível 365 dias de vencido.
         dia_util: boolean, //Caso a quantidade de dias após o vencimento tenha que ser contabilizada em dia útil, informar true.Caso tenha que ser contabilizada em dias corridos, informar false.Importante as orientações mencionadas, não são validas para as instruções 7 - “Não receber após XX de vencimento” e 8 – “Cancelar(Baixar / Devolver) após XX de vencimento, o prazo deve ser entre 01 e 99 dias, ou 365 dias de vencido.” Atenção: O CEP do pagador e sacador avalista(se houver) precisa estar correto conforme site dos Correios.Caso não informado será atribuído false / corridos.}
-    }
+    }]
 }
 
 export class BoletoWebService {
-    constructor(private readonly httpService: HttpService,) { }
+    constructor(private readonly httpService: HttpService,
+        private PrismaService: PrismaService,
+    ) { }
 
     /**Registro boleto Itaú */
-    async RegistraBoleto341(boleto: BoletoBancario, conta: ContaCorrente) {
+    async RegistraBoleto341(boleto: BoletoBancario) {
 
-        const envioJSON: registroRetorno =
-        {
-            id_boleto: boleto.boletoId.toString(),
-            etapa_processo_boleto: '',
-            codigo_canal_operacao: 'API',  //API
-            codigo_operador: string,  //Agência (4 dígitos) + Conta (5 dígitos)
-            beneficiario: {
-                id_beneficiario:
-                    nome_cobranca: string,  //Razão social do beneficiário. Máximo caracteres: 50.
-                tipo_pessoa: {
-                    codigo_tipo_pessoa: string,  //Tipo pessoa do beneficiario Pessoa Física - 'F' Pessoa Jurídica - 'J'
-                    numero_cadastro_pessoa_fisica: string,  //CPF do beneficiario - Obrigatório caso tipo_pessoa = F Exemplo: 12345678910
-                    numero_cadastro_nacional_pessoa_juridica: string,  //CNPJ do beneficiario - Obrigatório caso tipo_pessoa = J Exemplo: 12312312000110`
-                }
+        //Cria boleto bancário para envio
+        const boletoBancario = await this.PrismaService.boletoBancario.create({
+            data: {
+                boleto: boleto.boletoId ? { connect: { id: boleto.boletoId } } : undefined,
+                valor: boleto.valor, //Valor do boleto
+                valorPago: boleto.valorPago, //Valor pago no boleto
+                dataBoleto: boleto.dataBoleto, //Emissao do boleto
+                dataVencimento: boleto.dataVencimento, //Vencimento do boleto
+                dataPagamento: boleto.dataPagamento, //Data de pagamento do boleto
+                formaPix: boleto.formaPix, //Forma de pagamento PIX para recebimento
+                codigoBarras: boleto.codigoBarras,
+                linhaDigitavel: boleto.linhaDigitavel,
+                nossoNumero: boleto.nossoNumero,
+                urlBoleto: boleto.urlBoleto, //URL para visualização do boleto
+                registrado: boleto.registrado, //S/N Informa se ocorreu o registro do boleto
+                emvPIX: boleto.emvPIX, //Código EMV para pagamento via PIX
+                metodoPagamento: boleto.metodoPagamento, //Método de pagamento utilizado
+                status: boleto.status, //Status do boleto
+                observacao: boleto.observacao,
+
+                pagtoParcial: boleto.pagtoParcial, //Indica se o alerta está ativo ou não
+                qtdeMaxParcial: boleto.qtdeMaxParcial, //Quantide de pagamentos parcial 1..99
+                formaEnvio: boleto.formaEnvio,
+                email: boleto.email,
+                assuntoEmail: boleto.assuntoEmail,
+                mensagemEmail1: boleto.mensagemEmail1,
+                mensagemEmail2: boleto.mensagemEmail2,
+                mensagemEmail3: boleto.mensagemEmail3,
+
+                tipoJurosCobCod: boleto.tipoJurosCobCod,
+                valorJuros: boleto.valorJuros,
+                percJuros: boleto.percJuros,
+                diasInicioJuros: boleto.diasInicioJuros,
+
+                tipoMultaCobCod: boleto.tipoMultaCobCod,
+                valorMulta: boleto.valorMulta,
+                percMulta: boleto.percMulta,
+                diasInicioMulta: boleto.diasInicioMulta,
+
+                tipoDescontoCobCod: boleto.tipoDescontoCobCod,
+                valorDesconto: boleto.valorDesconto,
+                percDesconto: boleto.percDesconto,
+                diasInicioDesconto: boleto.diasInicioDesconto,
+
+                tipoAutorizacaoCobCod: boleto.tipoAutorizacaoCobCod,
+                tipoRecebimentoDiv: boleto.tipoRecebimentoDiv,
+                valorMinDiverg: boleto.valorMinDiverg,
+                valorMaxDiverg: boleto.valorMaxDiverg,
+                percMinDiverg: boleto.percMinDiverg,
+                percMaxDiverg: boleto.percMaxDiverg,
+
+                protestar: boleto.protestar,
+                qtdeDiasProtesto: boleto.qtdeDiasProtesto,
+                negativar: boleto.negativar,
+                qtdeDiasNegativar: boleto.qtdeDiasNegativar,
+
+                instrucaoCobCod1: boleto.instrucaoCobCod1,
+                instrucaoCobCod2: boleto.instrucaoCobCod2,
+                instrucaoCobCod3: boleto.instrucaoCobCod3,
+
+                instrucaoRecCod1: boleto.instrucaoRecCod1,
+                instrucaoRecCod2: boleto.instrucaoRecCod2,
+                instrucaoRecCod3: boleto.instrucaoRecCod3,
+                instrucaoRecCod4: boleto.instrucaoRecCod4,
+
+                carteiraCod: boleto.carteiraCod,
+                especieCod: boleto.especieCod,
+
+                contacorrente: boleto.contaId ? { connect: { id: boleto.contaId } } : undefined,
             },
-            dados_boleto: {
-                forma_envio: string,  //'impressão' 'e-mail'
-                codigo_tipo_vencimento: number, //Tipo de vencimento do boleto. '3' - Data de vencimento informada pelo cliente
+            include: {
+                boleto: {
+                    include: {
+                        imovel: {
+                            include: {
+                                proprietarios: {
+                                    include: {
+                                        pessoa: {
+                                            include: {
+                                                endereco: true,
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        },
+                        locacao: {
+                            include: {
+                                locatarios: {
+                                    include: {
+                                        pessoa: {
+                                            include: {
+                                                endereco: true
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        },
+                        empresa: {
+                            include: {
+                                endereco: true,
+                            }
+                        },
+                        contaCorrente: true,
+                    }
+                },
+            },
+        });
+
+        let envioJSON: EnvioItau = {
+            etapa_processo_boleto: 'validacao',
+            beneficiario: {
+                id_beneficiario: boletoBancario.boleto.contaCorrente.agencia.padStart(4, '0') +
+                    boletoBancario.boleto.contaCorrente.conta.padStart(7, '0') +
+                    boletoBancario.boleto.contaCorrente.digito,
+            },
+            dado_boleto: {
+                descricao_instrumento_cobranca: 'boleto',
+                tipo_boleto: 'a vista',
+                codigo_carteira: boletoBancario.carteiraCod,
+                codigo_especie: boletoBancario.especieCod,
+                valor_abatimento: '000',
+                data_emissao: boletoBancario.dataBoleto.toISOString().split('T')[0],
+                pagamento_parcial: boletoBancario.pagtoParcial,
+                quantidade_maximo_parcial: boletoBancario.qtdeMaxParcial,
+                forma_envio: boletoBancario.formaEnvio,
+                pagador: {
+                    texto_endereço_email: boletoBancario.formaEnvio === 'email' ? boletoBancario.email : '',
+                },
+                assunto_email: boletoBancario.formaEnvio === 'email' ? boletoBancario.email : '',
+                mensagem_email: boletoBancario.formaEnvio === 'email' ? boletoBancario.assuntoEmail : '',
+                lista_mensagem_cobranca: [
+                    { mensagens: boletoBancario.mensagemEmail1 }
+                ],
             },
             pagador: {
-                pagador_eletronico_DDA: boolean, //Indica se o pagador possui cadastro no DDA
-                praca_protesto: boolean //Indica se o CEP do pagador é de uma praça protestável
+                pessoa: {
+                    nome_pessoa: boletoBancario.boleto.locacao.locatarios[0].pessoa.nome,
+                    tipo_pessoa: {
+                        codigo_tipo_pessoa: boletoBancario.boleto.locacao.locatarios[0].pessoa.documento.length > 11 ? 'J' : 'F',
+                        numero_cadastro_pessoa_fisica: boletoBancario.boleto.locacao.locatarios[0].pessoa.documento.length > 11 ? '' : boletoBancario.boleto.locacao.locatarios[0].pessoa.documento.padStart(11, '0'),
+                        numero_cadastro_nacional_pessoa_juridica: boletoBancario.boleto.locacao.locatarios[0].pessoa.documento.length > 11 ? boletoBancario.boleto.locacao.locatarios[0].pessoa.documento.padStart(14, '0') : '',
+                    }
+                },
+                endereco: {
+                    nome_logradouro: boletoBancario.boleto.locacao.locatarios[0].pessoa.endereco.logradouro,
+                    nome_bairro: boletoBancario.boleto.locacao.locatarios[0].pessoa.endereco.bairro,
+                    nome_cidade: boletoBancario.boleto.locacao.locatarios[0].pessoa.endereco.cidade,
+                    sigla_UF: boletoBancario.boleto.locacao.locatarios[0].pessoa.endereco.estado,
+                    numero_CEP: boletoBancario.boleto.locacao.locatarios[0].pessoa.endereco.cep,
+                }
+            },
+            sacador_avalista: {
+                pessoa: {
+                    nome_pessoa: boletoBancario.boleto.empresa.nome,
+                    tipo_pessoa: {
+
+                        codigo_tipo_pessoa: boletoBancario.boleto.empresa.cnpj.length > 11 ? 'J' : 'F',
+                        numero_cadastro_pessoa_fisica: boletoBancario.boleto.empresa.cnpj.length > 11 ? '' : boletoBancario.boleto.empresa.cnpj,
+                        numero_cadastro_nacional_pessoa_juridica: boletoBancario.boleto.empresa.cnpj.length > 11 ? boletoBancario.boleto.empresa.cnpj : '',
+                    },
+                },
+                endereco: {
+                    nome_logradouro: boletoBancario.boleto.empresa.endereco.logradouro,
+                    nome_bairro: boletoBancario.boleto.empresa.endereco.bairro,
+                    nome_cidade: boletoBancario.boleto.empresa.endereco.cidade,
+                    sigla_UF: boletoBancario.boleto.empresa.endereco.estado,
+                    numero_CEP: boletoBancario.boleto.empresa.endereco.cep,
+                }
             },
             dados_individuais_boleto: {
-                id_boleto_individual: string,  //Identificador do título
-                codigo_barras: string,  //Número do código de barras
-                numero_linha_digitavel: string,  //Número da linha digitável
-                texto_uso_beneficiario: string,  //Campo de 25 caractéres, utilizado na API legado como "identificador_titulo_empresa". Deve ser utilizado apenas letras e números.
+                numero_nosso_numero: boletoBancario.id.toString() + ';' + boletoBancario.boletoId.toString(),
+                data_vencimento: boletoBancario.dataVencimento.toISOString().split('T')[0],
+                valor_titulo: boletoBancario.valor.toFixed(2).padStart(15, '0'),
+                data_limite_pagamento: boletoBancario.dataPagamento.toISOString().split('T')[0],
+                texto_seu_numero: boletoBancario.id.toString() + ';' + boletoBancario.boletoId.toString(),
+                texto_uso_beneficiario: boletoBancario.id.toString() + ';' + boletoBancario.boletoId.toString(),
             },
+            desconto_expresso: false,
             juros: {
-                codigo_tipo_juros: string,  //O retorno será de acordo com o parâmetros do cadastro de beneficiário para dias úteis ou corridos.
+                codigo_tipo_juros: boletoBancario.tipoJurosCobCod,
+                valor_juros: boletoBancario.valorJuros.toFixed(2).padStart(15, '0'),
+                percentual_juros: boletoBancario.percJuros.toFixed(2).padStart(12, '0'),
+                data_juros: addDays(boletoBancario.dataVencimento, boletoBancario.diasInicioJuros).toISOString().split('T')[0],
             },
+            multa: {
+                codigo_tipo_multa: boletoBancario.tipoMultaCobCod,
+                valor_multa: boletoBancario.valorMulta.toFixed(2).padStart(15, '0'),
+                percentual_multa: boletoBancario.percMulta.toFixed(2).padStart(12, '0'),
+                data_multa: addDays(boletoBancario.dataVencimento, boletoBancario.diasInicioMulta).toISOString().split('T')[0],
+            },
+            desconto: {
+                codigo_tipo_desconto: boletoBancario.tipoDescontoCobCod,
+                data_desconto: boletoBancario.valorDesconto.toFixed(2).padStart(15, '0'),
+                valor_desconto: boletoBancario.percDesconto.toFixed(2).padStart(12, '0'),
+                percentual_desconto: addDays(boletoBancario.dataVencimento, boletoBancario.diasInicioDesconto).toISOString().split('T')[0],
+            },
+            recebimento_divergente: {
+                codigo_tipo_autorizacao: boletoBancario.tipoAutorizacaoCobCod,
+                codigo_tipo_recebimento: boletoBancario.tipoRecebimentoDiv,
+                valor_minimo: boletoBancario.valorMinDiverg.toFixed(2).padStart(15, '0'),
+                percentual_minimo: boletoBancario.percMinDiverg.toFixed(2).padStart(15, '0'),
+                valor_maximo: boletoBancario.valorMaxDiverg.toFixed(2).padStart(15, '0'),
+                percentual_maximo: boletoBancario.percMinDiverg.toFixed(2).padStart(15, '0'),
+            },
+            protesto: {
+                protesto: boletoBancario.protestar,
+                quantidade_dias_protesto: boletoBancario.qtdeDiasProtesto,
+            },
+            negativacao: {
+                negativacao: boletoBancario.negativar,
+                quantidade_dias_negativacao: boletoBancario.qtdeDiasNegativar,
+            },
+            instrucao_cobranca: [{
+                codigo_instrucao_cobranca: boletoBancario.instrucaoCobCod1,
+                quantidade_dias_apos_vencimento: boletoBancario.boleto.contaCorrente.qtdeDiasAposVencto,
+                dia_util: boletoBancario.boleto.contaCorrente.cobrancaDiaUtil,
+            }]
+        };
 
+        if (boletoBancario.mensagemEmail2.length > 0) {
+            envioJSON.dado_boleto.lista_mensagem_cobranca.concat({ mensagens: boletoBancario.mensagemEmail2 });
         }
-        const responseOrder = await this.httpService.axiosRef.post('https://sandbox.devportal.itau.com.br/itau-ep9-gtw-cash-management-ext-v2/v2', boleto, {
+        if (boletoBancario.mensagemEmail3.length > 0) {
+            envioJSON.dado_boleto.lista_mensagem_cobranca.concat({ mensagens: boletoBancario.mensagemEmail3 });
+        }
+
+        if (boletoBancario.instrucaoCobCod2.length > 0) {
+            envioJSON.instrucao_cobranca.concat({
+                codigo_instrucao_cobranca: boletoBancario.instrucaoCobCod2,
+                quantidade_dias_apos_vencimento: boletoBancario.boleto.contaCorrente.qtdeDiasAposVencto,
+                dia_util: boletoBancario.boleto.contaCorrente.cobrancaDiaUtil,
+            })
+        }
+        if (boletoBancario.instrucaoCobCod3.length > 0) {
+            envioJSON.instrucao_cobranca.concat({
+                codigo_instrucao_cobranca: boletoBancario.instrucaoCobCod3,
+                quantidade_dias_apos_vencimento: boletoBancario.boleto.contaCorrente.qtdeDiasAposVencto,
+                dia_util: boletoBancario.boleto.contaCorrente.cobrancaDiaUtil,
+            })
+        }
+
+        if (boletoBancario.instrucaoRecCod2.length > 0) {
+            envioJSON.instrucao_cobranca.concat({
+                codigo_instrucao_cobranca: boletoBancario.instrucaoRecCod2,
+                quantidade_dias_apos_vencimento: boletoBancario.boleto.contaCorrente.qtdeDiasAposVencto,
+                dia_util: boletoBancario.boleto.contaCorrente.cobrancaDiaUtil,
+            })
+        }
+        if (boletoBancario.instrucaoRecCod3.length > 0) {
+            envioJSON.instrucao_cobranca.concat({
+                codigo_instrucao_cobranca: boletoBancario.instrucaoRecCod3,
+                quantidade_dias_apos_vencimento: boletoBancario.boleto.contaCorrente.qtdeDiasAposVencto,
+                dia_util: boletoBancario.boleto.contaCorrente.cobrancaDiaUtil,
+            })
+        }
+        if (boletoBancario.instrucaoRecCod4.length > 0) {
+            envioJSON.instrucao_cobranca.concat({
+                codigo_instrucao_cobranca: boletoBancario.instrucaoRecCod4,
+                quantidade_dias_apos_vencimento: boletoBancario.boleto.contaCorrente.qtdeDiasAposVencto,
+                dia_util: boletoBancario.boleto.contaCorrente.cobrancaDiaUtil,
+            })
+        }
+
+        /*const responseOrder = await this.httpService.axiosRef.post('https://sandbox.devportal.itau.com.br/itau-ep9-gtw-cash-management-ext-v2/v2', boleto, {
             headers: {
                 'Content-Type': 'application/json',
                 Accept: 'application/json',
@@ -201,9 +460,15 @@ export class BoletoWebService {
                 'x-itau-correlationID': 'BoletosAdmImovelManual',
                 Authorization: `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJlYWEwODZkNi03ZmIzLTM1YTctYjg3ZS04MzFkMTIyMDM3OTYiLCJleHAiOjE3ODE3MTg2MDAsImlhdCI6MTc4MTcxODMwMCwic291cmNlIjoic3RzLXNhbmRib3giLCJlbnYiOiJQIiwiZmxvdyI6IkNDIiwic2NvcGUiOiJwaXhfcmVjZWJpbWVudG9zX2V4dF92Mi1zY29wZSIsInVzZXJuYW1lIjoiamFja3NvbkBuYXRpdmlkYWRlc29sdWNvZXMuY29tLmJyIiwib3JnYW5pemF0aW9uTmFtZSI6IlJBTUlSTyBDQU1QRUxPIENPTSBERSBVVElMIExURCJ9.j41Vg_cQcy1unIyKGKBPj45x7PYg2Bj4KTqYSQKxHdE`
             }
-        });
+        });*/
 
-        console.log(responseOrder);
+        console.log("JSON: ", envioJSON);
 
     }
+}
+
+function addDays(date: Date, days: number): Date {
+    const result = new Date(date);
+    result.setDate(result.getDate() + days);
+    return result;
 }

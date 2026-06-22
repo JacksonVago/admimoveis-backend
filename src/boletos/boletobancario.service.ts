@@ -1,15 +1,16 @@
 import { PrismaService } from '@/prisma/prisma.service';
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { CreateBoletoBancarioDto } from './boletobancario.controller';
-import { BoletoWebService } from './boletoweb';
+import { BoletoWebService } from './boletoweb.service';
 
 @Injectable()
 export class BoletoBancarioService {
-  constructor(private PrismaService: PrismaService) { }
+  constructor(private PrismaService: PrismaService,
+    private readonly boletoWeb: BoletoWebService,
+  ) { }
 
 
   async createBoletoBancario(createBoletoBancarioDto: CreateBoletoBancarioDto) {
-    const { codigo, bancoId } = createBoletoBancarioDto;
     return await this.PrismaService.boletoBancario.create({
       data: {
         boleto: createBoletoBancarioDto.boletoId ? { connect: { id: createBoletoBancarioDto.boletoId } } : undefined,
@@ -32,27 +33,28 @@ export class BoletoBancarioService {
         pagtoParcial: createBoletoBancarioDto.pagtoParcial, //Indica se o alerta está ativo ou não
         qtdeMaxParcial: createBoletoBancarioDto.qtdeMaxParcial, //Quantide de pagamentos parcial 1..99
         formaEnvio: createBoletoBancarioDto.formaEnvio,
+        email: createBoletoBancarioDto.email,
         assuntoEmail: createBoletoBancarioDto.assuntoEmail,
         mensagemEmail1: createBoletoBancarioDto.mensagemEmail1,
         mensagemEmail2: createBoletoBancarioDto.mensagemEmail2,
         mensagemEmail3: createBoletoBancarioDto.mensagemEmail3,
 
-        tipoJurosCobId: createBoletoBancarioDto.tipoJurosCobId,
+        tipoJurosCobCod: createBoletoBancarioDto.tipoJurosCobCod,
         valorJuros: createBoletoBancarioDto.valorJuros,
         percJuros: createBoletoBancarioDto.percJuros,
         diasInicioJuros: createBoletoBancarioDto.diasInicioJuros,
 
-        tipoMultaCobId: createBoletoBancarioDto.tipoMultaCobId,
+        tipoMultaCobCod: createBoletoBancarioDto.tipoMultaCobCod,
         valorMulta: createBoletoBancarioDto.valorMulta,
         percMulta: createBoletoBancarioDto.percMulta,
         diasInicioMulta: createBoletoBancarioDto.diasInicioMulta,
 
-        tipoDescontoCobId: createBoletoBancarioDto.tipoDescontoCobId,
+        tipoDescontoCobCod: createBoletoBancarioDto.tipoDescontoCobCod,
         valorDesconto: createBoletoBancarioDto.valorDesconto,
         percDesconto: createBoletoBancarioDto.percDesconto,
         diasInicioDesconto: createBoletoBancarioDto.diasInicioDesconto,
 
-        tipoAutorizacaoCobId: createBoletoBancarioDto.tipoAutorizacaoCobId,
+        tipoAutorizacaoCobCod: createBoletoBancarioDto.tipoAutorizacaoCobCod,
         tipoRecebimentoDiv: createBoletoBancarioDto.tipoRecebimentoDiv,
         valorMinDiverg: createBoletoBancarioDto.valorMinDiverg,
         valorMaxDiverg: createBoletoBancarioDto.valorMaxDiverg,
@@ -64,14 +66,17 @@ export class BoletoBancarioService {
         negativar: createBoletoBancarioDto.negativar,
         qtdeDiasNegativar: createBoletoBancarioDto.qtdeDiasNegativar,
 
-        instrucaoCobId1: createBoletoBancarioDto.instrucaoCobId1,
-        instrucaoCobId2: createBoletoBancarioDto.instrucaoCobId2,
-        instrucaoCobId3: createBoletoBancarioDto.instrucaoCobId3,
+        instrucaoCobCod1: createBoletoBancarioDto.instrucaoCobCod1,
+        instrucaoCobCod2: createBoletoBancarioDto.instrucaoCobCod2,
+        instrucaoCobCod3: createBoletoBancarioDto.instrucaoCobCod3,
 
-        instrucaoRecId1: createBoletoBancarioDto.instrucaoRecId1,
-        instrucaoRecId2: createBoletoBancarioDto.instrucaoRecId2,
-        instrucaoRecId3: createBoletoBancarioDto.instrucaoRecId3,
-        instrucaoRecId4: createBoletoBancarioDto.instrucaoRecId4,
+        instrucaoRecCod1: createBoletoBancarioDto.instrucaoRecCod1,
+        instrucaoRecCod2: createBoletoBancarioDto.instrucaoRecCod2,
+        instrucaoRecCod3: createBoletoBancarioDto.instrucaoRecCod3,
+        instrucaoRecCod4: createBoletoBancarioDto.instrucaoRecCod4,
+
+        carteiraCod: createBoletoBancarioDto.carteiraCod,
+        especieCod: createBoletoBancarioDto.especieCod,
 
         contacorrente: createBoletoBancarioDto.contaId ? { connect: { id: createBoletoBancarioDto.contaId } } : undefined,
       },
@@ -108,27 +113,28 @@ export class BoletoBancarioService {
         pagtoParcial: data.pagtoParcial, //Indica se o alerta está ativo ou não
         qtdeMaxParcial: data.qtdeMaxParcial, //Quantide de pagamentos parcial 1..99
         formaEnvio: data.formaEnvio,
+        email: data.email,
         assuntoEmail: data.assuntoEmail,
         mensagemEmail1: data.mensagemEmail1,
         mensagemEmail2: data.mensagemEmail2,
         mensagemEmail3: data.mensagemEmail3,
 
-        tipoJurosCobId: data.tipoJurosCobId,
+        tipoJurosCobCod: data.tipoJurosCobCod,
         valorJuros: data.valorJuros,
         percJuros: data.percJuros,
         diasInicioJuros: data.diasInicioJuros,
 
-        tipoMultaCobId: data.tipoMultaCobId,
+        tipoMultaCobCod: data.tipoMultaCobCod,
         valorMulta: data.valorMulta,
         percMulta: data.percMulta,
         diasInicioMulta: data.diasInicioMulta,
 
-        tipoDescontoCobId: data.tipoDescontoCobId,
+        tipoDescontoCobCod: data.tipoDescontoCobCod,
         valorDesconto: data.valorDesconto,
         percDesconto: data.percDesconto,
         diasInicioDesconto: data.diasInicioDesconto,
 
-        tipoAutorizacaoCobId: data.tipoAutorizacaoCobId,
+        tipoAutorizacaoCobCod: data.tipoAutorizacaoCobCod,
         tipoRecebimentoDiv: data.tipoRecebimentoDiv,
         valorMinDiverg: data.valorMinDiverg,
         valorMaxDiverg: data.valorMaxDiverg,
@@ -140,15 +146,17 @@ export class BoletoBancarioService {
         negativar: data.negativar,
         qtdeDiasNegativar: data.qtdeDiasNegativar,
 
-        instrucaoCobId1: data.instrucaoCobId1,
-        instrucaoCobId2: data.instrucaoCobId2,
-        instrucaoCobId3: data.instrucaoCobId3,
+        instrucaoCobCod1: data.instrucaoCobCod1,
+        instrucaoCobCod2: data.instrucaoCobCod2,
+        instrucaoCobCod3: data.instrucaoCobCod3,
 
-        instrucaoRecId1: data.instrucaoRecId1,
-        instrucaoRecId2: data.instrucaoRecId2,
-        instrucaoRecId3: data.instrucaoRecId3,
-        instrucaoRecId4: data.instrucaoRecId4,
+        instrucaoRecCod1: data.instrucaoRecCod1,
+        instrucaoRecCod2: data.instrucaoRecCod2,
+        instrucaoRecCod3: data.instrucaoRecCod3,
+        instrucaoRecCod4: data.instrucaoRecCod4,
 
+        carteiraCod: data.carteiraCod,
+        especieCod: data.especieCod,
         contacorrente: data.contaId ? { connect: { id: data.contaId } } : undefined,
       },
       include: {
@@ -191,32 +199,113 @@ export class BoletoBancarioService {
     });
   }
 
-  async enviar(boletoBancario: CreateBoletoBancarioDto) {
+  async EnviaBoletoBanco(boleto: CreateBoletoBancarioDto) {
+    /*const boleto = await this.PrismaService.boleto.findUnique({
+      where: {
+        id: boletoId
+      }
+    });
 
-    const boleto = await this.PrismaService.boleto.findUnique(
+    if (!boleto) {
+      throw new BadRequestException('Boleto not found');
+    }*/
+
+    //Envia boleto ao banco
+    const conta = await this.PrismaService.contaCorrente.findUnique({
+      where: {
+        id: boleto.contaId
+      },
+      include: {
+        banco: true,
+        tipoAutorizacaoCob: true,
+        tipoDescontoCob: true,
+        tipoJurosCob: true,
+        tipoMultaCob: true,
+        instrucaoCob1: true,
+        instrucaoCob2: true,
+        instrucaoCob3: true,
+        instrucaoRec1: true,
+        instrucaoRec2: true,
+        instrucaoRec3: true,
+        instrucaoRec4: true,
+        carteira: true,
+        especie: true,
+      }
+    })
+
+    if (!conta) {
+      throw new BadRequestException('Conta not found');
+    }
+
+    const bolBancario = await this.PrismaService.boletoBancario.create(
       {
-        where: {
-          id: boletoBancario.boletoId
-        },
-        include: {
-          contaCorrente: true,
+        data: {
+          boleto: { connect: { id: boleto.boletoId } },
+          valor: boleto.valor,
+          valorPago: 0,
+          dataBoleto: new Date(),
+          dataVencimento: boleto.dataVencimento, //Vencimento do boleto
+          dataPagamento: boleto.dataPagamento,
+          formaPix: '',
+          codigoBarras: '',
+          linhaDigitavel: '',
+          nossoNumero: boleto.boletoId.toString(),
+          urlBoleto: '',
+          registrado: 'N',
+          emvPIX: '',
+          metodoPagamento: '',
+          status: '',
+          observacao: '',
+          pagtoParcial: conta.pagtoParcial,
+          qtdeMaxParcial: conta.qtdeMaxParcial,
+          formaEnvio: conta.formaEnvio,
+          assuntoEmail: conta.assuntoEmail,
+          mensagemEmail1: conta.mensagemEmail1,
+          mensagemEmail2: conta.mensagemEmail2,
+          mensagemEmail3: conta.mensagemEmail3,
+          tipoJurosCobCod: conta.tipoJurosCob.codigo,
+          valorJuros: conta.valorJuros,
+          percJuros: conta.percJuros,
+          diasInicioJuros: conta.diasInicioJuros,
+          tipoMultaCobCod: conta.tipoMultaCob.codigo,
+          valorMulta: conta.valorMulta,
+          percMulta: conta.percMulta,
+          diasInicioMulta: conta.diasInicioMulta,
+          tipoDescontoCobCod: conta.tipoDescontoCob.codigo,
+          valorDesconto: conta.valorDesconto,
+          percDesconto: conta.percDesconto,
+          diasInicioDesconto: conta.diasInicioDesconto,
+          tipoAutorizacaoCobCod: conta.tipoAutorizacaoCob.codigo,
+          tipoRecebimentoDiv: conta.tipoRecebimentoDiv,
+          valorMinDiverg: conta.valorMinDiverg,
+          valorMaxDiverg: conta.valorMaxDiverg,
+          percMinDiverg: conta.percMinDiverg,
+          percMaxDiverg: conta.percMaxDiverg,
+          protestar: conta.protestar,
+          qtdeDiasProtesto: conta.qtdeDiasProtesto,
+          negativar: conta.negativar,
+          qtdeDiasNegativar: conta.qtdeDiasNegativar,
+          instrucaoCobCod1: conta.instrucaoCob1.codigo.toString(),
+          instrucaoCobCod2: conta.instrucaoCob2.codigo.toString(),
+          instrucaoCobCod3: conta.instrucaoCob3.codigo.toString(),
+          instrucaoRecCod1: conta.instrucaoRec1.codigo.toString(),
+          instrucaoRecCod2: conta.instrucaoRec2.codigo.toString(),
+          instrucaoRecCod3: conta.instrucaoRec3.codigo.toString(),
+          instrucaoRecCod4: conta.instrucaoRec4.codigo.toString(),
+          carteiraCod: conta.carteira.carteira.toString(),
+          especieCod: conta.especie.codigo.toString(),
+          contacorrente: { connect: { id: conta.id } },
         }
+
       }
     );
 
-    if (boleto) {
-      const banco = await this.PrismaService.banco.findUnique(
-        {
-          where: {
-            id: boleto.contaCorrente.bancoId
-          }
-        });
+    //Envia dados ao banco
+    const banco = "RegistraBoleto" + conta.banco.codigo;
+    const msg = this.boletoWeb[banco as keyof typeof BoletoWebService](bolBancario);
+    console.log('retorno: ', msg)
 
 
-      //Verificar qual banco 
-      const methodRegistra = "RegistraBoleto" + banco.codigo.toString();
-      const retornoBanco = BoletoWebService[methodRegistra as keyof BoletoWebService](boletoBancario, boleto.contaCorrente);
-      console.log(retornoBanco);
-    }
   }
+
 }
