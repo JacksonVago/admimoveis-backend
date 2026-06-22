@@ -1,6 +1,6 @@
 import { PrismaService } from '@/prisma/prisma.service';
 import { ConflictException, Injectable } from '@nestjs/common';
-import { CreateTipoMultaDto } from './TipoMulta.controller';
+import { CreateTipoMultaDto } from './tipomulta.controller';
 
 @Injectable()
 export class TipoMultaService {

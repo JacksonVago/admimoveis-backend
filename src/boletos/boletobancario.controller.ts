@@ -318,13 +318,13 @@ export class BaseParamsIdContaDto {
 
 @Controller('boleto-bancario')
 export class BoletoBancarioController {
-  constructor(private readonly BoletoBancarioService: BoletoBancarioService) { }
+  constructor(private readonly boletoBancarioService: BoletoBancarioService) { }
 
   @Post(BOLETO_BANCARIO_ROUTES.create.route)
   @Permissions(BOLETO_BANCARIO_ROUTES.create.permission)
   @FormDataRequest()
   create(@Body() createBoletoBancarioDto: CreateBoletoBancarioDto) {
-    return this.BoletoBancarioService.createBoletoBancario(createBoletoBancarioDto);
+    return this.boletoBancarioService.createBoletoBancario(createBoletoBancarioDto);
   }
 
   @Post(BOLETO_BANCARIO_ROUTES.envia.route)
@@ -333,7 +333,7 @@ export class BoletoBancarioController {
   envia(
     @Body() data: CreateBoletoBancarioDto,
   ) {
-    return this.BoletoBancarioService.EnviaBoletoBanco(data);
+    return this.boletoBancarioService.EnviaBoletoBanco(data);
   }
 
   @Put(BOLETO_BANCARIO_ROUTES.update.route)
@@ -342,26 +342,26 @@ export class BoletoBancarioController {
     @Param() { id }: BaseParamsByStringIdDto,
     @Body() data: CreateBoletoBancarioDto,
   ) {
-    return this.BoletoBancarioService.updateBoletoBancario(Number(id), data);
+    return this.boletoBancarioService.updateBoletoBancario(Number(id), data);
   }
 
 
   @Delete(BOLETO_BANCARIO_ROUTES.delete.route)
   @Permissions(BOLETO_BANCARIO_ROUTES.delete.permission)
   async deleteBoletoBancario(@Param() { id }: BaseParamsByStringIdDto) {
-    return await this.BoletoBancarioService.deleteBoletoBancario(Number(id));
+    return await this.boletoBancarioService.deleteBoletoBancario(Number(id));
   }
 
   @Get(BOLETO_BANCARIO_ROUTES.findMany.route)
   @Permissions(BOLETO_BANCARIO_ROUTES.findMany.permission)
   async getBoletosBancarioConta(@Param() { contaId }: BaseParamsIdContaDto) {
-    return await this.BoletoBancarioService.getBoletosBancarioConta(contaId);
+    return await this.boletoBancarioService.getBoletosBancarioConta(contaId);
   }
 
   @Get(BOLETO_BANCARIO_ROUTES.findById.route)
   @Permissions(BOLETO_BANCARIO_ROUTES.findById.permission)
   async getBoletoBancario(@Param() { id }: BaseParamsByStringIdDto) {
-    return await this.BoletoBancarioService.getBoletoBancario(Number(id));
+    return await this.boletoBancarioService.getBoletoBancario(Number(id));
   }
 
 
