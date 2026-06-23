@@ -10,10 +10,6 @@ import { BoletoBancarioService } from "./boletobancario.service";
 export class CreateBoletoBancarioDto {
   @Transform(({ value }) => Number(value))
   @IsNumber()
-  bancoId: number;
-
-  @Transform(({ value }) => Number(value))
-  @IsNumber()
   boletoId: number;
 
   @Transform(({ value }) => Number(value))
@@ -24,8 +20,6 @@ export class CreateBoletoBancarioDto {
   @IsNumber()
   valorPago: number; //Valor pago no boleto
 
-  @Transform(({ value }) => Number(value))
-  @IsNumber()
   @Transform(({ value }) => new Date(value))
   @IsDate()
   dataBoleto: Date; //Emissao do boleto

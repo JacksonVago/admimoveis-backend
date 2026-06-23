@@ -5,13 +5,13 @@ import { BoletoWebService } from './boletoweb.service';
 
 @Injectable()
 export class BoletoBancarioService {
-  constructor(private PrismaService: PrismaService,
+  constructor(private prismaService: PrismaService,
     private readonly boletoWeb: BoletoWebService,
   ) { }
 
 
   async createBoletoBancario(createBoletoBancarioDto: CreateBoletoBancarioDto) {
-    return await this.PrismaService.boletoBancario.create({
+    return await this.prismaService.boletoBancario.create({
       data: {
         boleto: createBoletoBancarioDto.boletoId ? { connect: { id: createBoletoBancarioDto.boletoId } } : undefined,
         valor: createBoletoBancarioDto.valor, //Valor do boleto
@@ -88,7 +88,7 @@ export class BoletoBancarioService {
   }
 
   async updateBoletoBancario(id: number, data: CreateBoletoBancarioDto) {
-    return await this.PrismaService.boletoBancario.update({
+    return await this.prismaService.boletoBancario.update({
       where: {
         id,
       },
@@ -167,7 +167,7 @@ export class BoletoBancarioService {
   }
 
   async getBoletoBancario(id: number) {
-    return await this.PrismaService.boletoBancario.findUnique({
+    return await this.prismaService.boletoBancario.findUnique({
       where: {
         id,
       },
@@ -179,7 +179,7 @@ export class BoletoBancarioService {
   }
 
   async getBoletosBancarioConta(contaId: number) {
-    return await this.PrismaService.boletoBancario.findMany({
+    return await this.prismaService.boletoBancario.findMany({
       where: {
         contaId,
       },
@@ -192,7 +192,7 @@ export class BoletoBancarioService {
 
 
   async deleteBoletoBancario(id: number) {
-    return await this.PrismaService.boletoBancario.delete({
+    return await this.prismaService.boletoBancario.delete({
       where: {
         id,
       }
@@ -211,7 +211,7 @@ export class BoletoBancarioService {
     }*/
 
     //Envia boleto ao banco
-    const conta = await this.PrismaService.contaCorrente.findUnique({
+    const conta = await this.prismaService.contaCorrente.findUnique({
       where: {
         id: boleto.contaId
       },
@@ -237,73 +237,89 @@ export class BoletoBancarioService {
       throw new BadRequestException('Conta not found');
     }
 
-    const bolBancario = await this.PrismaService.boletoBancario.create(
-      {
-        data: {
-          boleto: { connect: { id: boleto.boletoId } },
-          valor: boleto.valor,
-          valorPago: 0,
-          dataBoleto: new Date(),
-          dataVencimento: boleto.dataVencimento, //Vencimento do boleto
-          dataPagamento: boleto.dataPagamento,
-          formaPix: '',
-          codigoBarras: '',
-          linhaDigitavel: '',
-          nossoNumero: boleto.boletoId.toString(),
-          urlBoleto: '',
-          registrado: 'N',
-          emvPIX: '',
-          metodoPagamento: '',
-          status: '',
-          observacao: '',
-          pagtoParcial: conta.pagtoParcial,
-          qtdeMaxParcial: conta.qtdeMaxParcial,
-          formaEnvio: conta.formaEnvio,
-          assuntoEmail: conta.assuntoEmail,
-          mensagemEmail1: conta.mensagemEmail1,
-          mensagemEmail2: conta.mensagemEmail2,
-          mensagemEmail3: conta.mensagemEmail3,
-          tipoJurosCobCod: conta.tipoJurosCob.codigo,
-          valorJuros: conta.valorJuros,
-          percJuros: conta.percJuros,
-          diasInicioJuros: conta.diasInicioJuros,
-          tipoMultaCobCod: conta.tipoMultaCob.codigo,
-          valorMulta: conta.valorMulta,
-          percMulta: conta.percMulta,
-          diasInicioMulta: conta.diasInicioMulta,
-          tipoDescontoCobCod: conta.tipoDescontoCob.codigo,
-          valorDesconto: conta.valorDesconto,
-          percDesconto: conta.percDesconto,
-          diasInicioDesconto: conta.diasInicioDesconto,
-          tipoAutorizacaoCobCod: conta.tipoAutorizacaoCob.codigo,
-          tipoRecebimentoDiv: conta.tipoRecebimentoDiv,
-          valorMinDiverg: conta.valorMinDiverg,
-          valorMaxDiverg: conta.valorMaxDiverg,
-          percMinDiverg: conta.percMinDiverg,
-          percMaxDiverg: conta.percMaxDiverg,
-          protestar: conta.protestar,
-          qtdeDiasProtesto: conta.qtdeDiasProtesto,
-          negativar: conta.negativar,
-          qtdeDiasNegativar: conta.qtdeDiasNegativar,
-          instrucaoCobCod1: conta.instrucaoCob1.codigo.toString(),
-          instrucaoCobCod2: conta.instrucaoCob2.codigo.toString(),
-          instrucaoCobCod3: conta.instrucaoCob3.codigo.toString(),
-          instrucaoRecCod1: conta.instrucaoRec1.codigo.toString(),
-          instrucaoRecCod2: conta.instrucaoRec2.codigo.toString(),
-          instrucaoRecCod3: conta.instrucaoRec3.codigo.toString(),
-          instrucaoRecCod4: conta.instrucaoRec4.codigo.toString(),
-          carteiraCod: conta.carteira.carteira.toString(),
-          especieCod: conta.especie.codigo.toString(),
-          contacorrente: { connect: { id: conta.id } },
+    //Atualiza dados do boleto original
+    const boletoUpdate = await this.prismaService.boleto.update({
+      data: {
+        //status: BoletoStatus.CONFIRMADO,
+        contaCorrente: { connect: { id: conta.id } },
+      },
+      where: {
+        id: boleto.boletoId,
+      },
+    })
+
+    if (boletoUpdate) {
+      const bolBancario = await this.prismaService.boletoBancario.create(
+        {
+          data: {
+            boleto: { connect: { id: boletoUpdate.id } },
+            valor: boleto.valor,
+            valorPago: 0,
+            dataBoleto: new Date(),
+            dataVencimento: boleto.dataVencimento, //Vencimento do boleto
+            dataPagamento: boleto.dataPagamento,
+            formaPix: '',
+            codigoBarras: '',
+            linhaDigitavel: '',
+            nossoNumero: boleto.boletoId.toString(),
+            urlBoleto: '',
+            registrado: 'N',
+            emvPIX: '',
+            metodoPagamento: '',
+            status: '',
+            observacao: '',
+            pagtoParcial: conta.pagtoParcial,
+            qtdeMaxParcial: conta.qtdeMaxParcial,
+            formaEnvio: conta.formaEnvio,
+            assuntoEmail: conta.assuntoEmail,
+            mensagemEmail1: conta.mensagemEmail1,
+            mensagemEmail2: conta.mensagemEmail2,
+            mensagemEmail3: conta.mensagemEmail3,
+            tipoJurosCobCod: conta.tipoJurosCob.codigo,
+            valorJuros: conta.valorJuros,
+            percJuros: conta.percJuros,
+            diasInicioJuros: conta.diasInicioJuros,
+            tipoMultaCobCod: conta.tipoMultaCob.codigo,
+            valorMulta: conta.valorMulta,
+            percMulta: conta.percMulta,
+            diasInicioMulta: conta.diasInicioMulta,
+            tipoDescontoCobCod: conta.tipoDescontoCob.codigo,
+            valorDesconto: conta.valorDesconto,
+            percDesconto: conta.percDesconto,
+            diasInicioDesconto: conta.diasInicioDesconto,
+            tipoAutorizacaoCobCod: conta.tipoAutorizacaoCob.codigo,
+            tipoRecebimentoDiv: conta.tipoRecebimentoDiv,
+            valorMinDiverg: conta.valorMinDiverg,
+            valorMaxDiverg: conta.valorMaxDiverg,
+            percMinDiverg: conta.percMinDiverg,
+            percMaxDiverg: conta.percMaxDiverg,
+            protestar: conta.protestar,
+            qtdeDiasProtesto: conta.qtdeDiasProtesto,
+            negativar: conta.negativar,
+            qtdeDiasNegativar: conta.qtdeDiasNegativar,
+            instrucaoCobCod1: conta.instrucaoCob1 ? conta.instrucaoCob1.codigo.toString() : undefined,
+            instrucaoCobCod2: conta.instrucaoCob2 ? conta.instrucaoCob2.codigo.toString() : undefined,
+            instrucaoCobCod3: conta.instrucaoCob3 ? conta.instrucaoCob3.codigo.toString() : undefined,
+            instrucaoRecCod1: conta.instrucaoRec1 ? conta.instrucaoRec1.codigo.toString() : undefined,
+            instrucaoRecCod2: conta.instrucaoRec2 ? conta.instrucaoRec2.codigo.toString() : undefined,
+            instrucaoRecCod3: conta.instrucaoRec3 ? conta.instrucaoRec3.codigo.toString() : undefined,
+            instrucaoRecCod4: conta.instrucaoRec4 ? conta.instrucaoRec4.codigo.toString() : undefined,
+            carteiraCod: conta.carteira ? conta.carteira.carteira.toString() : undefined,
+            especieCod: conta.especie ? conta.especie.codigo.toString() : undefined,
+            contacorrente: { connect: { id: conta.id } },
+          }
+
         }
+      );
 
-      }
-    );
-
-    //Envia dados ao banco
-    const banco = "RegistraBoleto" + conta.banco.codigo;
-    const msg = this.boletoWeb[banco as keyof typeof BoletoWebService](bolBancario);
-    console.log('retorno: ', msg)
+      //Envia dados ao banco
+      const banco = "RegistraBoleto" + conta.banco.codigo;
+      const msg = this.boletoWeb[banco as keyof typeof BoletoWebService](bolBancario.id);
+      console.log('retorno: ', msg)
+    }
+    else {
+      throw new BadRequestException('Problemas na atualiza do boleo.');
+    }
 
 
   }
