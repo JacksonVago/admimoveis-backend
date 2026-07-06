@@ -322,6 +322,66 @@ export class LocacaoService {
           },
         },*/
         {
+          imovel: {
+            endereco: {
+              logradouro: {
+                contains: search,
+                mode: 'insensitive',
+              },
+            },
+          },
+        },
+        {
+          imovel: {
+            endereco: {
+              bairro: {
+                contains: search,
+                mode: 'insensitive',
+              },
+            },
+          },
+        },
+        {
+          imovel: {
+            endereco: {
+              cidade: {
+                contains: search,
+                mode: 'insensitive',
+              },
+            },
+          },
+        },
+        {
+          imovel: {
+            endereco: {
+              estado: {
+                contains: search,
+                mode: 'insensitive',
+              },
+            },
+          },
+        },
+        {
+          imovel: {
+            endereco: {
+              cep: {
+                contains: search,
+                mode: 'insensitive',
+              },
+            },
+          },
+        },
+        {
+          imovel: {
+            endereco: {
+              complemento: {
+                contains: search,
+                mode: 'insensitive',
+              },
+            },
+          },
+        },
+        {
           locatarios: {
             some: {
               pessoa: {
@@ -876,6 +936,10 @@ export class LocacaoService {
         );
       }
 
+      //Caso locatário diferente mudar o ID
+      if (data.pessoaId && data.pessoaId !== existingLocacao.locatarios[0].pessoaId) {
+        console.log('Diferente: ', data.pessoaId, existingLocacao.locatarios[0].pessoaId);
+      }
       const result = await this.prismaService.locacao.update({
         where: {
           id: locacaoId,
@@ -957,7 +1021,14 @@ export class LocacaoService {
                   vigenciaFim: vigenciaFim,
 
                 }
+              },
+          locatarios: data.pessoaId && data.pessoaId !== existingLocacao.locatarios[0].pessoaId ?
+            {
+              deleteMany: {},
+              create: {
+                pessoaId: data.pessoaId
               }
+            } : undefined,
         },
         include: {
           locatarios: true,

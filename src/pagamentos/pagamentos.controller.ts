@@ -131,6 +131,9 @@ export class GetBoletosQueryDto {
   @IsOptional()
   exclude?: string;
 
+  @IsOptional()
+  tipo?: string;
+
   @Transform(({ value }) => new Date(value))
   @IsDate()
   dataInicial: Date;
@@ -203,8 +206,8 @@ export class PagamentoController {
   @Get(PAGAMENTO_ROUTES.search.route)
   @Permissions(PAGAMENTO_ROUTES.search.permission)
   async search(@Param() { empresaId }: BaseParamsIdEmpresaDto, @Query() data: GetBoletosQueryDto) {
-    const { search, page, limit, status, exclude, dataInicial, dataFinal } = data;
-    const response = await this.PagamentoService.findManyPagamento(empresaId, search, page, limit, status, exclude, dataInicial, dataFinal);
+    const { search, page, limit, status, exclude, dataInicial, dataFinal, tipo } = data;
+    const response = await this.PagamentoService.findManyPagamento(empresaId, search, page, limit, status, exclude, tipo, dataInicial, dataFinal);
     return response;
   }
 

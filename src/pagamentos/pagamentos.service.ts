@@ -286,6 +286,7 @@ export class PagamentosService {
     pageSize: number,
     statusPagamento: BoletoStatus | null | undefined,
     exclude: string | null,
+    tipo: string | null,
     dataInicial: Date,
     dataFinal: Date,
   ): Promise<BasePaginationData<Boleto>> {
@@ -450,6 +451,7 @@ export class PagamentosService {
             lte: dataFim,
           },
         },
+        tipo === "IMOVEL" ? { imovelId: { not: null } } : tipo === "LOCACAO" ? { locacaoId: { not: null } } : {},
         /*{
           OR: [
             { locacao: { empresaId: empresaId } },
@@ -513,6 +515,7 @@ export class PagamentosService {
             }
           },
           documentos: true,
+          boletosBancarios: true,
         },
         skip,
         take: pageSize,

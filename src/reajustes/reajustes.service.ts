@@ -176,7 +176,7 @@ export class ReajustesService {
 
       //TODO: clean the type documents and data if it changes
     } catch (error) {
-      if (error.code === 'P2002') {
+      if (error === 'P2002') {
         throw new ConflictException(
           'A lancamento already exists for this property',
         );

@@ -1,6 +1,7 @@
 import { Permissions } from '@/auth/decorators/permissions.decorator';
 import { BaseRoutes } from '@/common/interfaces/base-routes';
-import { Body, Controller, Delete, Get, Param, Post, Put } from '@nestjs/common';
+import { BaseGetPaginatedQueryDateDto, BaseParamsIdEmpresaDto } from '@/common/interfaces/base-search';
+import { Body, Controller, Delete, Get, Param, Patch, Post, Put, Query } from '@nestjs/common';
 import { Permission } from '@prisma/client';
 import { Transform } from 'class-transformer';
 import { IsBoolean, IsDate, IsNumber, IsOptional, IsString } from 'class-validator';
@@ -72,6 +73,14 @@ export class CreateBoletoBancarioDto {
   @IsString()
   @IsOptional()
   observacao: string;
+
+  @IsString()
+  @IsOptional()
+  txid: string;
+
+  @IsString()
+  @IsOptional()
+  qrcode: string;
 
   @Transform(({ value }) => {
     if (String(value).toLowerCase() === 'true') return true;
@@ -281,9 +290,14 @@ export const BOLETO_BANCARIO_ROUTES: BaseRoutes = {
     route: ':id',
     permission: Permission.UPDATE_BOLETO_BANCARIO,
   },
-  findMany: {
-    name: 'findMany',
-    route: '/:bancoId',
+  findManyConta: {
+    name: 'findManyConta',
+    route: '/conta/:contaId',
+    permission: Permission.VIEW_BOLETO_BANCARIO,
+  },
+  findManyEmpresa: {
+    name: 'findManyEmpresa',
+    route: '/empresa/:empresaId',
     permission: Permission.VIEW_BOLETO_BANCARIO,
   },
   delete: {
@@ -295,6 +309,21 @@ export const BOLETO_BANCARIO_ROUTES: BaseRoutes = {
     name: 'envia boleto bancario',
     route: '/enviar/',
     permission: Permission.CREATE_BOLETO_BANCARIO,
+  },
+  download: {
+    name: 'download boleto bancario',
+    route: '/download/:id',
+    permission: Permission.VIEW_BOLETO_BANCARIO,
+  },
+  boletoNossoNumero: {
+    name: 'consulta boleto bancario nossonumero',
+    route: '/nossonumero/:id',
+    permission: Permission.UPDATE_BOLETO_BANCARIO,
+  },
+  baixar: {
+    name: 'consulta boleto bancario nossonumero',
+    route: '/baixar/:id',
+    permission: Permission.DELETE_BOLETO_BANCARIO,
   },
 
 };
@@ -346,17 +375,50 @@ export class BoletoBancarioController {
     return await this.boletoBancarioService.deleteBoletoBancario(Number(id));
   }
 
-  @Get(BOLETO_BANCARIO_ROUTES.findMany.route)
-  @Permissions(BOLETO_BANCARIO_ROUTES.findMany.permission)
+  @Get(BOLETO_BANCARIO_ROUTES.findManyConta.route)
+  @Permissions(BOLETO_BANCARIO_ROUTES.findManyConta.permission)
   async getBoletosBancarioConta(@Param() { contaId }: BaseParamsIdContaDto) {
     return await this.boletoBancarioService.getBoletosBancarioConta(contaId);
   }
 
+  @Get(BOLETO_BANCARIO_ROUTES.findManyEmpresa.route)
+  @Permissions(BOLETO_BANCARIO_ROUTES.findManyEmpresa.permission)
+  async getBoletosBancarioEmpresa(@Param() { empresaId }: BaseParamsIdEmpresaDto, @Query() data: BaseGetPaginatedQueryDateDto) {
+    const { search, page, limit, tipo, exclude, dataInicial, dataFinal } = data;
+    return await this.boletoBancarioService.getBoletosBancarioEmpresa(empresaId, search, page, limit, tipo, exclude, dataInicial, dataFinal);
+  }
   @Get(BOLETO_BANCARIO_ROUTES.findById.route)
   @Permissions(BOLETO_BANCARIO_ROUTES.findById.permission)
   async getBoletoBancario(@Param() { id }: BaseParamsByStringIdDto) {
     return await this.boletoBancarioService.getBoletoBancario(Number(id));
   }
 
+  @Get(BOLETO_BANCARIO_ROUTES.download.route)
+  @Permissions(BOLETO_BANCARIO_ROUTES.download.permission)
+  async getDownloadBancario(@Param() { id }: BaseParamsByStringIdDto) {
+    const result = await this.boletoBancarioService.DownloadBoletoBanco(Number(id));
+    //console.log('Controller: ', result);
+    return result;
+    /*this.boletoBancarioService.DownloadBancario(Number(id)).
+      then((result) => {
+        console.log('Controller: ', result);
+        return result;
+
+      });*/
+  }
+
+  @Get(BOLETO_BANCARIO_ROUTES.boletoNossoNumero.route)
+  @Permissions(BOLETO_BANCARIO_ROUTES.boletoNossoNumero.permission)
+  async getBoletoNossoNumero(@Param() { id }: BaseParamsByStringIdDto) {
+    const result = await this.boletoBancarioService.ConsultaBoletoBanco(Number(id));
+    return result;
+  }
+
+  @Patch(BOLETO_BANCARIO_ROUTES.baixar.route)
+  @Permissions(BOLETO_BANCARIO_ROUTES.baixar.permission)
+  async patchBaixarBoleto(@Param() { id }: BaseParamsByStringIdDto) {
+    const result = await this.boletoBancarioService.BaixaBoletoBanco(Number(id));
+    return result;
+  }
 
 }

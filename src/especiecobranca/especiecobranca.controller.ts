@@ -8,7 +8,7 @@ import { EspecieCobrancaService } from './especiecobranca.service';
 
 export class CreateEspecieCobrancaDto {
   @IsString()
-  codigo: number;
+  codigo: string;
 
   @IsString()
   descricao: string;

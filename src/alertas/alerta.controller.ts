@@ -1,5 +1,6 @@
 import { Permissions } from '@/auth/decorators/permissions.decorator';
 import { BaseRoutes } from '@/common/interfaces/base-routes';
+import { BaseParamsIdEmpresaDto } from '@/common/interfaces/base-search';
 import { Body, Controller, Delete, Get, Param, Patch, Post, Put } from '@nestjs/common';
 import { FrequenciaEnvio, Permission, TipoAgendamento, TipoIntervaloEnvio } from '@prisma/client';
 import { Transform } from 'class-transformer';
@@ -128,12 +129,6 @@ export const ALERTA_ROUTES: BaseRoutes = {
 export class BaseParamsByStringIdDto {
   @IsString()
   id: string;
-}
-
-export class BaseParamsIdEmpresaDto {
-  @Transform(({ value }) => Number(value))
-  @IsNumber()
-  empresaId: number;
 }
 
 @Controller('alertas')

@@ -30,6 +30,7 @@ export class ContaCorrenteService {
         conta: createCCDto.conta,
         digito: createCCDto.digito,
         descricao: createCCDto.descricao,
+        cooperativa: createCCDto.cooperativa,
         usuarioBancoAPI: createCCDto.usuarioBancoAPI,
         senhaBancoAPI: createCCDto.senhaBancoAPI,
         chaveAppAPI: createCCDto.chaveAppAPI,
@@ -45,6 +46,7 @@ export class ContaCorrenteService {
         mensagemEmail1: createCCDto.mensagemEmail1,
         mensagemEmail2: createCCDto.mensagemEmail2,
         mensagemEmail3: createCCDto.mensagemEmail3,
+        convenio: createCCDto.convenio,
 
         tipoJurosCob: createCCDto.tipoJurosCobId ? { connect: { id: createCCDto.tipoJurosCobId } } : undefined,
         valorJuros: createCCDto.valorJuros,
@@ -117,6 +119,7 @@ export class ContaCorrenteService {
       },
       data: {
         descricao: data.descricao,
+        cooperativa: data.cooperativa,
         usuarioBancoAPI: data.usuarioBancoAPI,
         senhaBancoAPI: data.senhaBancoAPI,
         chaveAppAPI: data.chaveAppAPI,
@@ -132,6 +135,7 @@ export class ContaCorrenteService {
         mensagemEmail1: data.mensagemEmail1,
         mensagemEmail2: data.mensagemEmail2,
         mensagemEmail3: data.mensagemEmail3,
+        convenio: data.convenio,
 
         tipoJurosCob: data.tipoJurosCobId ? { connect: { id: data.tipoJurosCobId } } : undefined,
         valorJuros: data.valorJuros,

@@ -1,6 +1,6 @@
 import { BoletoStatus, ImovelStatus } from '@prisma/client';
 import { Transform } from 'class-transformer';
-import { IsNumber, IsOptional } from 'class-validator';
+import { IsDate, IsNumber, IsOptional } from 'class-validator';
 
 //IMPROVE: create a base class for pagination
 export const DEFAULT_PAGE_SIZE = 10;
@@ -23,6 +23,35 @@ export class BaseGetPaginatedQueryDto {
 
   @IsOptional()
   exclude?: string;
+}
+
+//IMPROVE: create a base class for pagination
+export class BaseGetPaginatedQueryDateDto {
+  @IsOptional()
+  @Transform(({ value }) => parseInt(value, DEFAULT_PAGE_SIZE))
+  page?: number;
+
+  @IsOptional()
+  @Transform(({ value }) => parseInt(value, DEFAULT_PAGE_SIZE))
+  limit?: number;
+
+  @IsOptional()
+  search?: string;
+
+  @IsOptional()
+  tipo?: number | null;
+
+  @IsOptional()
+  exclude?: string;
+
+  @Transform(({ value }) => new Date(value))
+  @IsDate()
+  dataInicial: Date;
+
+  @Transform(({ value }) => new Date(value))
+  @IsDate()
+  dataFinal: Date;
+
 }
 
 export class BaseGetPessoaQueryDto {

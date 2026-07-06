@@ -156,6 +156,7 @@ model ContaCorrente {
   agencia          String
   conta            String
   digito           String
+  cooperativa      String?
   descricao        String?
   usuarioBancoAPI  String?
   senhaBancoAPI    String?
@@ -172,6 +173,7 @@ model ContaCorrente {
   mensagemEmail1   String?
   mensagemEmail2   String?
   mensagemEmail3   String?
+  convenio         String? //Código do convenio bancário
 
   tipoJurosCob    TipoJurosCobranca? @relation(fields: [tipoJurosCobId], references: [id])
   tipoJurosCobId  Int?
@@ -342,7 +344,7 @@ model CarteiraCobranca {
 
 model EspecieCobranca {
   id        Int    @id @default(autoincrement())
-  codigo    Int
+  codigo    String
   descricao String
   sigla     String
 
@@ -887,24 +889,27 @@ model Boleto {
 }
 
 model BoletoBancario {
-  id              Int       @id @default(autoincrement())
-  boleto          Boleto    @relation(fields: [boletoId], references: [id])
-  boletoId        Int
+  id       Int    @id @default(autoincrement())
+  boleto   Boleto @relation(fields: [boletoId], references: [id])
+  boletoId Int
+
   valor           Float //Valor do boleto
   valorPago       Float //Valor pago no boleto
   dataBoleto      DateTime //Emissao do boleto
   dataVencimento  DateTime //Vencimento do boleto
   dataPagamento   DateTime? //Data de pagamento do boleto
-  formaPix        String //Forma de pagamento PIX para recebimento
-  codigoBarras    String
-  linhaDigitavel  String
-  nossoNumero     String
-  urlBoleto       String //URL para visualização do boleto
-  registrado      String //S/N Informa se ocorreu o registro do boleto
-  emvPIX          String //Código EMV para pagamento via PIX
-  metodoPagamento String //Método de pagamento utilizado
-  status          String //Status do boleto
-  observacao      String
+  formaPix        String? // tipo de boleto (Sicredi) : HIBRIDO (gera qr code PIX) ou NORMAL
+  codigoBarras    String?
+  linhaDigitavel  String?
+  nossoNumero     String?
+  urlBoleto       String? //URL para visualização do boleto
+  registrado      String? //S/N Informa se ocorreu o registro do boleto
+  emvPIX          String? //Código EMV para pagamento via PIX
+  metodoPagamento String? //Método de pagamento utilizado
+  status          String? //Status do boleto
+  observacao      String?
+  txid            String? //txID do PIX quando for híbrido
+  qrcode          String? //QR CODE do PIX quando for híbrido
 
   pagtoParcial   Boolean? @default(false) //Indica se o alerta está ativo ou não
   qtdeMaxParcial Int? //Quantide de pagamentos parcial 1..99

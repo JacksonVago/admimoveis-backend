@@ -1,5 +1,6 @@
 import { Permissions } from '@/auth/decorators/permissions.decorator';
 import { BaseRoutes } from '@/common/interfaces/base-routes';
+import { BaseParamsIdEmpresaDto } from '@/common/interfaces/base-search';
 import { GetPessoasQueryDto } from '@/pessoas/pessoas.controller';
 import { Body, Controller, Delete, Get, Param, Patch, Post, Put, Query } from '@nestjs/common';
 import { FormaEnvio, Permission, PessoaStatus } from '@prisma/client';
@@ -21,6 +22,10 @@ export class CreateCCDto {
   @IsString()
   @IsOptional()
   descricao: string;
+
+  @IsString()
+  @IsOptional()
+  cooperativa: string;
 
   @IsString()
   @IsOptional()
@@ -85,6 +90,10 @@ export class CreateCCDto {
   @IsString()
   @IsOptional()
   mensagemEmail3: string;
+
+  @IsString()
+  @IsOptional()
+  convenio: string;
 
   @Transform(({ value }) => Number(value))
   @IsNumber()
@@ -324,12 +333,6 @@ export const CONTA_CORRENTE_ROUTES: BaseRoutes = {
 export class BaseParamsByStringIdDto {
   @IsString()
   id: string;
-}
-
-export class BaseParamsIdEmpresaDto {
-  @Transform(({ value }) => Number(value))
-  @IsNumber()
-  empresaId: number;
 }
 
 @Controller('contas-corrente')
