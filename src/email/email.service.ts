@@ -34,6 +34,12 @@ export class MailService {
         const USER: string | undefined = empresa.userSmtp == void 0 ? undefined : empresa.userSmtp;
         const PWD: string | undefined = empresa.pwdSmtp == void 0 ? undefined : empresa.pwdSmtp;
 
+        /*console.log('port: ', PORT)
+        console.log('host: ', HOST)
+        console.log('SECURE: ', SECURE)
+        console.log('USER:', USER)
+        console.log('PWD: ', PWD)*/
+
         this.transporter = nodemailer.createTransport(
             {
                 host: HOST,
@@ -44,11 +50,23 @@ export class MailService {
                     pass: PWD,
                 },
                 tls: {
-                    rejectUnauthorized: false
+                    rejectUnauthorized: false,
                 },
             },
         );
 
+        /*this.transporter = nodemailer.createTransport(
+            {
+                service: 'gmail',
+                auth: {
+                    user: USER,
+                    pass: PWD,
+                },
+                tls: {
+                    rejectUnauthorized: false,
+                },
+            },
+        );*/
         /*const PORT: number | undefined = parseInt(this.envService.get('SMTP_PORT').toString() == void 0 ? "0" : this.envService.get('SMTP_PORT').toString());
 
         console.log(this.envService.get('SMTP_HOST').toString())
