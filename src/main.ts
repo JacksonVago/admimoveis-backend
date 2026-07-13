@@ -1,24 +1,22 @@
 import { ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
-import * as fs from 'fs';
-import * as path from 'path';
+//import * as fs from 'fs';
+//import * as path from 'path';
 import { AppModule } from './app.module';
 import { EnvService } from './env/env.service';
 
 async function bootstrap() {
   // Caminho para os seus arquivos de certificado SSL
-  const keyPath = path.resolve(__dirname, '../ssl/server.key');
-  const certPath = path.resolve(__dirname, '../ssl/WWW_adminimovel_com_br.crt');
+  //const keyPath = path.resolve(__dirname, '../ssl/server.key');
+  //const certPath = path.resolve(__dirname, '../ssl/WWW_adminimovel_com_br.crt');
 
   // Lê os arquivos de forma síncrona
-  const httpsOptions = {
+  /*const httpsOptions = {
     key: fs.readFileSync(keyPath),
     cert: fs.readFileSync(certPath),
-  };
+  };*/
 
-  const app = await NestFactory.create(AppModule, {
-    httpsOptions,
-  });
+  const app = await NestFactory.create(AppModule);
 
   const configService = app.get(EnvService);
   const port = configService.get('PORT');
