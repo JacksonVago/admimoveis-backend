@@ -31,7 +31,7 @@ RUN apk add dumb-init
 RUN npm run build
 
 # Expose the port your NestJS application listens on
-EXPOSE 98
+EXPOSE 3000
 
 # Command to run the application
 CMD ["dumb-init","node", "dist/src/main.js"]
