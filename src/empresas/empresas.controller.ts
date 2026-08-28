@@ -1,8 +1,9 @@
 import { Roles } from '@/auth/decorators/roles.decorator';
 import { Role } from '@/auth/enums/roles.enum';
+import { BaseRoutes } from '@/common/interfaces/base-routes';
 import { EnderecoDto } from '@/common/interfaces/dtos/endereco.dto';
 import { Body, Controller, Get, Param, Post, Put } from '@nestjs/common';
-import { PessoaStatus } from '@prisma/client';
+import { Permission, PessoaStatus } from '@prisma/client';
 import { Transform } from 'class-transformer';
 import { IsBoolean, IsEnum, IsInt, IsNumber, IsOptional, IsString } from 'class-validator';
 import { FormDataRequest, HasMimeType, IsFiles, MaxFileSize, MemoryStoredFile } from 'nestjs-form-data';
@@ -142,10 +143,22 @@ export class CreateEmpresaDto extends EnderecoDto {
   documentos?: MemoryStoredFile[];
 }
 
-export const EMPRESA_ROUTES = {
-  CREATE: '/',
-  GET: '/:id',
-  UPDATE: '/:id',
+export const EMPRESA_ROUTES: BaseRoutes = {
+  create: {
+    name: 'create empresa',
+    route: '/',
+    permission: Permission.CREATE_EMPRESA,
+  },
+  get: {
+    name: 'get empresa',
+    route: '/:id',
+    permission: Permission.VIEW_EMPRESAS,
+  },
+  update: {
+    name: 'update empresa',
+    route: '/:id',
+    permission: Permission.UPDATE_EMPRESA,
+  },
 };
 
 export enum EMPRESA_PERMISSIONS {
@@ -162,14 +175,14 @@ export class BaseParamsByStringIdDto {
 export class EmpresasController {
   constructor(private readonly EmpresasService: EmpresasService) { }
 
-  @Post(EMPRESA_ROUTES.CREATE)
+  @Post(EMPRESA_ROUTES.create.route)
   @Roles(Role.ADMIN)
   @FormDataRequest()
   create(@Body() createEmpresaDto: CreateEmpresaDto) {
     return this.EmpresasService.create(createEmpresaDto);
   }
 
-  @Put(EMPRESA_ROUTES.UPDATE)
+  @Put(EMPRESA_ROUTES.update.route)
   @Roles(Role.ADMIN)
   @FormDataRequest()
   update(
@@ -180,8 +193,9 @@ export class EmpresasController {
   }
 
 
-  @Get(EMPRESA_ROUTES.GET)
-  @Roles(Role.ADMIN)
+  @Get(EMPRESA_ROUTES.get.route)
+  //@Permissions(EMPRESA_ROUTES.get.permission)
+  @Roles(Role.ADMIN, Role.COLLABORATOR)
   async get(@Param() { id }: BaseParamsByStringIdDto,) {
     if (id !== '0') {
       const ret_get = await this.EmpresasService.get(Number(id));

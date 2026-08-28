@@ -14,6 +14,7 @@ import { EmpresaModule } from './empresas/empresas.module';
 import { EnvModule } from './env/env.module';
 import { EspecieCobrancaModule } from './especiecobranca/especiecobranca.module';
 import { FilesModule } from './files/files.module';
+import { GrupoFluxoCaixaModule } from './grupofluxocaixa/grupofluxocaixa.module';
 import { ImoveisModule } from './imoveis/imoveis.module';
 import { InstrucaoCobrancaModule } from './instrucaocobranca/instrucaocobranca.module';
 import { InstrucaoRecebimentosModule } from './instrucaorecebimento/instrucaorecebimento.module';
@@ -83,6 +84,7 @@ import { UsersModule } from './users/users.module';
     TipoDescontoModule,
     TipoAutorizacaoModule,
     BoletoBancarioModule,
+    GrupoFluxoCaixaModule,
   ],
   controllers: [],
   providers: [],

@@ -30,9 +30,10 @@ export class TipoLancamentoService {
         parcelas: createTipo.parcelas,
         geraObservacao: createTipo.geraObservacao,
         valorFixo: createTipo.valorFixo,
+        grupofluxo: createTipo.grupofluxoId ? { connect: { id: createTipo.grupofluxoId } } : undefined,
         empresa: createTipo.empresaId ? { connect: { id: createTipo.empresaId } } : undefined,
       },
-      include: { empresa: true },
+      include: { empresa: true, grupofluxo: true },
     });
   }
 
@@ -48,8 +49,9 @@ export class TipoLancamentoService {
         parcelas: createTipo.parcelas,
         geraObservacao: createTipo.geraObservacao,
         valorFixo: createTipo.valorFixo,
+        grupofluxo: createTipo.grupofluxoId ? { connect: { id: createTipo.grupofluxoId } } : undefined,
       },
-      include: { empresa: true },
+      include: { empresa: true, grupofluxo: true },
     });
   }
 
@@ -58,7 +60,7 @@ export class TipoLancamentoService {
       where: {
         empresaId: empresa_id,
       },
-      include: { empresa: true },
+      include: { empresa: true, grupofluxo: true },
     });
   }
 
@@ -78,7 +80,7 @@ export class TipoLancamentoService {
       data: {
         status: PessoaStatus.ATIVA,
       },
-      include: { empresa: true },
+      include: { empresa: true, grupofluxo: true },
     });
   }
   async desativaTipo(id: number) {
@@ -89,7 +91,7 @@ export class TipoLancamentoService {
       data: {
         status: PessoaStatus.CANCELADA,
       },
-      include: { empresa: true },
+      include: { empresa: true, grupofluxo: true },
     });
   }
 }

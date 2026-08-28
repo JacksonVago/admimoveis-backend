@@ -35,6 +35,13 @@ export class LancamentoDto {
   dataLancamento: Date;
   vencimentoLancamento: Date;
   observacao: string;
+
+  numeroDocumento: string;
+  dataDocumento: Date;
+  serieDocumento: string;
+  valorDocumento: number;
+  descontoDocumento: number;
+
   status: lancamentoStatus;
   locacaoId: number;
 }
@@ -86,6 +93,30 @@ export class CreateLancamentoDto {
   @IsOptional()
   @IsEnum(lancamentoStatus)
   status: lancamentoStatus;
+
+  @IsOptional()
+  @IsString()
+  numeroDocumento: string;
+
+  @IsOptional()
+  @Transform(({ value }) => new Date(value))
+  @IsDate()
+  dataDocumento: Date;
+
+  @IsOptional()
+  @IsString()
+  serieDocumento: string;
+
+  @IsOptional()
+  @Transform(({ value }) => Number(value))
+  @IsNumber()
+  valorDocumento: number;
+
+  @IsOptional()
+  @Transform(({ value }) => Number(value))
+  @IsNumber()
+  descontoDocumento: number;
+
 
   @Transform(({ value }) => Number(value))
   @IsInt()

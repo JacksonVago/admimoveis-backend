@@ -86,6 +86,28 @@ export class CreateLancamentoDto {
   @IsInt()
   imovelId: number;
 
+  @IsOptional()
+  @IsString()
+  numeroDocumento: string;
+
+  @IsOptional()
+  @Transform(({ value }) => new Date(value))
+  @IsDate()
+  dataDocumento: Date;
+
+  @IsOptional()
+  @IsString()
+  serieDocumento: string;
+
+  @IsOptional()
+  @Transform(({ value }) => Number(value))
+  @IsNumber()
+  valorDocumento: number;
+
+  @IsOptional()
+  @Transform(({ value }) => Number(value))
+  @IsNumber()
+  descontoDocumento: number;
 }
 
 export class GetLancamentosQueryDto {

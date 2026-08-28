@@ -1,11 +1,12 @@
 import { BasePaginationData } from '@/common/interfaces/base-pagination';
 import { PrismaService } from '@/prisma/prisma.service';
 import {
+  BadRequestException,
   ConflictException,
   Injectable
 } from '@nestjs/common';
-import { Condominio, LancamentoCondominio, lancamentoStatus, LocacaoStatus, Prisma } from '@prisma/client';
-import { CreateLanctoCondominioDto } from './lanctosCondominios.controller';
+import { BoletoStatus, Condominio, LancamentoCondominio, lancamentoStatus, LocacaoStatus, Prisma } from '@prisma/client';
+import { CreateLanctoCondominioDto, gerarBoletoDto } from './lanctosCondominios.controller';
 
 @Injectable()
 export class LanctosCondominiosService {
@@ -25,9 +26,93 @@ export class LanctosCondominiosService {
         rateia: createLancamentoDto.rateia,
         linhaDigitavel: createLancamentoDto.linhaDigitavel ? createLancamentoDto.linhaDigitavel : '',
         observacao: createLancamentoDto.observacao ? createLancamentoDto.observacao : '',
+        numeroDocumento: createLancamentoDto.numeroDocumento,
+        dataDocumento: createLancamentoDto.dataDocumento,
+        serieDocumento: createLancamentoDto.serieDocumento,
+        valorDocumento: createLancamentoDto.valorDocumento,
+        descontoDocumento: createLancamentoDto.descontoDocumento,
         status: createLancamentoDto.status,
         bloco: createLancamentoDto.blocoId ? { connect: { id: createLancamentoDto.blocoId } } : undefined,
       },
+    });
+
+    return result;
+  }
+
+  async createPagamento(gerarPagamentoDto: gerarBoletoDto) {
+
+    let currentMonth = new Date().getMonth();
+    let currentYear = new Date().getFullYear();
+    let dataVencimento = currentYear + '-' + (currentMonth + 1).toString().padStart(2, '0') + '-' + gerarPagamentoDto.diaVencimento.toString().padStart(2, '0');
+
+    const locacao = await this.prismaService.locacao.findUnique({
+      where: {
+        id: gerarPagamentoDto.id,
+        status: LocacaoStatus.ATIVA,
+      },
+    });
+
+    if (!locacao) {
+      throw new BadRequestException('Locacao not found');
+    }
+
+    //Monta dados do pagamento/boleto
+    const resultPag = await this.prismaService.boleto.create({
+      data: {
+        status: BoletoStatus.PENDENTE,
+        valorOriginal: gerarPagamentoDto.lancamentos.reduce((sum, lancamento) => sum + lancamento.valorLancamento, 0) + gerarPagamentoDto.valorAluguel,
+        valorPago: null,
+        dataEmissao: new Date(),
+        dataVencimento: (gerarPagamentoDto.lancamentos && gerarPagamentoDto.lancamentos.length > 0) ? gerarPagamentoDto.lancamentos[0].vencimentoLancamento : new Date(dataVencimento),
+        dataPagamento: null,
+        observacao: 'pagamento gerado automaticamente para locação ' + gerarPagamentoDto.id,
+        locacao: { connect: { id: gerarPagamentoDto.id } },
+        empresa: { connect: { id: gerarPagamentoDto.empresaId } },
+        lanctoCondominio: {
+          connect: gerarPagamentoDto.lancamentos.map(lancamento => ({ id: lancamento.id })),
+        },
+      },
+      include: {
+        locacao: true,
+        locatario: true,
+        lanctoLocacao: true,
+      },
+    });
+
+
+    //Atualiza os lançamentos vinculando o pagamento
+    const result = await this.prismaService.lancamentoLocacao.updateMany({
+      where: {
+        id: {
+          in: gerarPagamentoDto.lancamentos.map(lancamento => lancamento.id),
+        },
+      },
+      data: {
+        status: lancamentoStatus.CONFIRMADO,
+      },
+    });
+
+    //Gera os novos lançamentos automáticos ou se houver parcelas
+    gerarPagamentoDto.lancamentos.forEach(async (lancamento) => {
+      if (lancamento.parcela < lancamento.lancamentotipo.parcelas || (lancamento.lancamentotipo.automatico === 'S' && lancamento.lancamentotipo.parcelas === 0)) {
+        const novaParcela = lancamento.lancamentotipo.parcelas > 0 ? lancamento.parcela + 1 : 1;
+        const novaDataLancamento = new Date();
+        const novoVencimentoLancamento = new Date(lancamento.vencimentoLancamento);
+        novoVencimentoLancamento.setMonth(novoVencimentoLancamento.getMonth() + 1);
+
+        await this.prismaService.lancamentoLocacao.create({
+          data: {
+            parcela: novaParcela,
+            tipoId: lancamento.tipoId,
+            valorLancamento: lancamento.valorLancamento,
+            dataLancamento: novaDataLancamento,
+            vencimentoLancamento: novoVencimentoLancamento,
+            observacao: lancamento.observacao ? lancamento.observacao : '',
+            status: lancamentoStatus.ABERTO,
+            locacaoId: gerarPagamentoDto.id
+          },
+        });
+      }
     });
 
     return result;
@@ -369,6 +454,11 @@ export class LanctosCondominiosService {
           status: data.status,
           linhaDigitavel: data.linhaDigitavel ? data.linhaDigitavel : '',
           observacao: data.observacao,
+          numeroDocumento: data.numeroDocumento,
+          dataDocumento: data.dataDocumento,
+          serieDocumento: data.serieDocumento,
+          valorDocumento: data.valorDocumento,
+          descontoDocumento: data.descontoDocumento,
           rateia: data.rateia,
         },
         include: {
@@ -388,13 +478,16 @@ export class LanctosCondominiosService {
 
       //TODO: clean the type documents and data if it changes
     } catch (error) {
-      if (error.code === 'P2002') {
-        throw new ConflictException(
-          'A lancamento already exists for this property',
-        );
-      } else {
-        throw error;
+      if (error instanceof Prisma.PrismaClientKnownRequestError) {
+        if (error.code === 'P2002') {
+          throw new ConflictException(
+            'A lancamento already exists for this property',
+          );
+        } else {
+          throw error;
+        }
       }
+      throw error;
     }
   }
 
@@ -425,13 +518,16 @@ export class LanctosCondominiosService {
 
       //TODO: clean the type documents and data if it changes
     } catch (error) {
-      if (error.code === 'P2002') {
-        throw new ConflictException(
-          'A lancamento already exists for this property',
-        );
-      } else {
-        throw error;
+      if (error instanceof Prisma.PrismaClientKnownRequestError) {
+        if (error.code === 'P2002') {
+          throw new ConflictException(
+            'O lancamento já existe para esse condomínio',
+          );
+        } else {
+          throw error;
+        }
       }
+      throw error;
     }
   }
 

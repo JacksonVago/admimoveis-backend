@@ -37,10 +37,16 @@ export class LancamentosService {
         observacao: createLancamentoDto.observacao ? createLancamentoDto.observacao : '',
         linhaDigitavel: createLancamentoDto.linhaDigitavel ? createLancamentoDto.linhaDigitavel : '',
         status: createLancamentoDto.status,
-        locacaoId: createLancamentoDto.locacaoId
+        locacaoId: createLancamentoDto.locacaoId,
+        numeroDocumento: createLancamentoDto.numeroDocumento,
+        dataDocumento: createLancamentoDto.dataDocumento,
+        serieDocumento: createLancamentoDto.serieDocumento,
+        valorDocumento: createLancamentoDto.valorDocumento,
+        descontoDocumento: createLancamentoDto.descontoDocumento,
+
       },
       include: {
-        locacao: true,
+        locacao: true,        
       },
     });
 
@@ -548,7 +554,13 @@ export class LancamentosService {
           vencimentoLancamento: data.vencimentoLancamento,
           status: data.status,
           linhaDigitavel: data.linhaDigitavel ? data.linhaDigitavel : '',
-          observacao: data.observacao
+          observacao: data.observacao,
+          numeroDocumento: data.numeroDocumento,
+          dataDocumento: data.dataDocumento,
+          serieDocumento: data.serieDocumento,
+          valorDocumento: data.valorDocumento,
+          descontoDocumento: data.descontoDocumento,
+
         },
         include: {
           locacao: true

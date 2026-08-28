@@ -3,7 +3,8 @@ import { BaseRoutes } from '@/common/interfaces/base-routes';
 import { Body, Controller, Delete, Get, Param, Patch, Post, Put } from '@nestjs/common';
 import { lancamentoTipo, Permission } from '@prisma/client';
 import { Transform } from 'class-transformer';
-import { IsEnum, IsNumber, IsString } from 'class-validator';
+import { IsEnum, IsNumber, IsOptional, IsString } from 'class-validator';
+import { FormDataRequest } from 'nestjs-form-data';
 import { TipoLancamentoService } from './tipolancamento.service';
 
 export class CreateTipoDto {
@@ -16,15 +17,23 @@ export class CreateTipoDto {
   @IsString()
   automatico: string;
 
+  @Transform(({ value }) => Number(value))
   @IsNumber()
   parcelas: number;
 
   @IsString()
   geraObservacao: string;
 
+  @Transform(({ value }) => Number(value))
   @IsNumber()
   valorFixo: number;
 
+  @Transform(({ value }) => Number(value))
+  @IsNumber()
+  @IsOptional()
+  grupofluxoId: number;
+
+  @Transform(({ value }) => Number(value))
   @IsNumber()
   empresaId: number;
 }
@@ -85,12 +94,14 @@ export class TipoLancamentoController {
 
   @Post(TIPO_ROUTES.create.route)
   @Permissions(TIPO_ROUTES.create.permission)
+  @FormDataRequest()
   create(@Body() createTipoDto: CreateTipoDto) {
     return this.TipoLancamentoService.createTipo(createTipoDto);
   }
 
   @Put(TIPO_ROUTES.update.route)
   @Permissions(TIPO_ROUTES.update.permission)
+  @FormDataRequest()
   update(
     @Param() { id }: BaseParamsByStringIdDto,
     @Body() data: CreateTipoDto,

@@ -28,7 +28,7 @@ interface BoletoSicredi {
     multa: number, //Valor da multa a ser cobrada
     dataInicioMulta: string, //Data para inicio da cobrança da multa após o vencimetno.
     informativos: string[],
-    mensagem: string[],
+    mensagens: string[],
     pagador: {
         tipoPessoa: string, //Tipo de pessoa do Pagador Ex.:? (PESSOA_JURIDICA ou PESSOA_FISICA)
         documento: string, //CPF ou CNPJ do Pagador do boleto

@@ -1,6 +1,7 @@
 import { PrismaService } from '@/prisma/prisma.service';
 import { HttpService } from "@nestjs/axios";
 import { BadRequestException, Injectable } from '@nestjs/common';
+import { BoletoStatus } from '@prisma/client';
 import { isAxiosError } from 'axios';
 import * as fs from 'fs';
 
@@ -407,16 +408,263 @@ export class BoletoWebService {
                                     endereco: true,
                                 }
                             },
-                            contaCorrente: true,
+                            contaCorrente: {
+                                include: {
+                                    instrucaoCob1: true,
+                                    instrucaoCob2: true,
+                                    instrucaoCob3: true,
+                                    instrucaoRec1: true,
+                                    instrucaoRec2: true,
+                                    instrucaoRec3: true,
+                                    instrucaoRec4: true,
+                                }
+                            },
                         }
                     },
                 },
             });
 
+            //Prepara instruções de cobrancas
+            let str_instrucaoCob1: string = boletoBancario.boleto.contaCorrente.instrucaoCob1 ? boletoBancario.boleto.contaCorrente.instrucaoCob1.descricao : '';
+            let str_instrucaoCob3: string = boletoBancario.boleto.contaCorrente.instrucaoCob2 ? boletoBancario.boleto.contaCorrente.instrucaoCob2.descricao : '';
+            let str_instrucaoCob2: string = boletoBancario.boleto.contaCorrente.instrucaoCob3 ? boletoBancario.boleto.contaCorrente.instrucaoCob3.descricao : '';
+            let str_instrucaoRec1: string = boletoBancario.boleto.contaCorrente.instrucaoRec1 ? boletoBancario.boleto.contaCorrente.instrucaoRec1.descricao : '';
+            let str_instrucaoRec2: string = boletoBancario.boleto.contaCorrente.instrucaoRec2 ? boletoBancario.boleto.contaCorrente.instrucaoRec2.descricao : '';
+            let str_instrucaoRec3: string = boletoBancario.boleto.contaCorrente.instrucaoRec3 ? boletoBancario.boleto.contaCorrente.instrucaoRec3.descricao : '';
+            let str_instrucaoRec4: string = boletoBancario.boleto.contaCorrente.instrucaoRec4 ? boletoBancario.boleto.contaCorrente.instrucaoRec4.descricao : '';
+
+            let int_pos: number = 0;
+            let int_tam: number = 0;
+            let str_campo: string = "";
+
+            if (str_instrucaoCob1.length > 0) {
+                while (str_instrucaoCob1.indexOf('<', int_pos) > -1) {
+                    int_pos = str_instrucaoCob1.indexOf('<', int_pos);
+                    int_tam = str_instrucaoCob1.indexOf('>', int_pos);
+                    str_campo = str_instrucaoCob1.substring(int_pos, int_tam + 1);
+
+                    switch (str_campo) {
+                        case "<mes>":
+                            str_instrucaoCob1 = str_instrucaoCob1.replace(str_campo, boletoBancario.dataVencimento.toLocaleDateString('pt-BR', { month: 'long' }));
+                            break;
+
+                        case '<ano>':
+                            str_instrucaoCob1 = str_instrucaoCob1.replace(str_campo, boletoBancario.dataVencimento.getFullYear().toString());
+                            break;
+
+                        case '<diasvencimento>':
+                            str_instrucaoCob1 = str_instrucaoCob1.replace(str_campo, boletoBancario.boleto.contaCorrente.qtdeDiasAposVencto.toString());
+                            break;
+
+                        case '<multaperc>':
+                            str_instrucaoCob1 = str_instrucaoCob1.replace(str_campo, boletoBancario.boleto.contaCorrente.percMulta.toString());
+                            break;
+                    }
+
+                    int_pos++;
+                }
+            }
+            console.log("str_instrucaoCob1: ", str_instrucaoCob1);
+
+            int_pos = 0;
+            int_tam = 0;
+            str_campo = "";
+            if (str_instrucaoCob2.length > 0) {
+                while (str_instrucaoCob2.indexOf('<', int_pos) > -1) {
+                    int_pos = str_instrucaoCob2.indexOf('<', int_pos);
+                    int_tam = str_instrucaoCob2.indexOf('>', int_pos);
+                    str_campo = str_instrucaoCob2.substring(int_pos, int_tam + 1);
+
+                    switch (str_campo) {
+                        case "<mes>":
+                            str_instrucaoCob2 = str_instrucaoCob2.replace(str_campo, boletoBancario.dataVencimento.toLocaleDateString('pt-BR', { month: 'long' }));
+                            break;
+
+                        case '<ano>':
+                            str_instrucaoCob2 = str_instrucaoCob2.replace(str_campo, boletoBancario.dataVencimento.getFullYear().toString());
+                            break;
+
+                        case '<diasvencimento>':
+                            str_instrucaoCob2 = str_instrucaoCob2.replace(str_campo, boletoBancario.boleto.contaCorrente.qtdeDiasAposVencto.toString());
+                            break;
+
+                        case '<multaperc>':
+                            str_instrucaoCob2 = str_instrucaoCob2.replace(str_campo, boletoBancario.boleto.contaCorrente.percMulta.toString());
+                            break;
+                    }
+
+                    int_pos++;
+                }
+            }
+            console.log("str_instrucaoCob2: ", str_instrucaoCob2);
+
+            int_pos = 0;
+            int_tam = 0;
+            str_campo = "";
+            if (str_instrucaoCob3.length > 0) {
+                while (str_instrucaoCob3.indexOf('<', int_pos) > -1) {
+                    int_pos = str_instrucaoCob3.indexOf('<', int_pos);
+                    int_tam = str_instrucaoCob3.indexOf('>', int_pos);
+                    str_campo = str_instrucaoCob3.substring(int_pos, int_tam + 1);
+
+                    switch (str_campo) {
+                        case "<mes>":
+                            str_instrucaoCob3 = str_instrucaoCob3.replace(str_campo, boletoBancario.dataVencimento.toLocaleDateString('pt-BR', { month: 'long' }));
+                            break;
+
+                        case '<ano>':
+                            str_instrucaoCob3 = str_instrucaoCob3.replace(str_campo, boletoBancario.dataVencimento.getFullYear().toString());
+                            break;
+
+                        case '<diasvencimento>':
+                            str_instrucaoCob3 = str_instrucaoCob3.replace(str_campo, boletoBancario.boleto.contaCorrente.qtdeDiasAposVencto.toString());
+                            break;
+
+                        case '<multaperc>':
+                            str_instrucaoCob3 = str_instrucaoCob3.replace(str_campo, boletoBancario.boleto.contaCorrente.percMulta.toString());
+                            break;
+                    }
+
+                    int_pos++;
+                }
+            }
+            console.log("str_instrucaoCob3: ", str_instrucaoCob3);
+
+
+            int_pos = 0;
+            int_tam = 0;
+            str_campo = "";
+
+            if (str_instrucaoRec1.length > 0) {
+                while (str_instrucaoRec1.indexOf('<', int_pos) > -1) {
+                    int_pos = str_instrucaoRec1.indexOf('<', int_pos);
+                    int_tam = str_instrucaoRec1.indexOf('>', int_pos);
+                    str_campo = str_instrucaoRec1.substring(int_pos, int_tam + 1);
+
+                    switch (str_campo) {
+                        case "<mes>":
+                            str_instrucaoRec1 = str_instrucaoRec1.replace(str_campo, boletoBancario.dataVencimento.toLocaleDateString('pt-BR', { month: 'long' }));
+                            break;
+
+                        case '<ano>':
+                            str_instrucaoRec1 = str_instrucaoRec1.replace(str_campo, boletoBancario.dataVencimento.getFullYear().toString());
+                            break;
+
+                        case '<diasvencimento>':
+                            str_instrucaoRec1 = str_instrucaoRec1.replace(str_campo, boletoBancario.boleto.contaCorrente.qtdeDiasAposVencto.toString());
+                            break;
+
+                        case '<multaperc>':
+                            str_instrucaoRec1 = str_instrucaoRec1.replace(str_campo, boletoBancario.boleto.contaCorrente.percMulta.toString());
+                            break;
+                    }
+
+                    int_pos++;
+                }
+            }
+            console.log("str_instrucaoRec1: ", str_instrucaoRec1);
+
+            int_pos = 0;
+            int_tam = 0;
+            str_campo = "";
+            if (str_instrucaoRec2.length > 0) {
+                while (str_instrucaoRec2.indexOf('<', int_pos) > -1) {
+                    int_pos = str_instrucaoRec2.indexOf('<', int_pos);
+                    int_tam = str_instrucaoRec2.indexOf('>', int_pos);
+                    str_campo = str_instrucaoRec2.substring(int_pos, int_tam + 1);
+
+                    switch (str_campo) {
+                        case "<mes>":
+                            str_instrucaoRec2 = str_instrucaoRec2.replace(str_campo, boletoBancario.dataVencimento.toLocaleDateString('pt-BR', { month: 'long' }));
+                            break;
+
+                        case '<ano>':
+                            str_instrucaoRec2 = str_instrucaoRec2.replace(str_campo, boletoBancario.dataVencimento.getFullYear().toString());
+                            break;
+
+                        case '<diasvencimento>':
+                            str_instrucaoRec2 = str_instrucaoRec2.replace(str_campo, boletoBancario.boleto.contaCorrente.qtdeDiasAposVencto.toString());
+                            break;
+
+                        case '<multaperc>':
+                            str_instrucaoRec2 = str_instrucaoRec2.replace(str_campo, boletoBancario.boleto.contaCorrente.percMulta.toString());
+                            break;
+                    }
+
+                    int_pos++;
+                }
+            }
+            console.log("str_instrucaoRec2: ", str_instrucaoRec2);
+
+            int_pos = 0;
+            int_tam = 0;
+            str_campo = "";
+            if (str_instrucaoRec3.length > 0) {
+                while (str_instrucaoRec3.indexOf('<', int_pos) > -1) {
+                    int_pos = str_instrucaoRec3.indexOf('<', int_pos);
+                    int_tam = str_instrucaoRec3.indexOf('>', int_pos);
+                    str_campo = str_instrucaoRec3.substring(int_pos, int_tam + 1);
+
+                    switch (str_campo) {
+                        case "<mes>":
+                            str_instrucaoRec3 = str_instrucaoRec3.replace(str_campo, boletoBancario.dataVencimento.toLocaleDateString('pt-BR', { month: 'long' }));
+                            break;
+
+                        case '<ano>':
+                            str_instrucaoRec3 = str_instrucaoRec3.replace(str_campo, boletoBancario.dataVencimento.getFullYear().toString());
+                            break;
+
+                        case '<diasvencimento>':
+                            str_instrucaoRec3 = str_instrucaoRec3.replace(str_campo, boletoBancario.boleto.contaCorrente.qtdeDiasAposVencto.toString());
+                            break;
+
+                        case '<multaperc>':
+                            str_instrucaoRec3 = str_instrucaoRec3.replace(str_campo, boletoBancario.boleto.contaCorrente.percMulta.toString());
+                            break;
+                    }
+
+                    int_pos++;
+                }
+            }
+            console.log("str_instrucaoRec3: ", str_instrucaoRec3);
+
+            int_pos = 0;
+            int_tam = 0;
+            str_campo = "";
+            if (str_instrucaoRec4.length > 0) {
+                while (str_instrucaoRec4.indexOf('<', int_pos) > -1) {
+                    int_pos = str_instrucaoRec4.indexOf('<', int_pos);
+                    int_tam = str_instrucaoRec4.indexOf('>', int_pos);
+                    str_campo = str_instrucaoRec4.substring(int_pos, int_tam + 1);
+
+                    switch (str_campo) {
+                        case "<mes>":
+                            str_instrucaoRec4 = str_instrucaoRec4.replace(str_campo, boletoBancario.dataVencimento.toLocaleDateString('pt-BR', { month: 'long' }));
+                            break;
+
+                        case '<ano>':
+                            str_instrucaoRec4 = str_instrucaoRec4.replace(str_campo, boletoBancario.dataVencimento.getFullYear().toString());
+                            break;
+
+                        case '<diasvencimento>':
+                            str_instrucaoRec4 = str_instrucaoRec4.replace(str_campo, boletoBancario.boleto.contaCorrente.qtdeDiasAposVencto.toString());
+                            break;
+
+                        case '<multaperc>':
+                            str_instrucaoRec4 = str_instrucaoRec4.replace(str_campo, boletoBancario.boleto.contaCorrente.percMulta.toString());
+                            break;
+                    }
+
+                    int_pos++;
+                }
+            }
+            console.log("str_instrucaoRec4: ", str_instrucaoRec4);
+
+
             str_pos = 'Montando JSON';
             let envioJSON: BoletoSicredi = {
                 tipoCobranca: "NORMAL",
-                codigoBeneficiario: '12345',
+                codigoBeneficiario: boletoBancario.boleto.contaCorrente.convenio,
                 especieDocumento: boletoBancario.especieCod,
                 nossoNumero: undefined,
                 seuNumero: boletoBancario.id.toString().padStart(10, '0'),
@@ -451,16 +699,22 @@ export class BoletoWebService {
                     boletoBancario.tipoMultaCobCod.includes('VALOR') ? boletoBancario.valorMulta : boletoBancario.percMulta) : undefined,
                 dataInicioMulta: boletoBancario.tipoMultaCobCod ? boletoBancario.tipoMultaCobCod.indexOf('SEM') > -1 ? undefined :
                     addDays(boletoBancario.dataVencimento, boletoBancario.diasInicioMulta).toISOString().split('T')[0] : undefined,
-                informativos: undefined,
-                mensagem: undefined,
+                informativos: ((str_instrucaoCob1.length > 0 ||
+                    str_instrucaoCob2.length > 0 ||
+                    str_instrucaoCob3.length > 0) ? [str_instrucaoCob1, str_instrucaoCob2, str_instrucaoCob3] :
+                    undefined),
+                mensagens: ((str_instrucaoCob1.length > 0 ||
+                    str_instrucaoCob2.length > 0 ||
+                    str_instrucaoCob3.length > 0) ? [str_instrucaoCob1, str_instrucaoCob2, str_instrucaoCob3] :
+                    undefined),
                 pagador: {
                     tipoPessoa: ((boletoBancario.boleto.locacao && boletoBancario.boleto.locacao.locatarios.length > 0) ?
-                        (boletoBancario.boleto.locacao.locatarios[0].pessoa.documento.length > 11 ? 'PESSOA_JURIDICA' : 'PESSOA_FISICA') :
-                        (boletoBancario.boleto.imovel.proprietarios[0].pessoa.documento.length > 11 ? 'PESSOA_JURIDICA' : 'PESSOA_FISICA')
+                        (boletoBancario.boleto.locacao.locatarios[0].pessoa.documento.replace(/\D/g, '').length > 11 ? 'PESSOA_JURIDICA' : 'PESSOA_FISICA') :
+                        (boletoBancario.boleto.imovel.proprietarios[0].pessoa.documento.replace(/\D/g, '').length > 11 ? 'PESSOA_JURIDICA' : 'PESSOA_FISICA')
                     ),
                     documento: ((boletoBancario.boleto.locacao && boletoBancario.boleto.locacao.locatarios.length > 0) ?
-                        (boletoBancario.boleto.locacao.locatarios[0].pessoa.documento.length > 11 ? boletoBancario.boleto.locacao.locatarios[0].pessoa.documento.padStart(14, '0') : boletoBancario.boleto.locacao.locatarios[0].pessoa.documento.padStart(11, '0')) :
-                        (boletoBancario.boleto.imovel.proprietarios[0].pessoa.documento.length > 11 ? boletoBancario.boleto.imovel.proprietarios[0].pessoa.documento.padStart(14, '0') : boletoBancario.boleto.imovel.proprietarios[0].pessoa.documento.padStart(11, '0'))
+                        (boletoBancario.boleto.locacao.locatarios[0].pessoa.documento.replace(/\D/g, '').length > 11 ? boletoBancario.boleto.locacao.locatarios[0].pessoa.documento.replace(/\D/g, '').padStart(14, '0') : boletoBancario.boleto.locacao.locatarios[0].pessoa.documento.replace(/\D/g, '').padStart(11, '0')) :
+                        (boletoBancario.boleto.imovel.proprietarios[0].pessoa.documento.replace(/\D/g, '').length > 11 ? boletoBancario.boleto.imovel.proprietarios[0].pessoa.documento.replace(/\D/g, '').padStart(14, '0') : boletoBancario.boleto.imovel.proprietarios[0].pessoa.documento.replace(/\D/g, '').padStart(11, '0'))
                     ),
                     nome: ((boletoBancario.boleto.locacao && boletoBancario.boleto.locacao.locatarios.length > 0) ?
                         boletoBancario.boleto.locacao.locatarios[0].pessoa.nome :
@@ -483,24 +737,25 @@ export class BoletoWebService {
                         boletoBancario.boleto.locacao.locatarios[0].pessoa.endereco.cep.replace(/\D/g, '') :
                         boletoBancario.boleto.imovel.proprietarios[0].pessoa.endereco.cep.replace(/\D/g, '')),
                     telefone: ((boletoBancario.boleto.locacao && boletoBancario.boleto.locacao.locatarios.length > 0) ?
-                        boletoBancario.boleto.locacao.locatarios[0].pessoa.telefone :
-                        boletoBancario.boleto.imovel.proprietarios[0].pessoa.telefone),
+                        boletoBancario.boleto.locacao.locatarios[0].pessoa.telefone.replace(/\D/g, '') :
+                        boletoBancario.boleto.imovel.proprietarios[0].pessoa.telefone.replace(/\D/g, '')),
                     email: ((boletoBancario.boleto.locacao && boletoBancario.boleto.locacao.locatarios.length > 0) ?
                         boletoBancario.boleto.locacao.locatarios[0].pessoa.email :
                         boletoBancario.boleto.imovel.proprietarios[0].pessoa.email),
                 },
-                beneficiarioFinal: {
-                    tipoPessoa: (boletoBancario.boleto.empresa.cnpj.length > 11 ? 'PESSOA_JURIDICA' : 'PESSOA_FISICA'),
-                    documento: boletoBancario.boleto.empresa.cnpj,
+                beneficiarioFinal: undefined,
+                /*beneficiarioFinal: {
+                    tipoPessoa: (boletoBancario.boleto.empresa.cnpj.replace(/\D/g, '').length > 11 ? 'PESSOA_JURIDICA' : 'PESSOA_FISICA'),
+                    documento: boletoBancario.boleto.empresa.cnpj.replace(/\D/g, ''),
                     nome: boletoBancario.boleto.empresa.nome,
                     logreadouro: boletoBancario.boleto.empresa.endereco.logradouro,
                     numeroEndereco: boletoBancario.boleto.empresa.endereco.numero,
                     cidade: boletoBancario.boleto.empresa.endereco.cidade,
                     uf: boletoBancario.boleto.empresa.endereco.estado,
                     cep: boletoBancario.boleto.empresa.endereco.cep.replace(/\D/g, ''),
-                    telefone: boletoBancario.boleto.empresa.telefone,
+                    telefone: boletoBancario.boleto.empresa.telefone.replace(/\D/g, ''),
                     email: boletoBancario.boleto.empresa.email,
-                }
+                }*/
 
             };
 
@@ -511,14 +766,15 @@ export class BoletoWebService {
             const tokenData = new URLSearchParams();
 
             tokenData.append('grant_type', 'password');
-            tokenData.append('username', '123456789');
-            tokenData.append('password', 'teste123');
+            tokenData.append('username', boletoBancario.boleto.contaCorrente.convenio + boletoBancario.boleto.contaCorrente.cooperativa);
+            tokenData.append('password', boletoBancario.boleto.contaCorrente.senhaBancoAPI);
             tokenData.append('scope', 'cobranca');
 
-            const responseToken = await this.httpService.axiosRef.post('https://api-parceiro.sicredi.com.br/sb/auth/openapi/token', tokenData
+            //const responseToken = await this.httpService.axiosRef.post('https://api-parceiro.sicredi.com.br/sb/auth/openapi/token', tokenData //Sandbox
+            const responseToken = await this.httpService.axiosRef.post('https://api-parceiro.sicredi.com.br/auth/openapi/token', tokenData
                 , {
                     headers: {
-                        'x-api-key': 'c019db1e-dba0-44b2-b7ff-1511337e4c71',
+                        'x-api-key': boletoBancario.boleto.contaCorrente.chaveAppAPI,
                         'context': 'COBRANCA',
                     }
                 }
@@ -526,13 +782,15 @@ export class BoletoWebService {
 
             str_pos = 'Voltou token';
             if (responseToken) {
-                const responseOrder = await this.httpService.axiosRef.post('https://api-parceiro.sicredi.com.br/sb/cobranca/boleto/v1/boletos', envioJSON, {
+                console.log('json:', envioJSON);
+
+                const responseOrder = await this.httpService.axiosRef.post(boletoBancario.boleto.contaCorrente.urlBoleto, envioJSON, {
                     //const responseOrder = await this.httpService.axiosRef.post('https://devportal.itau.com.br/sandboxapi/cash_management_ext_v2/v2', envioJSON, {
                     headers: {
                         'Content-Type': 'application/json',
-                        'x-api-key': 'c019db1e-dba0-44b2-b7ff-1511337e4c71',
-                        'cooperativa': '6789',
-                        'posto': '03',
+                        'x-api-key': boletoBancario.boleto.contaCorrente.chaveAppAPI,
+                        'cooperativa': boletoBancario.boleto.contaCorrente.cooperativa,
+                        'posto': boletoBancario.boleto.contaCorrente.digito, //Campo Dígito da conta no banco de dados
                         'Authorization': `Bearer ${responseToken.data.access_token}`
                     }
                 });
@@ -540,6 +798,8 @@ export class BoletoWebService {
                 if (responseOrder) {
                     //Boleto criado com sucesso
                     if (responseOrder.status === 201) {
+                        console.log('responde data:', responseOrder.data);
+                        //Atualiza boleto bancário
                         await this.prismaService.boletoBancario.update(
                             {
                                 where: {
@@ -548,9 +808,23 @@ export class BoletoWebService {
                                 data: {
                                     codigoBarras: responseOrder.data.codigoBarras ? responseOrder.data.codigoBarras : '',
                                     linhaDigitavel: responseOrder.data.linhaDigitavel ? responseOrder.data.linhaDigitavel : '',
-                                    nossoNumero: responseOrder.data.linhaDigitavel ? responseOrder.data.linhaDigitavel : '',
+                                    nossoNumero: responseOrder.data.nossoNumero ? responseOrder.data.nossoNumero : '',
                                     txid: responseOrder.data.txid ? responseOrder.data.txid : '',
                                     qrcode: responseOrder.data.qrcode ? responseOrder.data.qrcode : '',
+                                    status: 'REGISTRADO',
+                                    registrado: 'S',
+                                }
+                            }
+                        );
+
+                        //Atualiza boleto previsão de pagamento
+                        await this.prismaService.boleto.update(
+                            {
+                                where: {
+                                    id: boletoBancario.boletoId
+                                },
+                                data: {
+                                    status: BoletoStatus.CONFIRMADO,
                                 }
                             }
                         );
@@ -606,63 +880,74 @@ export class BoletoWebService {
                     //const tokenData = new FormData();
                     const tokenData = new URLSearchParams();
 
+                    console.log('user : ', boletoBancario.boleto.contaCorrente.convenio + boletoBancario.boleto.contaCorrente.cooperativa);
                     tokenData.append('grant_type', 'password');
-                    tokenData.append('username', '123456789'); //boletoBancario.boleto.contaCorrente.usuarioBancoAPI
-                    tokenData.append('password', 'teste123'); //boletoBancario.boleto.contaCorrente.senhaBancoAPI
+                    tokenData.append('username', boletoBancario.boleto.contaCorrente.convenio + boletoBancario.boleto.contaCorrente.cooperativa);
+                    tokenData.append('password', boletoBancario.boleto.contaCorrente.senhaBancoAPI);
                     tokenData.append('scope', 'cobranca');
 
-                    this.httpService.axiosRef.post('https://api-parceiro.sicredi.com.br/sb/auth/openapi/token', tokenData
+                    //const responseToken = await this.httpService.axiosRef.post('https://api-parceiro.sicredi.com.br/sb/auth/openapi/token', tokenData //Sandbox
+                    this.httpService.axiosRef.post('https://api-parceiro.sicredi.com.br/auth/openapi/token', tokenData
                         , {
                             headers: {
-                                'x-api-key': 'c019db1e-dba0-44b2-b7ff-1511337e4c71',
+                                'x-api-key': boletoBancario.boleto.contaCorrente.chaveAppAPI,
                                 'context': 'COBRANCA',
                             }
                         }
                     ).then((responseToken) => {
-                        //console.log(responseToken.data.access_token)
-                        //console.log(boletoBancario.linhaDigitavel)
-                        /*const responseOrder = await this.httpService.axiosRef.get('https://api-parceiro.sicredi.com.br/sb/cobranca/boleto/v1/boletos/pdf?linhaDigitavel=' + boletoBancario.linhaDigitavel, {
+
+                        this.httpService.axiosRef.get(boletoBancario.boleto.contaCorrente.urlBoleto + '/pdf?linhaDigitavel=' + boletoBancario.linhaDigitavel, {
                             //const responseOrder = await this.httpService.axiosRef.post('https://devportal.itau.com.br/sandboxapi/cash_management_ext_v2/v2', envioJSON, {
                             headers: {
-                                'Content-Type': 'application/json, application/octet-stream',
-                                'x-api-key': 'c019db1e-dba0-44b2-b7ff-1511337e4c71',
-                                'Authorization': `Bearer ${responseToken.data.access_token}`
-                            }
-                        });
-        
-                        if (responseOrder) {
-                            result = responseOrder;
-                        }*/
-                        this.httpService.axiosRef.get('https://api-parceiro.sicredi.com.br/sb/cobranca/boleto/v1/boletos/pdf?linhaDigitavel=' + boletoBancario.linhaDigitavel, {
-                            //const responseOrder = await this.httpService.axiosRef.post('https://devportal.itau.com.br/sandboxapi/cash_management_ext_v2/v2', envioJSON, {
-                            headers: {
-                                //'Content-Type': 'application/json, application/octet-stream',
-                                'x-api-key': 'c019db1e-dba0-44b2-b7ff-1511337e4c71',
+                                'x-api-key': boletoBancario.boleto.contaCorrente.chaveAppAPI,
                                 'Authorization': `Bearer ${responseToken.data.access_token}`,
                             },
                             responseType: 'arraybuffer'
                         }).then(response => {
+                            console.log('fim responsew');
                             result = response.data;
                             fs.writeFileSync('boletosicredi.pdf', response.data);
                             resolve();
+
+                        }).catch(error => {
+                            if (isAxiosError(error)) {
+                                // Check if there's a response and data within the error
+                                if (error.response && error.response.data) {
+                                    console.log('Response: ', error.response);
+                                    //console.error('Error message from server:', error.response.data);
+                                    console.log('catch fim erro 1');
+                                    throw new BadRequestException(error.response.data);
+                                } else {
+                                    //console.error('Axios error without response data:', error.message);
+                                    console.log('catch fim erro 2');
+                                    throw new BadRequestException(error.message);
+                                }
+                            } else {
+                                //console.error('Non-Axios error:', error);
+                                console.log('catch fim erro 3');
+                                //throw new BadRequestException(error);
+                            }
                         });
                     });
                 });
             }
             catch (error) {
+
                 if (isAxiosError(error)) {
                     // Check if there's a response and data within the error
                     if (error.response && error.response.data) {
-                        console.log('Response: ', error.response);
-                        console.error('Error message from server:', error.response.data);
-
+                        //console.log('Response: ', error.response);
+                        //console.error('Error message from server:', error.response.data);
+                        console.log('fim erro 1');
                         throw new BadRequestException(error.response.data);
                     } else {
-                        console.error('Axios error without response data:', error.message);
+                        //console.error('Axios error without response data:', error.message);
+                        console.log('fim erro 2');
                         throw new BadRequestException(error.message);
                     }
                 } else {
-                    console.error('Non-Axios error:', error);
+                    //console.error('Non-Axios error:', error);
+                    console.log('fim erro 3');
                     throw new BadRequestException(error);
                 }
 
@@ -696,28 +981,29 @@ export class BoletoWebService {
             const tokenData = new URLSearchParams();
 
             tokenData.append('grant_type', 'password');
-            tokenData.append('username', '123456789');
+            tokenData.append('username', boletoBancario.boleto.contaCorrente.convenio + boletoBancario.boleto.contaCorrente.cooperativa);
             tokenData.append('password', 'teste123');
             tokenData.append('scope', 'cobranca');
 
-            const responseToken = await this.httpService.axiosRef.post('https://api-parceiro.sicredi.com.br/sb/auth/openapi/token', tokenData
+            //const responseToken = await this.httpService.axiosRef.post('https://api-parceiro.sicredi.com.br/sb/auth/openapi/token', tokenData
+            const responseToken = await this.httpService.axiosRef.post('https://api-parceiro.sicredi.com.br/auth/openapi/token', tokenData
                 , {
                     headers: {
-                        'x-api-key': 'c019db1e-dba0-44b2-b7ff-1511337e4c71',
+                        'x-api-key': boletoBancario.boleto.contaCorrente.chaveAppAPI,
                         'context': 'COBRANCA',
                     }
                 }
             );
 
             if (responseToken) {
-                const responseOrder = await this.httpService.axiosRef.patch(`https://api-parceiro.sicredi.com.br/sb/cobranca/boleto/v1/boletos/${boletoBancario.nossoNumero}/baixa`, {}, {
+                const responseOrder = await this.httpService.axiosRef.patch(boletoBancario.boleto.contaCorrente.urlBoleto + `/${boletoBancario.nossoNumero}/baixa`, {}, {
                     //const responseOrder = await this.httpService.axiosRef.post('https://devportal.itau.com.br/sandboxapi/cash_management_ext_v2/v2', envioJSON, {
                     headers: {
                         'Content-Type': 'application/json',
-                        'x-api-key': 'c019db1e-dba0-44b2-b7ff-1511337e4c71',
-                        'cooperativa': '6789',
-                        'posto': '03',
-                        'codigoBeneficiario': '12345',
+                        'x-api-key': boletoBancario.boleto.contaCorrente.chaveAppAPI,
+                        'cooperativa': boletoBancario.boleto.contaCorrente.cooperativa,
+                        'posto': boletoBancario.boleto.contaCorrente.digito,
+                        'codigoBeneficiario': boletoBancario.boleto.contaCorrente.convenio,
                         'Authorization': `Bearer ${responseToken.data.access_token}`
                     }
                 });
@@ -783,26 +1069,30 @@ export class BoletoWebService {
             const tokenData = new URLSearchParams();
 
             tokenData.append('grant_type', 'password');
-            tokenData.append('username', '123456789');
-            tokenData.append('password', 'teste123');
+            tokenData.append('username', boletoBancario.boleto.contaCorrente.convenio + boletoBancario.boleto.contaCorrente.cooperativa);
+            tokenData.append('password', boletoBancario.boleto.contaCorrente.senhaBancoAPI);
             tokenData.append('scope', 'cobranca');
 
-            const responseToken = await this.httpService.axiosRef.post('https://api-parceiro.sicredi.com.br/sb/auth/openapi/token', tokenData
+            //const responseToken = await this.httpService.axiosRef.post('https://api-parceiro.sicredi.com.br/sb/auth/openapi/token', tokenData
+            const responseToken = await this.httpService.axiosRef.post('https://api-parceiro.sicredi.com.br/auth/openapi/token', tokenData
                 , {
                     headers: {
-                        'x-api-key': 'c019db1e-dba0-44b2-b7ff-1511337e4c71',
+                        'x-api-key': boletoBancario.boleto.contaCorrente.chaveAppAPI,
                         'context': 'COBRANCA',
                     }
                 }
             );
 
             if (responseToken) {
-                const responseOrder = await this.httpService.axiosRef.get(`https://api-parceiro.sicredi.com.br/sb/cobranca/boleto/v1/boletos?codigoBeneficiario=12345&nossoNumero=${boletoBancario.nossoNumero}`, {
+                //console.log('token: ', responseToken);
+                //console.log('nossonumero: ', boletoBancario.nossoNumero.substring(0, 8));
+
+                const responseOrder = await this.httpService.axiosRef.get(boletoBancario.boleto.contaCorrente.urlBoleto + `?codigoBeneficiario=${boletoBancario.boleto.contaCorrente.convenio}&nossoNumero=${boletoBancario.nossoNumero.substring(0, 9)}`, {
                     headers: {
                         'Content-Type': 'application/json',
-                        'x-api-key': 'c019db1e-dba0-44b2-b7ff-1511337e4c71',
-                        'cooperativa': '6789',
-                        'posto': '03',
+                        'x-api-key': boletoBancario.boleto.contaCorrente.chaveAppAPI,
+                        'cooperativa': boletoBancario.boleto.contaCorrente.cooperativa,
+                        'posto': boletoBancario.boleto.contaCorrente.digito,
                         'Authorization': `Bearer ${responseToken.data.access_token}`
                     }
                 });
@@ -831,13 +1121,16 @@ export class BoletoWebService {
                 if (error.response && error.response.data) {
                     console.log('Response: ', error.response);
                     console.error('Error message from server:', error.response.data);
-
+                    throw new BadRequestException(error.response.data);
                     // You can also set this error message to a state to display it in your UI
                 } else {
                     console.error('Axios error without response data:', error.message);
+                    throw new BadRequestException(error.message);
                 }
             } else {
                 console.error('Non-Axios error:', error);
+                throw new BadRequestException(error);
+
             }
 
         }

@@ -35,6 +35,11 @@ export class LancamentosImoveisService {
         vencimentoLancamento: createLancamentoDto.vencimentoLancamento,
         observacao: createLancamentoDto.observacao ? createLancamentoDto.observacao : '',
         linhaDigitavel: createLancamentoDto.linhaDigitavel ? createLancamentoDto.linhaDigitavel : '',
+        numeroDocumento: createLancamentoDto.numeroDocumento,
+        dataDocumento: createLancamentoDto.dataDocumento,
+        serieDocumento: createLancamentoDto.serieDocumento,
+        valorDocumento: createLancamentoDto.valorDocumento,
+        descontoDocumento: createLancamentoDto.descontoDocumento,
         status: createLancamentoDto.status,
         imovelId: createLancamentoDto.imovelId
       },
@@ -481,7 +486,12 @@ export class LancamentosImoveisService {
           vencimentoLancamento: data.vencimentoLancamento,
           status: data.status,
           linhaDigitavel: data.linhaDigitavel ? data.linhaDigitavel : '',
-          observacao: data.observacao
+          observacao: data.observacao,
+          numeroDocumento: data.numeroDocumento,
+          dataDocumento: data.dataDocumento,
+          serieDocumento: data.serieDocumento,
+          valorDocumento: data.valorDocumento,
+          descontoDocumento: data.descontoDocumento,
         },
         include: {
           imovel: true

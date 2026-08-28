@@ -61,6 +61,7 @@ model Empresa {
   configuracaoAlertas ConfiguracaoAlertas[]
   jobs                Jobs[]
   tipoAlertas         TipoAlerta[]
+  grupoFluxoCaixas    GrupoFluxoCaixa[]
 
   @@map("empresas")
 }
@@ -399,11 +400,15 @@ model LancamentoTipo {
   geraObservacao String         @default("N")
   valorFixo      Float?
   status         PessoaStatus   @default(ATIVA)
-  createdAt      DateTime       @default(now())
-  updatedAt      DateTime       @updatedAt
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   lancamentosLocacoes    LancamentoLocacao[]
   lancamentosCondominios LancamentoCondominio[]
+
+  grupofluxo   GrupoFluxoCaixa? @relation(fields: [grupofluxoId], references: [id])
+  grupofluxoId Int?
 
   empresa           Empresa            @relation(fields: [empresaId], references: [id])
   empresaId         Int
@@ -585,10 +590,11 @@ model Imovel {
   documentos   GenericAnexo[]
   lancamentos  LancamentoImovel[]
 
-  empresa   Empresa  @relation(fields: [empresaId], references: [id])
+  empresa   Empresa   @relation(fields: [empresaId], references: [id])
   empresaId Int
   boletos   Boleto[]
   jobs      Jobs[]
+  moradors  Morador[]
 
   @@map("imoveis")
 }
@@ -605,11 +611,14 @@ model Proprietario {
 }
 
 model Morador {
-  id        Int     @id @default(autoincrement())
-  pessoa    Pessoa  @relation(fields: [pessoaId], references: [id])
+  id        Int      @id @default(autoincrement())
+  pessoa    Pessoa   @relation(fields: [pessoaId], references: [id])
   pessoaId  Int
-  locacao   Locacao @relation(fields: [locacaoId], references: [id])
-  locacaoId Int
+  locacao   Locacao? @relation(fields: [locacaoId], references: [id])
+  locacaoId Int?
+
+  imovel   Imovel? @relation(fields: [imovelId], references: [id])
+  imovelId Int?
 
   @@map("moradores")
 }
@@ -807,8 +816,8 @@ model Reajuste {
 }
 
 model LancamentoLocacao {
-  id                   Int              @id @default(autoincrement())
-  lancamentotipo       LancamentoTipo   @relation(fields: [tipoId], references: [id])
+  id                   Int            @id @default(autoincrement())
+  lancamentotipo       LancamentoTipo @relation(fields: [tipoId], references: [id])
   parcela              Int? //Parcela do lançamento no caso de lançamento com número de parcelas
   tipoId               Int //Tipo de lançamnto (IPTU, CONDOMINIO, ÁGUA, LUZ, etc..)
   valorLancamento      Float //Valor do lançamento
@@ -816,9 +825,16 @@ model LancamentoLocacao {
   vencimentoLancamento DateTime
   linhaDigitavel       String? //Linha digitável do boleto gerado para esse lançamento
   observacao           String
-  status               lancamentoStatus @default(ABERTO)
-  createdAt            DateTime         @default(now())
-  updatedAt            DateTime         @updatedAt
+
+  numeroDocumento   String? //Número do documento quando houver no caso de despesas com NF, ou conta de luz etc..
+  dataDocumento     DateTime? //Data do documento quando houver  no caso de despesas com NF, ou conta de luz etc..
+  serieDocumento    String? //Série do documento quando houver  no caso de despesas com NF, ou conta de luz etc.. 
+  valorDocumento    Float? //Valor do documento quando houver  no caso de despesas com NF, ou conta de luz etc.. 
+  descontoDocumento Float? //Valor do desconto documento quando houver  no caso de despesas com NF, ou conta de luz etc.. 
+
+  status    lancamentoStatus @default(ABERTO)
+  createdAt DateTime         @default(now())
+  updatedAt DateTime         @updatedAt
 
   locacao   Locacao @relation(fields: [locacaoId], references: [id])
   locacaoId Int
@@ -829,8 +845,8 @@ model LancamentoLocacao {
 }
 
 model LancamentoImovel {
-  id                   Int              @id @default(autoincrement())
-  lancamentotipo       LancamentoTipo   @relation(fields: [tipoId], references: [id])
+  id                   Int            @id @default(autoincrement())
+  lancamentotipo       LancamentoTipo @relation(fields: [tipoId], references: [id])
   parcela              Int? //Parcela do lançamento no caso de lançamento com número de parcelas
   tipoId               Int //Tipo de lançamnto (IPTU, CONDOMINIO, ÁGUA, LUZ, etc..)
   valorLancamento      Float //Valor do lançamento
@@ -838,9 +854,16 @@ model LancamentoImovel {
   vencimentoLancamento DateTime
   linhaDigitavel       String? //Linha digitável do boleto gerado para esse lançamento
   observacao           String
-  status               lancamentoStatus @default(ABERTO)
-  createdAt            DateTime         @default(now())
-  updatedAt            DateTime         @updatedAt
+
+  numeroDocumento   String? //Número do documento quando houver no caso de despesas com NF, ou conta de luz etc..
+  dataDocumento     DateTime? //Data do documento quando houver  no caso de despesas com NF, ou conta de luz etc..
+  serieDocumento    String? //Série do documento quando houver  no caso de despesas com NF, ou conta de luz etc.. 
+  valorDocumento    Float? //Valor do documento quando houver  no caso de despesas com NF, ou conta de luz etc.. 
+  descontoDocumento Float? //Valor do desconto documento quando houver  no caso de despesas com NF, ou conta de luz etc.. 
+
+  status    lancamentoStatus @default(ABERTO)
+  createdAt DateTime         @default(now())
+  updatedAt DateTime         @updatedAt
 
   imovel   Imovel  @relation(fields: [imovelId], references: [id])
   imovelId Int
@@ -970,8 +993,8 @@ model BoletoBancario {
 }
 
 model LancamentoCondominio {
-  id                   Int              @id @default(autoincrement())
-  lancamentotipo       LancamentoTipo   @relation(fields: [tipoId], references: [id])
+  id                   Int            @id @default(autoincrement())
+  lancamentotipo       LancamentoTipo @relation(fields: [tipoId], references: [id])
   parcela              Int? //Parcela do lançamento no caso de lançamento com número de parcelas
   tipoId               Int //Tipo de lançamnto (IPTU, CONDOMINIO, ÁGUA, LUZ, etc..)
   valorLancamento      Float //Valor do lançamento
@@ -980,9 +1003,16 @@ model LancamentoCondominio {
   linhaDigitavel       String? //Linha digitável do boleto gerado para esse lançamento
   observacao           String
   rateia               String //Sim ou Não - Indica se o lançamento deve ser rateado entre os imóveis do condomínio
-  status               lancamentoStatus @default(ABERTO)
-  createdAt            DateTime         @default(now())
-  updatedAt            DateTime         @updatedAt
+
+  numeroDocumento   String? //Número do documento quando houver no caso de despesas com NF, ou conta de luz etc..
+  dataDocumento     DateTime? //Data do documento quando houver  no caso de despesas com NF, ou conta de luz etc..
+  serieDocumento    String? //Série do documento quando houver  no caso de despesas com NF, ou conta de luz etc.. 
+  valorDocumento    Float? //Valor do documento quando houver  no caso de despesas com NF, ou conta de luz etc.. 
+  descontoDocumento Float? //Valor do desconto documento quando houver  no caso de despesas com NF, ou conta de luz etc.. 
+
+  status    lancamentoStatus @default(ABERTO)
+  createdAt DateTime         @default(now())
+  updatedAt DateTime         @updatedAt
 
   bloco    Bloco   @relation(fields: [blocoId], references: [id])
   blocoId  Int
@@ -1127,6 +1157,23 @@ model Session {
   createdAt DateTime @default(now())
 
   @@map("sessions")
+}
+
+model GrupoFluxoCaixa {
+  id              Int              @id @unique @default(autoincrement())
+  descricao       String //Descrição do fluxo de caixa
+  cor             String //Cor que será mostrada no gráfico, senão informar será utilizada cores padrões
+  status          PessoaStatus //Situação do grupo ativo/cancelado
+  lancamentoTipos LancamentoTipo[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  empresa   Empresa @relation(fields: [empresaId], references: [id])
+  empresaId Int
+
+  @@unique([empresaId, descricao])
+  @@map("gruposfluxocaixa")
 }
 
 enum Permission {
@@ -1306,6 +1353,12 @@ enum Permission {
   UPDATE_BOLETO_BANCARIO
   DELETE_BOLETO_BANCARIO
   VIEW_BOLETO_BANCARIO
+
+  //Grupo de fluxo de caixa
+  CREATE_GRUPO_FLUXO_CAIXA
+  UPDATE_GRUPO_FLUXO_CAIXA
+  DELETE_GRUPO_FLUXO_CAIXA
+  VIEW_GRUPO_FLUXO_CAIXA
 }
 
 enum UserRole {
@@ -1439,3 +1492,17 @@ enum FormaEnvio {
   EMAIL
   IMPRESSAO
 }
+
+// model access_token {
+// id String @id @default(uuid())
+// token String
+// refresh_token String
+// dtm_created DateTime @default(now())
+// expires_in Int
+// refresh_expires_in Int
+// empresa         Empresa        @relation(fields: [empresaId], references: [id])
+// empresaId       Int
+// contaCorrente   ContaCorrente? @relation(fields: [contaCorrenteId], references: [id])
+// contaCorrenteId Int?
+// @@unique([empresaId, contaCorrenteId, token])
+// }

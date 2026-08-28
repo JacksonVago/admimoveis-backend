@@ -48,6 +48,7 @@ export class gerarBoletoDto {
   imovelId: number;
   diaVencimento: number;
   lancamentos: LanctoCondominioDto[];
+  empresaId: number;
 }
 
 export class CreateLanctoCondominioDto {
@@ -93,6 +94,28 @@ export class CreateLanctoCondominioDto {
   @IsInt()
   blocoId: number;
 
+  @IsOptional()
+  @IsString()
+  numeroDocumento: string;
+
+  @IsOptional()
+  @Transform(({ value }) => new Date(value))
+  @IsDate()
+  dataDocumento: Date;
+
+  @IsOptional()
+  @IsString()
+  serieDocumento: string;
+
+  @IsOptional()
+  @Transform(({ value }) => Number(value))
+  @IsNumber()
+  valorDocumento: number;
+
+  @IsOptional()
+  @Transform(({ value }) => Number(value))
+  @IsNumber()
+  descontoDocumento: number;
 }
 
 export class GetLancamentosQueryDto {
@@ -171,6 +194,13 @@ export class LanctoCondominioController {
   createPagamento(@Body() createLanctoCondominioDto: CreateLanctoCondominioDto) {
 
     return this.lanctoCondominioService.create(createLanctoCondominioDto);
+  }
+
+  @Post(LANCAMENTO_ROUTES.gerarBoleto.route)
+  @Permissions(LANCAMENTO_ROUTES.gerarBoleto.permission)
+  create(@Body() gerarBoletoDto: gerarBoletoDto) {
+
+    return this.lanctoCondominioService.createPagamento(gerarBoletoDto);
   }
 
   @Get(LANCAMENTO_ROUTES.search.route)

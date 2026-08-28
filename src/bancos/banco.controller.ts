@@ -2,6 +2,7 @@ import { Permissions } from '@/auth/decorators/permissions.decorator';
 import { BaseRoutes } from '@/common/interfaces/base-routes';
 import { Body, Controller, Delete, Get, Param, Post, Put } from '@nestjs/common';
 import { Permission } from '@prisma/client';
+import { Transform } from 'class-transformer';
 import { IsNumber, IsString } from 'class-validator';
 import { BancoService } from './banco.service';
 
@@ -32,7 +33,7 @@ export const BANCO_ROUTES: BaseRoutes = {
   },
   findMany: {
     name: 'findMany',
-    route: '/:id',
+    route: '/:bancoId',
     permission: Permission.VIEW_BANCOS,
   },
   delete: {
@@ -56,6 +57,12 @@ export const BANCO_ROUTES: BaseRoutes = {
 export class BaseParamsByIdDto {
   @IsNumber()
   id: number;
+}
+
+export class BaseParamsIdBancoDto {
+  @Transform(({ value }) => Number(value))
+  @IsNumber()
+  bancoId: number;
 }
 
 @Controller('bancos')
@@ -86,8 +93,9 @@ export class BancoController {
 
   @Get(BANCO_ROUTES.findMany.route)
   @Permissions(BANCO_ROUTES.findMany.permission)
-  async getBancos(@Param() id: string) {
-    return await this.bancoService.getBancos(Number(id));
+  async getBancos(@Param() { bancoId }: BaseParamsIdBancoDto) {
+    console.log(bancoId);
+    return await this.bancoService.getBancos(bancoId);
   }
 
 
