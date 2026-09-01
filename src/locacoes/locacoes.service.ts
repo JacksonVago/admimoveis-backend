@@ -555,7 +555,7 @@ export class LocacaoService {
       include: {
         lancamentos: {
           where: {
-            dataLancamento: {
+            vencimentoLancamento: {
               gte: dataInicial,
               lte: dataFim,
             },
