@@ -737,8 +737,8 @@ export class BoletoWebService {
                         boletoBancario.boleto.locacao.locatarios[0].pessoa.endereco.cep.replace(/\D/g, '') :
                         boletoBancario.boleto.imovel.proprietarios[0].pessoa.endereco.cep.replace(/\D/g, '')),
                     telefone: ((boletoBancario.boleto.locacao && boletoBancario.boleto.locacao.locatarios.length > 0) ?
-                        boletoBancario.boleto.locacao.locatarios[0].pessoa.telefone.replace(/\D/g, '') :
-                        boletoBancario.boleto.imovel.proprietarios[0].pessoa.telefone.replace(/\D/g, '')),
+                        (boletoBancario.boleto.locacao.locatarios[0].pessoa.telefone ? boletoBancario.boleto.locacao.locatarios[0].pessoa.telefone.replace(/\D/g, '') : undefined) :
+                        (boletoBancario.boleto.imovel.proprietarios[0].pessoa.telefone ? boletoBancario.boleto.imovel.proprietarios[0].pessoa.telefone.replace(/\D/g, '') : undefined)),
                     email: ((boletoBancario.boleto.locacao && boletoBancario.boleto.locacao.locatarios.length > 0) ?
                         boletoBancario.boleto.locacao.locatarios[0].pessoa.email :
                         boletoBancario.boleto.imovel.proprietarios[0].pessoa.email),
