@@ -79,7 +79,7 @@ export class LancamentosService {
         dataEmissao: new Date(),
         dataVencimento: (gerarPagamentoDto.lancamentos && gerarPagamentoDto.lancamentos.length > 0) ? gerarPagamentoDto.lancamentos[0].vencimentoLancamento : new Date(dataVencimento),
         dataPagamento: null,
-        observacao: 'pagamento gerado automaticamente para locação ' + gerarPagamentoDto.id,
+        observacao: gerarPagamentoDto.lancamentos && gerarPagamentoDto.lancamentos.length > 0 ? gerarPagamentoDto.lancamentos.map(lancamento => lancamento.observacao).join('; ') : '',
         locacao: { connect: { id: gerarPagamentoDto.id } },
         empresa: { connect: { id: gerarPagamentoDto.empresaId } },
         locatario: {

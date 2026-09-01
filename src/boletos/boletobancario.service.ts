@@ -422,7 +422,7 @@ export class BoletoBancarioService {
             emvPIX: '',
             metodoPagamento: '',
             status: '',
-            observacao: '',
+            observacao: boleto.observacao,
             pagtoParcial: conta.pagtoParcial ? conta.pagtoParcial : false,
             qtdeMaxParcial: conta.qtdeMaxParcial ? conta.qtdeMaxParcial : 0,
             formaEnvio: conta.formaEnvio ? conta.formaEnvio : '',

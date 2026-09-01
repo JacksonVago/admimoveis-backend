@@ -699,10 +699,14 @@ export class BoletoWebService {
                     boletoBancario.tipoMultaCobCod.includes('VALOR') ? boletoBancario.valorMulta : boletoBancario.percMulta) : undefined,
                 dataInicioMulta: boletoBancario.tipoMultaCobCod ? boletoBancario.tipoMultaCobCod.indexOf('SEM') > -1 ? undefined :
                     addDays(boletoBancario.dataVencimento, boletoBancario.diasInicioMulta).toISOString().split('T')[0] : undefined,
+                //informativos: (boletoBancario.observacao && boletoBancario.observacao.length > 0) ? boletoBancario.observacao.split(/\r?\n/).slice(0, 5) : undefined,
+                informativos: (boletoBancario.observacao && boletoBancario.observacao.length > 0) ? boletoBancario.observacao.split(/\r?\n/).map(linha => linha.trim()).filter(linha => linha) : undefined,
+                /*
                 informativos: ((str_instrucaoCob1.length > 0 ||
                     str_instrucaoCob2.length > 0 ||
                     str_instrucaoCob3.length > 0) ? [str_instrucaoCob1, str_instrucaoCob2, str_instrucaoCob3] :
                     undefined),
+                */
                 mensagens: ((str_instrucaoCob1.length > 0 ||
                     str_instrucaoCob2.length > 0 ||
                     str_instrucaoCob3.length > 0) ? [str_instrucaoCob1, str_instrucaoCob2, str_instrucaoCob3] :
