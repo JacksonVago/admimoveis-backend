@@ -46,7 +46,7 @@ export class LancamentosService {
 
       },
       include: {
-        locacao: true,        
+        locacao: true,
       },
     });
 
@@ -391,7 +391,7 @@ export class LancamentosService {
           },
           lancamentos: {
             where: {
-              dataLancamento: {
+              vencimentoLancamento: {
                 gte: dataInicial,
                 lte: dataFim
               }

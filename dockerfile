@@ -15,8 +15,9 @@ RUN set -eux;
 # Install dependencies
 RUN apk add --no-cache openssl
 #RUN npm i @nestjs/common@latest @nestjs/core@latest @nestjs/platform-express@latest
-RUN npm install --legacy-peer-deps
-RUN npm install
+#RUN npm install --legacy-peer-deps
+RUN npm install --force
+#RUN npm install
 
 COPY prisma ./prisma/
 # Copy your Prisma schema

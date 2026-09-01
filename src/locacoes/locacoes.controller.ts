@@ -221,6 +221,14 @@ export class GetLocacoesQueryDto {
   @IsOptional()
   exclude?: string;
 
+  @Transform(({ value }) => new Date(value))
+  @IsDate()
+  dataInicial: Date;
+
+  @Transform(({ value }) => new Date(value))
+  @IsDate()
+  dataFinal: Date;
+
 }
 
 export class UpdateLocatarioDto extends PartialType(CreateLocatarioDto) {
@@ -298,14 +306,16 @@ export class LocacaoController {
   @Get(LOCACAO_ROUTES.search.route)
   @Permissions(LOCACAO_ROUTES.search.permission)
   async search(@Param() { empresaId }: BaseParamsIdEmpresaDto, @Query() data: GetLocacoesQueryDto) {
-    const { search, page, limit, status, exclude } = data;
-    const response = await this.locacaoService.findMany(Number(empresaId), search, page, limit, status, exclude);
+    console.log('search', empresaId, data);
+    const { search, page, limit, status, exclude, dataInicial, dataFinal } = data;
+    const response = await this.locacaoService.findMany(Number(empresaId), search, page, limit, status, exclude, dataInicial, dataFinal);
     return response;
   }
 
   @Get(LOCACAO_ROUTES.findbyid.route)
   @Permissions(LOCACAO_ROUTES.findbyid.permission)
   async findById(@Param() { id }: BaseParamsByIdDto) {
+    console.log('id', id);
     return await this.locacaoService.findById(id);
   }
 
@@ -314,6 +324,7 @@ export class LocacaoController {
   async lancamentos(@Param() { id }: BaseParamsByIdDto,
     @Query() data: GetLancamentosDto) {
     const { dataInicial, dataFinal } = data;
+    console.log('lancamentos', id, dataInicial, dataFinal);
     const response = await this.locacaoService.findLancamentos(id, dataInicial, dataFinal);
     return response;
   }
@@ -321,6 +332,7 @@ export class LocacaoController {
   @Get(LOCACAO_ROUTES.findVencimento.route)
   @Permissions(LOCACAO_ROUTES.findVencimento.permission)
   async findVencimento(@Param() { empresaId, diaVencimento }: BaseParamsdiaVenctoDto) {
+    console.log('dia vencimento', empresaId, diaVencimento);
     const response = await this.locacaoService.findDiaVencimento(Number(empresaId), Number(diaVencimento));
     return response;
   }
