@@ -21,7 +21,7 @@ import { RolesGuard } from './guards/roles.guard';
 
         return {
           signOptions: {
-            expiresIn: '1d',
+            expiresIn: '7d',
             algorithm: 'RS256',
           },
           privateKey: Buffer.from(privateKey, 'base64'),
@@ -42,4 +42,4 @@ import { RolesGuard } from './guards/roles.guard';
     EnvService,
   ],
 })
-export class AuthModule {}
+export class AuthModule { }

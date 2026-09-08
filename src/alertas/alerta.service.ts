@@ -37,6 +37,8 @@ export class AlertaService {
         horarioFinal: createAlertaDto.horarioFinal,
         dataInicioEnvio: createAlertaDto.dataInicioEnvio,
         dataFinalEnvio: createAlertaDto.dataFinalEnvio,
+        emailDestinatario: createAlertaDto.emailDestinatario,
+        emailCopia: createAlertaDto.emailCopia,
         alerta: { connect: { id: createAlertaDto.alertaId } },
         empresa: { connect: { id: createAlertaDto.empresaId } },
       },
@@ -70,6 +72,8 @@ export class AlertaService {
         horarioFinal: data.horarioFinal,
         dataInicioEnvio: data.dataInicioEnvio,
         dataFinalEnvio: data.dataFinalEnvio,
+        emailDestinatario: data.emailDestinatario,
+        emailCopia: data.emailCopia,
       },
       include: {
         empresa: true,

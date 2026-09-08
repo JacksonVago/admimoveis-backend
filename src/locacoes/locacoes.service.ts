@@ -296,8 +296,6 @@ export class LocacaoService {
     pageSize: number,
     statusLocacao: LocacaoStatus | null | undefined,
     exclude: string | null,
-    dataInicial: Date,
-    dataFinal: Date,
   ): Promise<BasePaginationData<Locacao>> {
     const skip = page > 1 ? (page - 1) * pageSize : 0;
     let arr_id: number[] = [];

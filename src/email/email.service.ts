@@ -5,6 +5,7 @@ import * as nodemailer from 'nodemailer';
 
 interface SendMailConfiguration {
     email: string;
+    email_cc: string;
     subject: string;
     text?: string;
     //template: any;
@@ -20,7 +21,7 @@ export class MailService {
 
     }
 
-    async sendMail(empresaId: number, { email, subject, text }: SendMailConfiguration) {
+    async sendMail(empresaId: number, { email, email_cc, subject, text }: SendMailConfiguration) {
 
         //Buscar dados de acessos 
         const empresa = await this.prismaService.empresa.findUnique({
@@ -101,6 +102,7 @@ export class MailService {
 
                 from: USER,
                 to: email,
+                cc: email_cc,
                 subject: subject,
                 text: text || "I hope this message gets delivered!",
                 attachments: []
@@ -114,7 +116,7 @@ export class MailService {
         );
     }
 
-    async sendMailPDF(empresaId: number, { email, subject, text }: SendMailConfiguration, file: Express.Multer.File) {
+    async sendMailPDF(empresaId: number, { email, email_cc, subject, text }: SendMailConfiguration, file: Express.Multer.File) {
 
         //Buscar dados de acessos 
         const empresa = await this.prismaService.empresa.findUnique({
@@ -156,6 +158,7 @@ export class MailService {
 
                 from: USER,
                 to: email,
+                cc: email_cc,
                 subject: subject,
                 text: text || "I hope this message gets delivered!",
                 attachments: (file ? [{ filename: file.originalname, content: file.buffer }] : undefined)

@@ -85,6 +85,13 @@ export class CreateAlertaDto {
   @IsOptional()
   dataFinalEnvio: Date;
 
+  @IsString()
+  @IsOptional()
+  emailDestinatario: string;
+
+  @IsString()
+  @IsOptional()
+  emailCopia: string;
 }
 
 export const ALERTA_ROUTES: BaseRoutes = {

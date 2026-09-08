@@ -110,6 +110,9 @@ model ConfiguracaoAlertas {
   dataInicioEnvio DateTime? //Data e hora de início do envio dos alertas quando for recorrente
   dataFinalEnvio  DateTime? //Data e hora de finalização do envio dos alertas quando for recorrente sem data será enviado indefinidamente
 
+  emailDestinatario String? //Email destinatário do alerta (quando necessário)
+  emailCopia        String? //Email de cópia do alerta (quando necessário)
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   jobs      Jobs[]
@@ -370,6 +373,8 @@ model Jobs {
   locacao   Locacao?            @relation(fields: [locacaoId], references: [id])
   locacaoId Int?
 
+  str_email      String?
+  str_email_cc   String?
   str_message    String
   str_error      String?
   str_start_date String

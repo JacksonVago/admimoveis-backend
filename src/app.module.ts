@@ -42,8 +42,6 @@ import { UsersModule } from './users/users.module';
 
 @Module({
   imports: [
-    //queueConfig,
-    //bullboardConfig,
     EnvModule,
     PrismaModule,
     UsersModule,
@@ -68,7 +66,6 @@ import { UsersModule } from './users/users.module';
     LancamentoCondominioModule,
     MoradoresModule,
     LancamentoImoveisModule,
-    //QueueModule,
     MailModule,
     TipoAlertaModule,
     ContaCorrenteModule,

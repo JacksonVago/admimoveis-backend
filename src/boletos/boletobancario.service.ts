@@ -178,7 +178,35 @@ export class BoletoBancarioService {
       },
       include: {
         contacorrente: true,
-        boleto: true,
+        boleto: {
+          include: {
+            imovel: {
+              include: {
+                proprietarios: {
+                  include: {
+                    pessoa: true,
+                  },
+                },
+                endereco: true,
+                condominio: true,
+              },
+            },
+            locacao: {
+              include: {
+                imovel: {
+                  include: {
+                    endereco: true,
+                  },
+                },
+                locatarios: {
+                  include: {
+                    pessoa: true,
+                  },
+                },
+              }
+            }
+          }
+        },
       },
     });
   }

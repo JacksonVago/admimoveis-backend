@@ -221,14 +221,6 @@ export class GetLocacoesQueryDto {
   @IsOptional()
   exclude?: string;
 
-  @Transform(({ value }) => new Date(value))
-  @IsDate()
-  dataInicial: Date;
-
-  @Transform(({ value }) => new Date(value))
-  @IsDate()
-  dataFinal: Date;
-
 }
 
 export class UpdateLocatarioDto extends PartialType(CreateLocatarioDto) {
@@ -307,8 +299,8 @@ export class LocacaoController {
   @Permissions(LOCACAO_ROUTES.search.permission)
   async search(@Param() { empresaId }: BaseParamsIdEmpresaDto, @Query() data: GetLocacoesQueryDto) {
     console.log('search', empresaId, data);
-    const { search, page, limit, status, exclude, dataInicial, dataFinal } = data;
-    const response = await this.locacaoService.findMany(Number(empresaId), search, page, limit, status, exclude, dataInicial, dataFinal);
+    const { search, page, limit, status, exclude } = data;
+    const response = await this.locacaoService.findMany(Number(empresaId), search, page, limit, status, exclude);
     return response;
   }
 

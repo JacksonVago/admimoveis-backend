@@ -12,6 +12,11 @@ export class EmailDto {
     @IsString()
     email: string;
 
+    //email
+    @IsOptional()
+    @IsString()
+    email_cc: string;
+
     //Subject
     @IsOptional()
     @IsString()
@@ -33,7 +38,7 @@ export class MailController {
     @Post('send-email/:empresaId')
     async sendMail(
         @Param('empresaId') empresaId: number,
-        @Body() sendMailDto: { email: string; subject: string; text?: string },
+        @Body() sendMailDto: { email: string; email_cc: string; subject: string; text?: string },
     ): Promise<string> {
         await this.mailService.sendMail(empresaId, sendMailDto);
 
