@@ -986,7 +986,7 @@ export class BoletoWebService {
 
             tokenData.append('grant_type', 'password');
             tokenData.append('username', boletoBancario.boleto.contaCorrente.convenio + boletoBancario.boleto.contaCorrente.cooperativa);
-            tokenData.append('password', 'teste123');
+            tokenData.append('password', boletoBancario.boleto.contaCorrente.senhaBancoAPI);
             tokenData.append('scope', 'cobranca');
 
             //const responseToken = await this.httpService.axiosRef.post('https://api-parceiro.sicredi.com.br/sb/auth/openapi/token', tokenData

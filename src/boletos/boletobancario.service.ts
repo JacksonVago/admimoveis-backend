@@ -288,6 +288,10 @@ export class BoletoBancarioService {
                 }
               }
             },
+          }
+        },
+        {
+          boleto: {
             locacao: {
               locatarios: {
                 some: {
@@ -299,6 +303,20 @@ export class BoletoBancarioService {
                   }
                 }
               },
+            }
+          },
+        },
+        {
+          boleto: {
+            locacao: {
+              imovel: {
+                endereco: {
+                  complemento: {
+                    contains: search,
+                    mode: 'insensitive',
+                  }
+                }
+              }
             }
           },
         },
