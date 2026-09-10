@@ -841,6 +841,21 @@ export class BoletoWebService {
             if (isAxiosError(error)) {
                 // Check if there's a response and data within the error
                 if (error.response && error.response.data) {
+                    if (error.response.status === 400) {
+                        //Gravar o erro na linha digitável do boleto bancário par visualização do usuário
+                        await this.prismaService.boletoBancario.update(
+                            {
+                                where: {
+                                    id: boletobancarioId
+                                },
+                                data: {
+                                    linhaDigitavel: error.response.data.message ? error.response.data.message : '',
+                                    status: 'ERRO',
+                                    registrado: 'N',
+                                }
+                            }
+                        );
+                    }
                     console.log('Response: ', error.response);
                     console.error('Error message from server:', error.response.data);
 

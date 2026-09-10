@@ -450,73 +450,88 @@ export class BoletoBancarioService {
     })
 
     if (boletoUpdate) {
-      const bolBancario = await this.prismaService.boletoBancario.create(
-        {
-          data: {
-            boleto: { connect: { id: boletoUpdate.id } },
-            valor: boleto.valor,
-            valorPago: 0,
-            dataBoleto: new Date(),
-            dataVencimento: boleto.dataVencimento, //Vencimento do boleto
-            dataPagamento: boleto.dataPagamento,
-            formaPix: '',
-            codigoBarras: '',
-            linhaDigitavel: '',
-            nossoNumero: boleto.boletoId.toString(),
-            urlBoleto: '',
-            registrado: 'N',
-            emvPIX: '',
-            metodoPagamento: '',
-            status: '',
-            observacao: boleto.observacao,
-            pagtoParcial: conta.pagtoParcial ? conta.pagtoParcial : false,
-            qtdeMaxParcial: conta.qtdeMaxParcial ? conta.qtdeMaxParcial : 0,
-            formaEnvio: conta.formaEnvio ? conta.formaEnvio : '',
-            assuntoEmail: conta.assuntoEmail ? conta.assuntoEmail : '',
-            mensagemEmail1: conta.mensagemEmail1 ? conta.mensagemEmail1 : '',
-            mensagemEmail2: conta.mensagemEmail2 ? conta.mensagemEmail2 : '',
-            mensagemEmail3: conta.mensagemEmail3 ? conta.mensagemEmail3 : '',
-            tipoJurosCobCod: conta.tipoJurosCob.codigo ? conta.tipoJurosCob.codigo : '',
-            valorJuros: conta.valorJuros ? conta.valorJuros : 0,
-            percJuros: conta.percJuros ? conta.percJuros : 0,
-            diasInicioJuros: conta.diasInicioJuros ? conta.diasInicioJuros : 0,
-            tipoMultaCobCod: conta.tipoMultaCob ? conta.tipoMultaCob.codigo : '',
-            valorMulta: conta.valorMulta ? conta.valorMulta : 0,
-            percMulta: conta.percMulta ? conta.percMulta : 0,
-            diasInicioMulta: conta.diasInicioMulta ? conta.diasInicioMulta : 0,
-            tipoDescontoCobCod: conta.tipoDescontoCob ? conta.tipoDescontoCob.codigo : '',
-            valorDesconto: conta.valorDesconto ? conta.valorDesconto : 0,
-            percDesconto: conta.percDesconto ? conta.percDesconto : 0,
-            diasInicioDesconto: conta.diasInicioDesconto ? conta.diasInicioDesconto : 0,
-            tipoAutorizacaoCobCod: conta.tipoAutorizacaoCob ? conta.tipoAutorizacaoCob.codigo : '',
-            tipoRecebimentoDiv: conta.tipoRecebimentoDiv ? conta.tipoRecebimentoDiv : '',
-            valorMinDiverg: conta.valorMinDiverg ? conta.valorMinDiverg : 0,
-            valorMaxDiverg: conta.valorMaxDiverg ? conta.valorMaxDiverg : 0,
-            percMinDiverg: conta.percMinDiverg ? conta.percMinDiverg : 0,
-            percMaxDiverg: conta.percMaxDiverg ? conta.percMaxDiverg : 0,
-            protestar: conta.protestar ? conta.protestar : false,
-            qtdeDiasProtesto: conta.qtdeDiasProtesto ? conta.qtdeDiasProtesto : 0,
-            negativar: conta.negativar ? conta.negativar : false,
-            qtdeDiasNegativar: conta.qtdeDiasNegativar ? conta.qtdeDiasNegativar : 0,
-            instrucaoCobCod1: conta.instrucaoCob1 ? conta.instrucaoCob1.codigo.toString() : undefined,
-            instrucaoCobCod2: conta.instrucaoCob2 ? conta.instrucaoCob2.codigo.toString() : undefined,
-            instrucaoCobCod3: conta.instrucaoCob3 ? conta.instrucaoCob3.codigo.toString() : undefined,
-            instrucaoRecCod1: conta.instrucaoRec1 ? conta.instrucaoRec1.codigo.toString() : undefined,
-            instrucaoRecCod2: conta.instrucaoRec2 ? conta.instrucaoRec2.codigo.toString() : undefined,
-            instrucaoRecCod3: conta.instrucaoRec3 ? conta.instrucaoRec3.codigo.toString() : undefined,
-            instrucaoRecCod4: conta.instrucaoRec4 ? conta.instrucaoRec4.codigo.toString() : undefined,
-            carteiraCod: conta.carteira ? conta.carteira.carteira.toString() : undefined,
-            especieCod: conta.especie ? conta.especie.sigla.toString() : undefined,
-            contacorrente: { connect: { id: conta.id } },
-          }
-
+      //Verifica se o boleto já foi gerado anteriormente
+      const boletoBancario = await this.prismaService.boletoBancario.findUnique({
+        where: {
+          boletoId: boleto.boletoId
         }
-      );
+      });
 
-      //Envia dados ao banco
-      const banco = "RegistraBoleto" + conta.banco.codigo;
-      const msg = this.boletoWeb[banco as keyof typeof BoletoWebService](bolBancario.id);
-      console.log('retorno: ', msg)
+      if (!boletoBancario) {
+        const bolBancario = await this.prismaService.boletoBancario.create(
+          {
+            data: {
+              boleto: { connect: { id: boletoUpdate.id } },
+              valor: boleto.valor,
+              valorPago: 0,
+              dataBoleto: new Date(),
+              dataVencimento: boleto.dataVencimento, //Vencimento do boleto
+              dataPagamento: boleto.dataPagamento,
+              formaPix: '',
+              codigoBarras: '',
+              linhaDigitavel: '',
+              nossoNumero: boleto.boletoId.toString(),
+              urlBoleto: '',
+              registrado: 'N',
+              emvPIX: '',
+              metodoPagamento: '',
+              status: '',
+              observacao: boleto.observacao,
+              pagtoParcial: conta.pagtoParcial ? conta.pagtoParcial : false,
+              qtdeMaxParcial: conta.qtdeMaxParcial ? conta.qtdeMaxParcial : 0,
+              formaEnvio: conta.formaEnvio ? conta.formaEnvio : '',
+              assuntoEmail: conta.assuntoEmail ? conta.assuntoEmail : '',
+              mensagemEmail1: conta.mensagemEmail1 ? conta.mensagemEmail1 : '',
+              mensagemEmail2: conta.mensagemEmail2 ? conta.mensagemEmail2 : '',
+              mensagemEmail3: conta.mensagemEmail3 ? conta.mensagemEmail3 : '',
+              tipoJurosCobCod: conta.tipoJurosCob.codigo ? conta.tipoJurosCob.codigo : '',
+              valorJuros: conta.valorJuros ? conta.valorJuros : 0,
+              percJuros: conta.percJuros ? conta.percJuros : 0,
+              diasInicioJuros: conta.diasInicioJuros ? conta.diasInicioJuros : 0,
+              tipoMultaCobCod: conta.tipoMultaCob ? conta.tipoMultaCob.codigo : '',
+              valorMulta: conta.valorMulta ? conta.valorMulta : 0,
+              percMulta: conta.percMulta ? conta.percMulta : 0,
+              diasInicioMulta: conta.diasInicioMulta ? conta.diasInicioMulta : 0,
+              tipoDescontoCobCod: conta.tipoDescontoCob ? conta.tipoDescontoCob.codigo : '',
+              valorDesconto: conta.valorDesconto ? conta.valorDesconto : 0,
+              percDesconto: conta.percDesconto ? conta.percDesconto : 0,
+              diasInicioDesconto: conta.diasInicioDesconto ? conta.diasInicioDesconto : 0,
+              tipoAutorizacaoCobCod: conta.tipoAutorizacaoCob ? conta.tipoAutorizacaoCob.codigo : '',
+              tipoRecebimentoDiv: conta.tipoRecebimentoDiv ? conta.tipoRecebimentoDiv : '',
+              valorMinDiverg: conta.valorMinDiverg ? conta.valorMinDiverg : 0,
+              valorMaxDiverg: conta.valorMaxDiverg ? conta.valorMaxDiverg : 0,
+              percMinDiverg: conta.percMinDiverg ? conta.percMinDiverg : 0,
+              percMaxDiverg: conta.percMaxDiverg ? conta.percMaxDiverg : 0,
+              protestar: conta.protestar ? conta.protestar : false,
+              qtdeDiasProtesto: conta.qtdeDiasProtesto ? conta.qtdeDiasProtesto : 0,
+              negativar: conta.negativar ? conta.negativar : false,
+              qtdeDiasNegativar: conta.qtdeDiasNegativar ? conta.qtdeDiasNegativar : 0,
+              instrucaoCobCod1: conta.instrucaoCob1 ? conta.instrucaoCob1.codigo.toString() : undefined,
+              instrucaoCobCod2: conta.instrucaoCob2 ? conta.instrucaoCob2.codigo.toString() : undefined,
+              instrucaoCobCod3: conta.instrucaoCob3 ? conta.instrucaoCob3.codigo.toString() : undefined,
+              instrucaoRecCod1: conta.instrucaoRec1 ? conta.instrucaoRec1.codigo.toString() : undefined,
+              instrucaoRecCod2: conta.instrucaoRec2 ? conta.instrucaoRec2.codigo.toString() : undefined,
+              instrucaoRecCod3: conta.instrucaoRec3 ? conta.instrucaoRec3.codigo.toString() : undefined,
+              instrucaoRecCod4: conta.instrucaoRec4 ? conta.instrucaoRec4.codigo.toString() : undefined,
+              carteiraCod: conta.carteira ? conta.carteira.carteira.toString() : undefined,
+              especieCod: conta.especie ? conta.especie.sigla.toString() : undefined,
+              contacorrente: { connect: { id: conta.id } },
+            }
+
+          }
+        );
+
+        //Envia dados ao banco
+        const banco = "RegistraBoleto" + conta.banco.codigo;
+        const msg = this.boletoWeb[banco as keyof typeof BoletoWebService](bolBancario.id);
+        console.log('retorno: ', msg);
+      }
+      else {
+        //Envia dados ao banco
+        const banco = "RegistraBoleto" + conta.banco.codigo;
+        const msg = this.boletoWeb[banco as keyof typeof BoletoWebService](boletoBancario.id);
+        console.log('retorno: ', msg);
+      }
     }
     else {
       throw new BadRequestException('Problemas na atualiza do boleo.');

@@ -994,6 +994,7 @@ model BoletoBancario {
   contacorrente ContaCorrente? @relation(fields: [contaId], references: [id])
   contaId       Int?
 
+  @@unique([boletoId])
   @@map("boletosbancarios")
 }
 
