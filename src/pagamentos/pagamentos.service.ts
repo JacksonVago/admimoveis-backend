@@ -313,6 +313,12 @@ export class PagamentosService {
     const where: Prisma.BoletoWhereInput = {
       OR: [
         {
+          observacao: {
+            contains: search,
+            mode: 'insensitive'
+          }
+        },
+        {
           lanctoLocacao: {
             some: {
               observacao: {

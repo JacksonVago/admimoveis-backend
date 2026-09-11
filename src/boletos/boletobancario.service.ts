@@ -251,6 +251,13 @@ export class BoletoBancarioService {
     const where: Prisma.BoletoBancarioWhereInput = {
       OR: [
         {
+          observacao: {
+            contains: search,
+            mode: 'insensitive'
+          }
+        },
+        /*
+        {
           linhaDigitavel: {
             contains: search,
             mode: 'insensitive',
@@ -267,7 +274,7 @@ export class BoletoBancarioService {
             contains: search,
             mode: 'insensitive',
           },
-        },
+        },*/
         {
           status: {
             contains: search,
@@ -288,6 +295,18 @@ export class BoletoBancarioService {
                 }
               }
             },
+          }
+        },
+        {
+          boleto: {
+            imovel: {
+              endereco: {
+                complemento: {
+                  contains: search,
+                  mode: 'insensitive',
+                }
+              }
+            }
           }
         },
         {
