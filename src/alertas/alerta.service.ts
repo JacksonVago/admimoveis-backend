@@ -6,12 +6,12 @@ import { CreateAlertaDto } from './alerta.controller';
 export class AlertaService {
   constructor(private PrismaService: PrismaService) { }
   async createAlerta(createAlertaDto: CreateAlertaDto) {
-    const { alertaId, empresaId } = createAlertaDto;
+    const { descricao, empresaId } = createAlertaDto;
     const checkIfUserExists = await this.PrismaService.configuracaoAlertas.findUnique({
       where: {
-        empresaId_alertaId: {
+        empresaId_descricao: {
           empresaId: empresaId,
-          alertaId: alertaId,
+          descricao: descricao,
         }
       },
     });

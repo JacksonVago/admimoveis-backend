@@ -117,7 +117,7 @@ model ConfiguracaoAlertas {
   updatedAt DateTime @updatedAt
   jobs      Jobs[]
 
-  @@unique([empresaId, alertaId])
+  @@unique([empresaId, descricao])
   @@map("configuracoesalertas")
 }
 

@@ -105,7 +105,6 @@ export class MailService {
                 cc: email_cc,
                 subject: subject,
                 text: text || "I hope this message gets delivered!",
-                attachments: []
             },
             (err, info) => {
                 if (err) {

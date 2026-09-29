@@ -1127,6 +1127,12 @@ export class BoletoWebService {
                                 },
                                 data: {
                                     status: responseOrder.data.situacao,
+                                    valorPago: (responseOrder.data.dadosLiquidacao.valor ? responseOrder.data.dadosLiquidacao.valor : 0),
+                                    dataPagamento: (responseOrder.data.dadosLiquidacao.data ? responseOrder.data.dadosLiquidacao.data : 0),
+                                    valorJuros: (responseOrder.data.dadosLiquidacao.juros ? responseOrder.data.dadosLiquidacao.juros : 0),
+                                    valorMulta: (responseOrder.data.dadosLiquidacao.multa ? responseOrder.data.dadosLiquidacao.multa : 0),
+                                    valorDesconto: (responseOrder.data.dadosLiquidacao.desconto ? responseOrder.data.dadosLiquidacao.desconto : 0),
+
                                 }
                             }
                         );
