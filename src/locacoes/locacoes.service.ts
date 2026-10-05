@@ -633,6 +633,40 @@ export class LocacaoService {
 
   }
 
+  async findEmpresaStatus(
+    empresaId: number,
+    status: LocacaoStatus | null | undefined,
+  ) {
+    return this.prismaService.locacao.findMany({
+      where: {
+        empresaId: empresaId,
+        status: status ? status : undefined,
+      },
+      orderBy: {
+        diaVencimento: 'asc'
+      },
+      include: {
+        locatarios: {
+          include: {
+            pessoa: true
+          }
+        },
+        imovel: {
+          include: {
+            endereco: true,
+            condominio: true,
+            proprietarios: {
+              include: {
+                pessoa: true,
+              },
+            },
+          },
+        },
+      }
+    });
+
+  }
+
   async deleteLocatario(id: number) {
     try {
       return this.prismaService.locatario.delete({

@@ -40,6 +40,12 @@ export enum GarantiaLocacaoTipo {
   'deposito-calcao' = 'deposito-calcao',
 }
 
+export class BaseParamsByStatusLocacaoDto extends BaseParamsIdEmpresaDto {
+  @IsOptional()
+  locacaoStatus: LocacaoStatus;
+}
+
+
 export class CreateLocacaoDto {
   @Transform(({ value }) => new Date(value))
   @IsDate()
@@ -241,6 +247,11 @@ export const LOCACAO_ROUTES: BaseRoutes = {
     route: '/findbyid/:id',
     permission: Permission.VIEW_LOCACOES,
   },
+  findEmpresaStatus: {
+    name: 'find By empresa and status',
+    route: '/empresastatus/:empresaId/:status',
+    permission: Permission.VIEW_LOCACOES,
+  },
   findByIdVencimento: {
     name: 'findById vencimento',
     route: 'findbyidVencto/:id',
@@ -326,6 +337,13 @@ export class LocacaoController {
   async findVencimento(@Param() { empresaId, diaVencimento }: BaseParamsdiaVenctoDto) {
     console.log('dia vencimento', empresaId, diaVencimento);
     const response = await this.locacaoService.findDiaVencimento(Number(empresaId), Number(diaVencimento));
+    return response;
+  }
+
+  @Get(LOCACAO_ROUTES.findEmpresaStatus.route)
+  @Permissions(LOCACAO_ROUTES.findEmpresaStatus.permission)
+  async empresaStatus(@Param() { empresaId, locacaoStatus }: BaseParamsByStatusLocacaoDto) {
+    const response = await this.locacaoService.findEmpresaStatus(Number(empresaId), locacaoStatus);
     return response;
   }
 

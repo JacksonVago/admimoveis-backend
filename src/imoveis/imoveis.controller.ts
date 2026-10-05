@@ -82,6 +82,7 @@ export const IMOVEIS_ROUTES: BaseRoutes = {
 export class ImoveisController {
   constructor(private readonly imoveisService: ImoveisService) { }
 
+  @Post()
   @Post(IMOVEIS_ROUTES.create.route)
   @Permissions(IMOVEIS_ROUTES.create.permission)
   @FormDataRequest()

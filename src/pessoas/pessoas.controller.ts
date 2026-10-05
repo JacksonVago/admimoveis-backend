@@ -17,7 +17,6 @@ import { PartialType } from '@nestjs/mapped-types';
 import { EstadoCivil, Permission, PessoaStatus } from '@prisma/client';
 import { Transform } from 'class-transformer';
 import {
-  IsEmail,
   IsEnum,
   IsInt,
   IsNumber,
@@ -115,7 +114,7 @@ export class CreatePessoaDto extends EnderecoDto {
   @IsEnum(EstadoCivil)
   estadoCivil?: EstadoCivil;
 
-  @IsEmail()
+  @IsString()
   email: string;
 
   @IsString()

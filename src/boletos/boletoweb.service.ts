@@ -1086,7 +1086,6 @@ export class BoletoWebService {
 
             //busca token
             const tokenData = new URLSearchParams();
-
             tokenData.append('grant_type', 'password');
             tokenData.append('username', boletoBancario.boleto.contaCorrente.convenio + boletoBancario.boleto.contaCorrente.cooperativa);
             tokenData.append('password', boletoBancario.boleto.contaCorrente.senhaBancoAPI);

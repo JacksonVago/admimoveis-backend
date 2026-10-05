@@ -24,6 +24,7 @@ export interface IFindImovelByIdResponse extends Imovel {
   endereco: Endereco;
   proprietarios: Proprietario[];
   locacoes: Locacao[];
+
 }
 @Injectable()
 export class ImoveisService {
