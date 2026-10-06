@@ -1,7 +1,7 @@
 import { BasePaginationData } from '@/common/interfaces/base-pagination';
 import { PrismaService } from '@/prisma/prisma.service';
 import { BadRequestException, Injectable } from '@nestjs/common';
-import { BoletoBancario, Prisma } from '@prisma/client';
+import { BoletoBancario, BoletoStatus, Prisma } from '@prisma/client';
 import { CreateBoletoBancarioDto } from './boletobancario.controller';
 import { BoletoWebService } from './boletoweb.service';
 
@@ -220,6 +220,42 @@ export class BoletoBancarioService {
         contacorrente: true,
         boleto: true,
       },
+    });
+  }
+
+  async getBoletosBancarioStatus(empresaId: number, status: BoletoStatus) {
+    return await this.prismaService.boletoBancario.findMany({
+      where: {
+        status: {
+          in: (status === BoletoStatus.PAGO ? ["PAGO", "LIQUIDADO", "LIQUIDADO COMPE", "LIQUIDADO CARTORIO", "LIQUIDADO PIX", "LIQUIDADO REDE", "BAIXADO"] :
+            status === BoletoStatus.CONFIRMADO ? ["CONFIRMADO", "REGISTRADO", "EM CARTEIRA", "LIQUIDADO COMPE", "LIQUIDADO CARTORIO", "LIQUIDADO PIX", "BAIXADO"] :
+              status === BoletoStatus.ATRASADO ? ["VENCIDO", "ATRASADO"] : [status])
+        },
+        boleto: {
+          empresaId: empresaId,
+        }
+      },
+      include: {
+        contacorrente: true,
+        boleto: {
+          include: {
+            imovel: {
+              include: {
+                proprietarios: {
+                  include: {
+                    pessoa: true,
+                  },
+                },
+              },
+            },
+            locatario: {
+              include: {
+                pessoa: true,
+              },
+            },
+          },
+        },
+      }
     });
   }
 

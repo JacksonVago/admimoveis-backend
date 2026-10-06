@@ -2,11 +2,17 @@ import { Permissions } from '@/auth/decorators/permissions.decorator';
 import { BaseRoutes } from '@/common/interfaces/base-routes';
 import { BaseGetPaginatedQueryDateDto, BaseParamsIdEmpresaDto } from '@/common/interfaces/base-search';
 import { Body, Controller, Delete, Get, Param, Patch, Post, Put, Query } from '@nestjs/common';
-import { Permission } from '@prisma/client';
+import { BoletoStatus, Permission } from '@prisma/client';
 import { Transform } from 'class-transformer';
 import { IsBoolean, IsDate, IsNumber, IsOptional, IsString } from 'class-validator';
 import { FormDataRequest } from 'nestjs-form-data';
 import { BoletoBancarioService } from "./boletobancario.service";
+
+export class BaseParamsIdEmpresaStatusDto extends BaseParamsIdEmpresaDto {
+  @IsString()
+  @IsOptional()
+  status: BoletoStatus;
+}
 
 export class CreateBoletoBancarioDto {
   @Transform(({ value }) => Number(value))
@@ -300,6 +306,11 @@ export const BOLETO_BANCARIO_ROUTES: BaseRoutes = {
     route: '/empresa/:empresaId',
     permission: Permission.VIEW_BOLETO_BANCARIO,
   },
+  status: {
+    name: 'find empresa and status',
+    route: '/status/:empresaId/:status',
+    permission: Permission.VIEW_BOLETO_BANCARIO,
+  },
   delete: {
     name: 'delete boleto bancario',
     route: ':id',
@@ -387,6 +398,13 @@ export class BoletoBancarioController {
     const { search, page, limit, tipo, exclude, dataInicial, dataFinal } = data;
     return await this.boletoBancarioService.getBoletosBancarioEmpresa(empresaId, search, page, limit, tipo, exclude, dataInicial, dataFinal);
   }
+
+  @Get(BOLETO_BANCARIO_ROUTES.status.route)
+  @Permissions(BOLETO_BANCARIO_ROUTES.status.permission)
+  async getBoletosBancarioStatus(@Param() { empresaId, status }: BaseParamsIdEmpresaStatusDto) {
+    return await this.boletoBancarioService.getBoletosBancarioStatus(empresaId, status);
+  }
+
   @Get(BOLETO_BANCARIO_ROUTES.findById.route)
   @Permissions(BOLETO_BANCARIO_ROUTES.findById.permission)
   async getBoletoBancario(@Param() { id }: BaseParamsByStringIdDto) {

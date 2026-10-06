@@ -6,7 +6,7 @@ import { getFileType } from '@/proprietarios/proprietarios.service';
 import {
   Injectable
 } from '@nestjs/common';
-import { LocacaoStatus, Pessoa, Prisma } from '@prisma/client';
+import { LocacaoStatus, Pessoa, PessoaStatus, Prisma } from '@prisma/client';
 import { MemoryStoredFile } from 'nestjs-form-data';
 import { randomUUID } from 'node:crypto';
 import {
@@ -131,6 +131,70 @@ export class PessoasService {
     const result = await this.prismaService.pessoa.findUnique({
       where: {
         id: id,
+      },
+      include: {
+        endereco: true,
+        documentos: true,
+        proprietarios: {
+          include: {
+            imovel: {
+              include: {
+                endereco: true,
+                tipo: true,
+              }
+            },
+          },
+        },
+        locatarios: {
+          include: {
+            locacoes: {
+              include: {
+                imovel: {
+                  include: {
+                    endereco: true,
+                    tipo: true,
+                  }
+                },
+                fiadores: {
+                  include: {
+                    pessoa: true,
+                  }
+                }
+              }
+            },
+            pessoa: true
+          }
+        },
+        fiador: {
+          include: {
+            locacoes: {
+              include: {
+                locatarios: {
+                  include: {
+                    pessoa: true
+                  }
+                },
+                imovel: {
+                  include: {
+                    endereco: true,
+                    tipo: true,
+                  }
+                }
+              }
+            },
+          }
+        }
+      },
+    });
+
+    return result;
+  }
+
+  async findStatus(empresaId: number, status: PessoaStatus) {
+    const result = await this.prismaService.pessoa.findMany({
+      where: {
+        empresaId: empresaId,
+        status: status,
       },
       include: {
         endereco: true,

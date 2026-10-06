@@ -76,14 +76,15 @@ export class BaseParamsByIdDto {
   id: number;
 }
 
-export class BaseParamsByStatus {
-  imovelStatus: ImovelStatus;
-}
-
 export class BaseParamsIdEmpresaDto {
   @Transform(({ value }) => Number(value))
   @IsNumber()
   empresaId: number;
+}
+
+export class BaseParamsByStatus extends BaseParamsIdEmpresaDto {
+  @IsOptional()
+  imovelStatus: ImovelStatus;
 }
 
 export class BaseParamsdiaVenctoDto {

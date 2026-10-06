@@ -47,7 +47,7 @@ export const IMOVEIS_ROUTES: BaseRoutes = {
   },
   searchStatusType: {
     name: 'Search Imoveis Status',
-    route: '/status/',
+    route: '/status/:empresaId/:status',
     permission: Permission.VIEW_IMOVELS,
   },
   searchLocacao: {
@@ -108,8 +108,8 @@ export class ImoveisController {
 
   @Get(IMOVEIS_ROUTES.searchStatusType.route)
   @Permissions(IMOVEIS_ROUTES.searchStatusType.permission)
-  async getStatusTipo(@Query() { imovelStatus }: BaseParamsByStatus) {
-    const data = await this.imoveisService.findStatusType(imovelStatus);
+  async getStatus(@Param() { empresaId, imovelStatus }: BaseParamsByStatus) {
+    const data = await this.imoveisService.findStatusType(empresaId, imovelStatus);
 
     return data;
   }

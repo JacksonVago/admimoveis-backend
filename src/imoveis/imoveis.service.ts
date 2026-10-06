@@ -468,9 +468,12 @@ export class ImoveisService {
   }
 
   //Pesquisa por status/tipo
-  async findStatusType(statusImovel: ImovelStatus,) {
+  async findStatusType(empresaId: number, statusImovel: ImovelStatus,) {
     const where: Prisma.ImovelWhereInput = {
       AND: [
+        {
+          empresaId: empresaId,
+        },
         {
           status: {
             equals: statusImovel,

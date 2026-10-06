@@ -2,6 +2,7 @@ import { Permissions } from '@/auth/decorators/permissions.decorator';
 import { BaseRoutes } from '@/common/interfaces/base-routes';
 import { BaseGetPessoaQueryDto, BaseParamsByIdDto } from '@/common/interfaces/base-search';
 import { EnderecoDto } from '@/common/interfaces/dtos/endereco.dto';
+import { BaseParamsByStatusPessoa } from '@/common/interfaces/dtos/pessoa.dto';
 import { FiadorDto } from '@/imoveis/dtos/locacao-subdto';
 import {
   Body,
@@ -84,6 +85,11 @@ export const PESSOA_ROUTES: BaseRoutes = {
     name: 'Unlink Pessoa from Locatario',
     route: '/:id/desvincular-prop/:locatarioId',
     permission: Permission.UPDATE_PESSOA,
+  },
+  searchStatus: {
+    name: 'Search pessoas Status',
+    route: '/status/:empresaId/:status',
+    permission: Permission.VIEW_PESSOAS,
   },
 };
 
@@ -207,6 +213,13 @@ export class PessoasController {
   @Permissions(PESSOA_ROUTES.get.permission)
   async findById(@Param() { id }: BaseParamsByIdDto) {
     return await this.pessoasService.findById(id);
+  }
+
+  @Get(PESSOA_ROUTES.searchStatus.route)
+  @Permissions(PESSOA_ROUTES.searchStatus.permission)
+  async getStatus(@Param() { empresaId, pessoaStatus }: BaseParamsByStatusPessoa) {
+    const response = await this.pessoasService.findStatus(empresaId, pessoaStatus);
+    return response;
   }
 
   @Put(PESSOA_ROUTES.put.route)
