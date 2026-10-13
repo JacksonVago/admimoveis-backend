@@ -41,6 +41,7 @@ export class PessoasService {
         profissao: createPessoaDto.profissao,
         estadoCivil: createPessoaDto.estadoCivil,
         status: createPessoaDto.status,
+        observacao: createPessoaDto.observacao,
 
         endereco:
           logradouro ||
@@ -280,6 +281,7 @@ export class PessoasService {
         telefone: updatePessoaDto.telefone,
         profissao: updatePessoaDto.profissao,
         status: updatePessoaDto.status,
+        observacao: updatePessoaDto.observacao,
         endereco:
           logradouro ||
             bairro ||

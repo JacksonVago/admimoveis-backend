@@ -116,6 +116,7 @@ export class LancamentosService {
         const novaDataLancamento = new Date();
         const novoVencimentoLancamento = new Date(lancamento.vencimentoLancamento);
         novoVencimentoLancamento.setMonth(novoVencimentoLancamento.getMonth() + 1);
+        const observacao = lancamento.lancamentotipo.parcelas > 0 ? 'Parcela ' + (lancamento.parcela + 1).toString() + '/' + lancamento.lancamentotipo.parcelas.toString() : "Lançamento automático";
 
         await this.prismaService.lancamentoLocacao.create({
           data: {
@@ -124,7 +125,7 @@ export class LancamentosService {
             valorLancamento: lancamento.valorLancamento,
             dataLancamento: novaDataLancamento,
             vencimentoLancamento: novoVencimentoLancamento,
-            observacao: lancamento.observacao ? lancamento.observacao : '',
+            observacao: lancamento.observacao ? lancamento.observacao : observacao,
             status: lancamentoStatus.ABERTO,
             locacaoId: gerarPagamentoDto.id
           },

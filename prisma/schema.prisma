@@ -495,6 +495,7 @@ model Pessoa {
   telefone    String? //Telefone 
   status      PessoaStatus
   codantigo   Int?
+  observacao  String?
 
   fiador        Fiador?
   proprietarios Proprietario[]

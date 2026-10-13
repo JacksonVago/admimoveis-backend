@@ -130,6 +130,10 @@ export class CreatePessoaDto extends EnderecoDto {
 
   @IsEnum(PessoaStatus)
   status: PessoaStatus;
+
+  @IsString()
+  @IsOptional()
+  observacao?: string;
   // @IsNumber()
   // @Min(1)
   // @Max(28)
