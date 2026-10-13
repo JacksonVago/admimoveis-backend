@@ -228,7 +228,7 @@ export class BoletoBancarioService {
       where: {
         status: {
           in: (status === BoletoStatus.PAGO ? ["PAGO", "LIQUIDADO", "LIQUIDADO COMPE", "LIQUIDADO CARTORIO", "LIQUIDADO PIX", "LIQUIDADO REDE", "BAIXADO"] :
-            status === BoletoStatus.CONFIRMADO ? ["CONFIRMADO", "REGISTRADO", "EM CARTEIRA", "LIQUIDADO COMPE", "LIQUIDADO CARTORIO", "LIQUIDADO PIX", "BAIXADO"] :
+            status === BoletoStatus.CONFIRMADO ? ["CONFIRMADO", "REGISTRADO", "EM CARTEIRA"] :
               status === BoletoStatus.ATRASADO ? ["VENCIDO", "ATRASADO"] : [status])
         },
         boleto: {
@@ -259,16 +259,18 @@ export class BoletoBancarioService {
     });
   }
 
-  async getBoletosBancarioEmpresa(
-    empresaId: number,
-    search: string,
-    page: number,
-    pageSize: number,
-    tipoImovel: number | null | undefined,
-    exclude: string | null,
-    dataInicial: Date,
-    dataFinal: Date,
-  ): Promise<BasePaginationData<BoletoBancario>> {
+  async getBoletosBancarioEmpresa
+    (
+      empresaId: number,
+      search: string,
+      page: number,
+      pageSize: number,
+      tipoImovel: number | null | undefined,
+      exclude: string | null,
+      dataInicial: Date,
+      dataFinal: Date,
+    )
+    : Promise<BasePaginationData<BoletoBancario>> {
     const skip = page > 1 ? (page - 1) * pageSize : 0;
     let arr_id: number[] = [];
 
