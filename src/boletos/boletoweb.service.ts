@@ -360,7 +360,7 @@ export class BoletoWebService {
             }
         });
 
-        console.log("JSON: ", responseOrder);
+        //console.log("JSON: ", responseOrder);
 
     }
 
@@ -464,7 +464,7 @@ export class BoletoWebService {
                     int_pos++;
                 }
             }
-            console.log("str_instrucaoCob1: ", str_instrucaoCob1);
+            //console.log("str_instrucaoCob1: ", str_instrucaoCob1);
 
             int_pos = 0;
             int_tam = 0;
@@ -496,7 +496,7 @@ export class BoletoWebService {
                     int_pos++;
                 }
             }
-            console.log("str_instrucaoCob2: ", str_instrucaoCob2);
+            //console.log("str_instrucaoCob2: ", str_instrucaoCob2);
 
             int_pos = 0;
             int_tam = 0;
@@ -528,7 +528,7 @@ export class BoletoWebService {
                     int_pos++;
                 }
             }
-            console.log("str_instrucaoCob3: ", str_instrucaoCob3);
+            //console.log("str_instrucaoCob3: ", str_instrucaoCob3);
 
 
             int_pos = 0;
@@ -562,7 +562,7 @@ export class BoletoWebService {
                     int_pos++;
                 }
             }
-            console.log("str_instrucaoRec1: ", str_instrucaoRec1);
+            //console.log("str_instrucaoRec1: ", str_instrucaoRec1);
 
             int_pos = 0;
             int_tam = 0;
@@ -594,7 +594,7 @@ export class BoletoWebService {
                     int_pos++;
                 }
             }
-            console.log("str_instrucaoRec2: ", str_instrucaoRec2);
+            //console.log("str_instrucaoRec2: ", str_instrucaoRec2);
 
             int_pos = 0;
             int_tam = 0;
@@ -626,7 +626,7 @@ export class BoletoWebService {
                     int_pos++;
                 }
             }
-            console.log("str_instrucaoRec3: ", str_instrucaoRec3);
+            //console.log("str_instrucaoRec3: ", str_instrucaoRec3);
 
             int_pos = 0;
             int_tam = 0;
@@ -658,7 +658,7 @@ export class BoletoWebService {
                     int_pos++;
                 }
             }
-            console.log("str_instrucaoRec4: ", str_instrucaoRec4);
+            //console.log("str_instrucaoRec4: ", str_instrucaoRec4);
 
 
             str_pos = 'Montando JSON';
@@ -763,7 +763,7 @@ export class BoletoWebService {
 
             };
 
-            //console.log('Envio: ', envioJSON);
+            ////console.log('Envio: ', envioJSON);
             //busca token
             str_pos = 'busca token';
             //const tokenData = new FormData();
@@ -786,7 +786,7 @@ export class BoletoWebService {
 
             str_pos = 'Voltou token';
             if (responseToken) {
-                console.log('json:', envioJSON);
+                //console.log('json:', envioJSON);
 
                 const responseOrder = await this.httpService.axiosRef.post(boletoBancario.boleto.contaCorrente.urlBoleto, envioJSON, {
                     //const responseOrder = await this.httpService.axiosRef.post('https://devportal.itau.com.br/sandboxapi/cash_management_ext_v2/v2', envioJSON, {
@@ -802,7 +802,7 @@ export class BoletoWebService {
                 if (responseOrder) {
                     //Boleto criado com sucesso
                     if (responseOrder.status === 201) {
-                        console.log('responde data:', responseOrder.data);
+                        //console.log('responde data:', responseOrder.data);
                         //Atualiza boleto bancário
                         await this.prismaService.boletoBancario.update(
                             {
@@ -837,7 +837,7 @@ export class BoletoWebService {
             }
         }
         catch (error) {
-            console.log('Posição: ', str_pos);
+            //console.log('Posição: ', str_pos);
             if (isAxiosError(error)) {
                 // Check if there's a response and data within the error
                 if (error.response && error.response.data) {
@@ -856,15 +856,18 @@ export class BoletoWebService {
                             }
                         );
                     }
-                    console.log('Response: ', error.response);
-                    console.error('Error message from server:', error.response.data);
+                    //console.log('Response: ', error.response);
+                    //console.error('Error message from server:', error.response.data);
+                    throw new BadRequestException(error.response.data);
 
                     // You can also set this error message to a state to display it in your UI
                 } else {
-                    console.error('Axios error without response data:', error.message);
+                    //console.error('Axios error without response data:', error.message);
+                    throw new BadRequestException(error.message);
                 }
             } else {
-                console.error('Non-Axios error:', error);
+                //console.error('Non-Axios error:', error);
+                throw new BadRequestException(error);
             }
 
         }
@@ -894,12 +897,12 @@ export class BoletoWebService {
                         },
                     },
                 }).then((boletoBancario) => {
-                    //console.log('Envio: ', envioJSON);
+                    ////console.log('Envio: ', envioJSON);
                     //busca token
                     //const tokenData = new FormData();
                     const tokenData = new URLSearchParams();
 
-                    console.log('user : ', boletoBancario.boleto.contaCorrente.convenio + boletoBancario.boleto.contaCorrente.cooperativa);
+                    //console.log('user : ', boletoBancario.boleto.contaCorrente.convenio + boletoBancario.boleto.contaCorrente.cooperativa);
                     tokenData.append('grant_type', 'password');
                     tokenData.append('username', boletoBancario.boleto.contaCorrente.convenio + boletoBancario.boleto.contaCorrente.cooperativa);
                     tokenData.append('password', boletoBancario.boleto.contaCorrente.senhaBancoAPI);
@@ -923,7 +926,7 @@ export class BoletoWebService {
                             },
                             responseType: 'arraybuffer'
                         }).then(response => {
-                            console.log('fim responsew');
+                            //console.log('fim responsew');
                             result = response.data;
                             fs.writeFileSync('boletosicredi.pdf', response.data);
                             resolve();
@@ -932,19 +935,27 @@ export class BoletoWebService {
                             if (isAxiosError(error)) {
                                 // Check if there's a response and data within the error
                                 if (error.response && error.response.data) {
-                                    console.log('Response: ', error.response);
-                                    //console.error('Error message from server:', error.response.data);
-                                    console.log('catch fim erro 1');
-                                    throw new BadRequestException(error.response.data);
+                                    //console.log('Response: ', error.response);
+                                    ////console.error('Error message from server:', error.response.data);
+                                    ////console.log('catch fim erro 1');
+                                    if (error.response.status === 422) {
+                                        //throw new BadRequestException(error.response);
+                                        //throw new BadRequestException('Nenhum boleto econtrado para essa Linha digitável', { cause: 'Test', description: 'Download boleto - falha' });
+                                        throw new BadRequestException('Nenhum boleto econtrado para essa Linha digitável');
+
+                                    }
+                                    else {
+                                        throw new BadRequestException(error.response.data ? error.response.data : error.response.statusText ? error.response.statusText : 'Erro undefined.');
+                                    }
                                 } else {
-                                    //console.error('Axios error without response data:', error.message);
-                                    console.log('catch fim erro 2');
+                                    ////console.error('Axios error without response data:', error.message);
+                                    //console.log('catch fim erro 2');
                                     throw new BadRequestException(error.message);
                                 }
                             } else {
-                                //console.error('Non-Axios error:', error);
-                                console.log('catch fim erro 3');
-                                //throw new BadRequestException(error);
+                                ////console.error('Non-Axios error:', error);
+                                //console.log('catch fim erro 3');
+                                throw new BadRequestException(error);
                             }
                         });
                     });
@@ -955,23 +966,115 @@ export class BoletoWebService {
                 if (isAxiosError(error)) {
                     // Check if there's a response and data within the error
                     if (error.response && error.response.data) {
-                        //console.log('Response: ', error.response);
-                        //console.error('Error message from server:', error.response.data);
-                        console.log('fim erro 1');
+                        ////console.log('Response: ', error.response);
+                        ////console.error('Error message from server:', error.response.data);
+                        //console.log('fim erro 1');
                         throw new BadRequestException(error.response.data);
                     } else {
-                        //console.error('Axios error without response data:', error.message);
-                        console.log('fim erro 2');
+                        ////console.error('Axios error without response data:', error.message);
+                        //console.log('fim erro 2');
                         throw new BadRequestException(error.message);
                     }
                 } else {
-                    //console.error('Non-Axios error:', error);
-                    console.log('fim erro 3');
+                    ////console.error('Non-Axios error:', error);
+                    //console.log('fim erro 3');
                     throw new BadRequestException(error);
                 }
 
             }
         });
+        return result;
+    }
+
+    async DownloadBoleto2748(boletobancarioId: number) {
+
+        let result: any;
+        let str_pos = '';
+        try {
+            str_pos = 'inicio';
+            const boletoBancario = await this.prismaService.boletoBancario.findUnique({
+                where: {
+                    id: boletobancarioId
+                },
+                include: {
+                    boleto: {
+                        include: {
+                            empresa: {
+                                include: {
+                                    endereco: true,
+                                }
+                            },
+                            contaCorrente: true,
+                        }
+                    },
+                },
+            });
+
+            ////console.log('Envio: ', envioJSON);
+            //busca token
+            str_pos = 'busca token';
+            //const tokenData = new FormData();
+            const tokenData = new URLSearchParams();
+
+            tokenData.append('grant_type', 'password');
+            tokenData.append('username', boletoBancario.boleto.contaCorrente.convenio + boletoBancario.boleto.contaCorrente.cooperativa);
+            tokenData.append('password', boletoBancario.boleto.contaCorrente.senhaBancoAPI);
+            tokenData.append('scope', 'cobranca');
+
+            //const responseToken = await this.httpService.axiosRef.post('https://api-parceiro.sicredi.com.br/sb/auth/openapi/token', tokenData //Sandbox
+            const responseToken = await this.httpService.axiosRef.post('https://api-parceiro.sicredi.com.br/auth/openapi/token', tokenData
+                , {
+                    headers: {
+                        'x-api-key': boletoBancario.boleto.contaCorrente.chaveAppAPI,
+                        'context': 'COBRANCA',
+                    }
+                }
+            );
+
+            str_pos = 'Voltou token';
+            if (responseToken) {
+                const responseOrder = await this.httpService.axiosRef.get(boletoBancario.boleto.contaCorrente.urlBoleto + '/pdf?linhaDigitavel=' + boletoBancario.linhaDigitavel, {
+                    headers: {
+                        'x-api-key': boletoBancario.boleto.contaCorrente.chaveAppAPI,
+                        'Authorization': `Bearer ${responseToken.data.access_token}`,
+                    },
+                    responseType: 'arraybuffer'
+                });
+
+                if (responseOrder) {
+                    //Boleto criado com sucesso
+                    if (responseOrder.status === 201) {
+                        //console.log('fim responsew');
+                        result = responseOrder.data;
+                        fs.writeFileSync('boletosicredi.pdf', responseOrder.data);
+                    }
+                }
+            }
+        }
+        catch (error) {
+            //console.log('Posição: ', str_pos);
+            if (isAxiosError(error)) {
+                // Check if there's a response and data within the error
+                if (error.response && error.response.data) {
+                    if (error.response.status === 422) {
+                        //throw new BadRequestException(error.response);
+                        //throw new BadRequestException('Nenhum boleto econtrado para essa Linha digitável', { cause: 'Test', description: 'Download boleto - falha' });
+                        throw new BadRequestException('Nenhum boleto econtrado para essa Linha digitável');
+
+                    }
+                    else {
+                        throw new BadRequestException(error.response.data ? error.response.data : error.response.statusText ? error.response.statusText : 'Erro undefined.');
+                    }
+                } else {
+                    //console.error('Axios error without response data:', error.message);
+                    throw new BadRequestException(error.message);
+                }
+            } else {
+                //console.error('Non-Axios error:', error);
+                throw new BadRequestException(error);
+            }
+
+        }
         return result;
     }
 
@@ -1028,7 +1131,7 @@ export class BoletoWebService {
                 });
 
                 if (responseOrder) {
-                    console.log('baixou: ', responseOrder);
+                    //console.log('baixou: ', responseOrder);
                     //Boleto baixado com sucesso
                     if (responseOrder.status === 202) {
                         await this.prismaService.boletoBancario.update(
@@ -1049,15 +1152,18 @@ export class BoletoWebService {
             if (isAxiosError(error)) {
                 // Check if there's a response and data within the error
                 if (error.response && error.response.data) {
-                    console.log('Response: ', error.response);
-                    console.error('Error message from server:', error.response.data);
+                    //console.log('Response: ', error.response);
+                    //console.error('Error message from server:', error.response.data);
+                    throw new BadRequestException(error.response.data);
 
                     // You can also set this error message to a state to display it in your UI
                 } else {
-                    console.error('Axios error without response data:', error.message);
+                    //console.error('Axios error without response data:', error.message);
+                    throw new BadRequestException(error.message);
                 }
             } else {
-                console.error('Non-Axios error:', error);
+                //console.error('Non-Axios error:', error);
+                throw new BadRequestException(error);
             }
 
         }
@@ -1102,8 +1208,8 @@ export class BoletoWebService {
             );
 
             if (responseToken) {
-                //console.log('token: ', responseToken);
-                //console.log('nossonumero: ', boletoBancario.nossoNumero.substring(0, 8));
+                ////console.log('token: ', responseToken);
+                ////console.log('nossonumero: ', boletoBancario.nossoNumero.substring(0, 8));
 
                 const responseOrder = await this.httpService.axiosRef.get(boletoBancario.boleto.contaCorrente.urlBoleto + `?codigoBeneficiario=${boletoBancario.boleto.contaCorrente.convenio}&nossoNumero=${boletoBancario.nossoNumero.substring(0, 9)}`, {
                     headers: {
@@ -1118,7 +1224,7 @@ export class BoletoWebService {
                 if (responseOrder) {
                     //Sucesso
                     if (responseOrder.status === 200) {
-                        console.log('resposta: ', responseOrder.data);
+                        //console.log('resposta: ', responseOrder.data);
                         await this.prismaService.boletoBancario.update(
                             {
                                 where: {
@@ -1143,16 +1249,16 @@ export class BoletoWebService {
             if (isAxiosError(error)) {
                 // Check if there's a response and data within the error
                 if (error.response && error.response.data) {
-                    console.log('Response: ', error.response);
-                    console.error('Error message from server:', error.response.data);
+                    //console.log('Response: ', error.response);
+                    //console.error('Error message from server:', error.response.data);
                     throw new BadRequestException(error.response.data);
                     // You can also set this error message to a state to display it in your UI
                 } else {
-                    console.error('Axios error without response data:', error.message);
+                    //console.error('Axios error without response data:', error.message);
                     throw new BadRequestException(error.message);
                 }
             } else {
-                console.error('Non-Axios error:', error);
+                //console.error('Non-Axios error:', error);
                 throw new BadRequestException(error);
 
             }

@@ -62,6 +62,7 @@ model Empresa {
   jobs                Jobs[]
   tipoAlertas         TipoAlerta[]
   grupoFluxoCaixas    GrupoFluxoCaixa[]
+  acordos             Acordo[]
 
   @@map("empresas")
 }
@@ -507,6 +508,7 @@ model Pessoa {
   empresaId      Int
   contaCorrentes ContaCorrente[]
   jobs           Jobs[]
+  acordos        Acordo[]
 
   @@unique([empresaId, documento])
   @@map("pessoas")
@@ -601,6 +603,7 @@ model Imovel {
   boletos   Boleto[]
   jobs      Jobs[]
   moradors  Morador[]
+  acordos   Acordo[]
 
   @@map("imoveis")
 }
@@ -739,9 +742,10 @@ model Locacao {
   lancamentos LancamentoLocacao[]
   moradores   Morador[]
 
-  empresa   Empresa @relation(fields: [empresaId], references: [id])
+  empresa   Empresa  @relation(fields: [empresaId], references: [id])
   empresaId Int
   jobs      Jobs[]
+  acordos   Acordo[]
 
   @@map("locacoes")
 }
@@ -801,6 +805,8 @@ model GenericAnexo {
   condominioId Int?
   bloco        Bloco?      @relation(fields: [blocoId], references: [id])
   blocoId      Int?
+  acordo       Acordo?     @relation(fields: [acordoId], references: [id])
+  acordoId     Int?
 
   @@map("genericanexos")
 }
@@ -913,6 +919,8 @@ model Boleto {
   empresaId       Int
   contaCorrente   ContaCorrente? @relation(fields: [contaCorrenteId], references: [id])
   contaCorrenteId Int?
+  acordo          Acordo?        @relation(fields: [acordoId], references: [id])
+  acordoId        Int?
 
   @@map("boletos")
 }
@@ -992,8 +1000,9 @@ model BoletoBancario {
 
   updatedAt DateTime @updatedAt
 
-  contacorrente ContaCorrente? @relation(fields: [contaId], references: [id])
-  contaId       Int?
+  contacorrente     ContaCorrente?     @relation(fields: [contaId], references: [id])
+  contaId           Int?
+  lancamentoAcordos LancamentoAcordo[]
 
   @@unique([boletoId])
   @@map("boletosbancarios")
@@ -1181,6 +1190,60 @@ model GrupoFluxoCaixa {
 
   @@unique([empresaId, descricao])
   @@map("gruposfluxocaixa")
+}
+
+model Acordo {
+  id                Int          @id @unique @default(autoincrement())
+  observacao        String? //Obervação do acordo
+  valorOriginal     Float //Valor total da dívida
+  juros             Float        @default(0) //Total de juros
+  multa             Float        @default(0) //Total de multas
+  desconto          Float        @default(0) //Total do desconto
+  valorLiquido      Float //Valor total à ser pago
+  qtdParcelas       Int //Quantidade de parcelas do acordo
+  tipoGeracaoBoleto String //Tipo de geração dos boletos (M)ensal - gera os boletos mensalmente  (T)otal gera todos os boleto de uma única vez
+  dataEmissao       DateTime     @default(now())
+  dataVencimento    DateTime? //Data de vencimento do acordo ou data final de pagamento
+  status            BoletoStatus
+
+  pessoa   Pessoa @relation(fields: [pessoaId], references: [id])
+  pessoaId Int
+
+  empresa   Empresa @relation(fields: [empresaId], references: [id])
+  empresaId Int
+
+  locacao   Locacao? @relation(fields: [locacaoId], references: [id])
+  locacaoId Int?
+
+  imovel   Imovel? @relation(fields: [imovelId], references: [id])
+  imovelId Int?
+
+  documentos GenericAnexo[]
+
+  createdAt   DateTime           @default(now())
+  updatedAt   DateTime           @updatedAt
+  lancamentos LancamentoAcordo[]
+  boletos     Boleto[]
+
+  @@map("acordos")
+}
+
+model LancamentoAcordo {
+  id             Int      @id @unique @default(autoincrement())
+  descricao      String //Descrição 
+  valorOriginal  Float
+  juros          Float
+  multa          Float
+  desconto       Float
+  dataLancamento DateTime
+
+  acordo   Acordo @relation(fields: [acordoId], references: [id])
+  acordoId Int
+
+  boletoBancario   BoletoBancario? @relation(fields: [boletobancarioId], references: [id])
+  boletobancarioId Int?
+
+  @@map("lancamentosacordos")
 }
 
 enum Permission {
@@ -1372,6 +1435,18 @@ enum Permission {
   UPDATE_GRUPO_FLUXO_CAIXA
   DELETE_GRUPO_FLUXO_CAIXA
   VIEW_GRUPO_FLUXO_CAIXA
+
+  //Acordo financeiro
+  CREATE_ACORDO
+  UPDATE_ACORDO
+  DELETE_ACORDO
+  VIEW_ACORDOS
+
+  //Lançamentos dos Acordos financeiros
+  CREATE_LANCAMENTO_ACORDO
+  UPDATE_LANCAMENTO_ACORDO
+  DELETE_LANCAMENTO_ACORDO
+  VIEW_LANCAMENTOS_ACORDOS
 }
 
 enum UserRole {

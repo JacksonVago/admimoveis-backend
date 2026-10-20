@@ -414,15 +414,7 @@ export class BoletoBancarioController {
   @Get(BOLETO_BANCARIO_ROUTES.download.route)
   @Permissions(BOLETO_BANCARIO_ROUTES.download.permission)
   async getDownloadBancario(@Param() { id }: BaseParamsByStringIdDto) {
-    const result = await this.boletoBancarioService.DownloadBoletoBanco(Number(id));
-    //console.log('Controller: ', result);
-    return result;
-    /*this.boletoBancarioService.DownloadBancario(Number(id)).
-      then((result) => {
-        console.log('Controller: ', result);
-        return result;
-
-      });*/
+    return await this.boletoBancarioService.DownloadBoletoBanco(Number(id));
   }
 
   @Get(BOLETO_BANCARIO_ROUTES.boletoNossoNumero.route)

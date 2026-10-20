@@ -626,11 +626,16 @@ export class BoletoBancarioService {
     }
 
     if (boleto) {
-      //Solicita download do boleto
-      const banco = "DownloadBoleto" + conta.banco.codigo;
-      const msg = await this.boletoWeb[banco as keyof typeof BoletoWebService](boletoId);
-      //console.log('retorno: ', msg)
-      return msg;
+      try {
+        //Solicita download do boleto
+        const banco = "DownloadBoleto2" + conta.banco.codigo;
+        const msg = await this.boletoWeb[banco as keyof typeof BoletoWebService](boletoId);
+        console.log('retorno: ', msg)
+        return msg;
+      }
+      catch (error) {
+        throw new BadRequestException(error);
+      }
     }
 
   }

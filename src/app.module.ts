@@ -1,4 +1,5 @@
 import { Module } from '@nestjs/common';
+import { AcordoModule } from './acordo/acordos.module';
 import { AlertaModule } from './alertas/alerta.module';
 import { AssinaturaModule } from './assinatura/assinatura.module';
 import { AuthModule } from './auth/auth.module';
@@ -19,6 +20,7 @@ import { ImoveisModule } from './imoveis/imoveis.module';
 import { InstrucaoCobrancaModule } from './instrucaocobranca/instrucaocobranca.module';
 import { InstrucaoRecebimentosModule } from './instrucaorecebimento/instrucaorecebimento.module';
 import { JobsModule } from './jobs/jobs.module';
+import { LancamentoAcordoModule } from './lancamentoacordo/lancamentosAcordo.module';
 import { LancamentoModule } from './lancamentos/lancamentos.module';
 import { LancamentoCondominioModule } from './lancamentosCondominios/lanctosCondominios.module';
 import { LancamentoImoveisModule } from './lancamentosImoveis/lancamentosimoveis.module';
@@ -82,6 +84,8 @@ import { UsersModule } from './users/users.module';
     TipoAutorizacaoModule,
     BoletoBancarioModule,
     GrupoFluxoCaixaModule,
+    AcordoModule,
+    LancamentoAcordoModule,
   ],
   controllers: [],
   providers: [],
