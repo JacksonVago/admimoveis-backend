@@ -8,7 +8,7 @@ import {
   ConflictException,
   Injectable,
 } from '@nestjs/common';
-import { Acordo, BoletoStatus, LocacaoStatus, Prisma } from '@prisma/client';
+import { Acordo, BoletoStatus, Prisma } from '@prisma/client';
 import { randomUUID } from 'crypto';
 import { MemoryStoredFile } from 'nestjs-form-data';
 import { CreateAcordoDto, UpdateAcordoDto } from './acordos.controller';
@@ -26,11 +26,11 @@ export class AcordosService {
 
     //Caso seja lançamento de locação, verifica se a locação existe e está ativa
     if (createAcordoDto.locacaoId && createAcordoDto.locacaoId > 0) {
+
       const locacao = await this.prismaService.locacao.findUnique({
         where: {
-          id: createAcordoDto.locacaoId,
-          status: LocacaoStatus.ATIVA,
-        },
+          id: createAcordoDto.locacaoId
+        }
       });
 
       if (!locacao) {

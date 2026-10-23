@@ -1209,7 +1209,7 @@ export class BoletoWebService {
 
             if (responseToken) {
                 ////console.log('token: ', responseToken);
-                ////console.log('nossonumero: ', boletoBancario.nossoNumero.substring(0, 8));
+                console.log('nossonumero: ', boletoBancario.nossoNumero);
 
                 const responseOrder = await this.httpService.axiosRef.get(boletoBancario.boleto.contaCorrente.urlBoleto + `?codigoBeneficiario=${boletoBancario.boleto.contaCorrente.convenio}&nossoNumero=${boletoBancario.nossoNumero.substring(0, 9)}`, {
                     headers: {
@@ -1223,8 +1223,9 @@ export class BoletoWebService {
 
                 if (responseOrder) {
                     //Sucesso
+                    //console.log('1226 : ', responseOrder.status);
                     if (responseOrder.status === 200) {
-                        //console.log('resposta: ', responseOrder.data);
+                        //console.log('1228 : ', responseOrder.data);
                         await this.prismaService.boletoBancario.update(
                             {
                                 where: {
@@ -1232,15 +1233,16 @@ export class BoletoWebService {
                                 },
                                 data: {
                                     status: responseOrder.data.situacao,
-                                    valorPago: (responseOrder.data.dadosLiquidacao.valor ? responseOrder.data.dadosLiquidacao.valor : 0),
-                                    dataPagamento: (responseOrder.data.dadosLiquidacao.data ? responseOrder.data.dadosLiquidacao.data : 0),
-                                    valorJuros: (responseOrder.data.dadosLiquidacao.juros ? responseOrder.data.dadosLiquidacao.juros : 0),
-                                    valorMulta: (responseOrder.data.dadosLiquidacao.multa ? responseOrder.data.dadosLiquidacao.multa : 0),
-                                    valorDesconto: (responseOrder.data.dadosLiquidacao.desconto ? responseOrder.data.dadosLiquidacao.desconto : 0),
+                                    valorPago: (responseOrder.data.dadosLiquidacao && responseOrder.data.dadosLiquidacao.valor ? responseOrder.data.dadosLiquidacao.valor : undefined),
+                                    dataPagamento: (responseOrder.data.dadosLiquidacao && responseOrder.data.dadosLiquidacao.data ? responseOrder.data.dadosLiquidacao.data : undefined),
+                                    valorJuros: (responseOrder.data.dadosLiquidacao && responseOrder.data.dadosLiquidacao.juros ? responseOrder.data.dadosLiquidacao.juros : undefined),
+                                    valorMulta: (responseOrder.data.dadosLiquidacao && responseOrder.data.dadosLiquidacao.multa ? responseOrder.data.dadosLiquidacao.multa : undefined),
+                                    valorDesconto: (responseOrder.data.dadosLiquidacao && responseOrder.data.dadosLiquidacao.desconto ? responseOrder.data.dadosLiquidacao.desconto : undefined),
 
                                 }
                             }
                         );
+                        //console.log('alterou');
                     }
                 }
             }

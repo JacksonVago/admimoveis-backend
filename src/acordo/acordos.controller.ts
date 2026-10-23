@@ -197,7 +197,6 @@ export class AcordoController {
   @Permissions(ACORDO_ROUTES.create.permission)
   @FormDataRequest()
   create(@Body() createAcordoDto: CreateAcordoDto) {
-
     return this.AcordoService.create(createAcordoDto);
   }
 
