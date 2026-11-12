@@ -36,7 +36,9 @@ export class LancamentosAcordosService {
         juros: createLancamentoDto.juros,
         multa: createLancamentoDto.multa,
         desconto: createLancamentoDto.desconto,
+        valorLancamento: createLancamentoDto.valorLancamento,
         dataLancamento: createLancamentoDto.dataLancamento,
+        dataVencimento: createLancamentoDto.dataVencimento,
         acordo: { connect: { id: createLancamentoDto.acordoId } },
         boletoBancario: (createLancamentoDto.boletobancarioId ? { connect: { id: createLancamentoDto.boletobancarioId } } : undefined),
 

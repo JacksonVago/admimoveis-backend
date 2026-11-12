@@ -81,6 +81,14 @@ export class CreateLancamentoDto {
   @IsDate()
   dataLancamento: Date;
 
+  @Transform(({ value }) => new Date(value))
+  @IsDate()
+  dataVencimento: Date;
+
+  @Transform(({ value }) => Number(value))
+  @IsNumber()
+  valorLancamento: number;
+
   @Transform(({ value }) => Number(value))
   @IsInt()
   @IsOptional()

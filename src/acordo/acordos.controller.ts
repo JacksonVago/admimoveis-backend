@@ -14,13 +14,15 @@ import {
 } from '@nestjs/common';
 import { PartialType } from '@nestjs/mapped-types';
 import { BoletoStatus, Permission } from '@prisma/client';
-import { Transform } from 'class-transformer';
+import { Transform, Type } from 'class-transformer';
 import {
+  IsArray,
   IsDate,
   IsEnum,
   IsNumber,
   IsOptional,
-  IsString
+  IsString,
+  ValidateNested
 } from 'class-validator';
 import {
   FormDataRequest,
@@ -30,6 +32,47 @@ import {
   MemoryStoredFile
 } from 'nestjs-form-data';
 import { AcordosService } from './acordos.service';
+
+export class LancamentoAcordoDto {
+  @IsString()
+  @IsOptional()
+  descricao: string;
+
+  @Transform(({ value }) => Number(value))
+  @IsNumber()
+  valorOriginal: number;
+
+  @Transform(({ value }) => Number(value))
+  @IsNumber()
+  juros: number;
+
+  @Transform(({ value }) => Number(value))
+  @IsNumber()
+  multa: number;
+
+  @IsOptional()
+  @Transform(({ value }) => Number(value))
+  @IsNumber()
+  desconto: number;
+
+  @Transform(({ value }) => Number(value))
+  @IsNumber()
+  valorLancamento: number;
+
+  @Transform(({ value }) => new Date(value))
+  @IsDate()
+  dataLancamento: Date;
+
+  @Transform(({ value }) => new Date(value))
+  @IsDate()
+  dataVencimento: Date;
+
+  @IsOptional()
+  @Transform(({ value }) => Number(value))
+  @IsNumber()
+  boletobancarioId: number;
+
+}
 
 export class CreateAcordoDto {
 
@@ -51,6 +94,7 @@ export class CreateAcordoDto {
 
   @Transform(({ value }) => Number(value))
   @IsNumber()
+  @IsOptional()
   desconto: number;
 
   @Transform(({ value }) => Number(value))
@@ -60,6 +104,10 @@ export class CreateAcordoDto {
   @Transform(({ value }) => Number(value))
   @IsNumber()
   qtdParcelas: number;
+
+  @Transform(({ value }) => Number(value))
+  @IsNumber()
+  valorParcela: number;
 
   @IsString()
   tipoGeracaoBoleto: string;
@@ -112,6 +160,18 @@ export class CreateAcordoDto {
   )
   documentos?: MemoryStoredFile[];
 
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => LancamentoAcordoDto)
+  // This magic line parses the JSON string coming from React back into a real array
+  @Transform(({ value }) => {
+    try {
+      return typeof value === 'string' ? JSON.parse(value) : value;
+    } catch {
+      return [];
+    }
+  })
+  lancamentos: LancamentoAcordoDto[];
 }
 
 export class UpdateAcordoDto extends PartialType(CreateAcordoDto) {

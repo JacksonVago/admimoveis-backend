@@ -60,6 +60,7 @@ export class AcordosService {
         multa: createAcordoDto.multa,
         valorLiquido: createAcordoDto.valorLiquido,
         qtdParcelas: createAcordoDto.qtdParcelas,
+        valorParcela: createAcordoDto.valorParcela,
         tipoGeracaoBoleto: createAcordoDto.tipoGeracaoBoleto,
         locacao: createAcordoDto.locacaoId ? { connect: { id: createAcordoDto.locacaoId } } : undefined,
         imovel: createAcordoDto.imovelId ? { connect: { id: createAcordoDto.imovelId } } : undefined,
@@ -68,6 +69,7 @@ export class AcordosService {
         dataVencimento: createAcordoDto.dataVencimento,
         empresa: { connect: { id: createAcordoDto.empresaId } },
         pessoa: { connect: { id: createAcordoDto.pessoaId } },
+        //lancamentos: createAcordoDto.lancamentos && createAcordoDto.lancamentos.length > 0 ? { createMany: { data: createAcordoDto.lancamentos } } : undefined,        
       },
       include: {
         locacao: true,
@@ -77,9 +79,37 @@ export class AcordosService {
       },
     });
 
-    //Verifica se tem anexos
-    if (createAcordoDto?.documentos?.length) {
-      await this.createAcordoDocuments(createAcordoDto.empresaId, result.id, createAcordoDto.documentos);
+    if (result) {
+      console.log('Gerou acordo');
+      //Verifica se tem anexos
+      if (createAcordoDto?.documentos?.length) {
+        await this.createAcordoDocuments(createAcordoDto.empresaId, result.id, createAcordoDto.documentos);
+      }
+
+      //Gera lançamentos
+      if (createAcordoDto.lancamentos && createAcordoDto.lancamentos.length > 0) {
+
+        console.log('Gerar lançamentos');
+
+        createAcordoDto.lancamentos.forEach(async (lancamento) => {
+          console.log('lançamento : ', lancamento);
+          const result_lancto = await this.prismaService.lancamentoAcordo.create({
+            data: {
+              descricao: lancamento.descricao,
+              valorOriginal: lancamento.valorOriginal,
+              juros: lancamento.juros,
+              multa: lancamento.multa,
+              desconto: lancamento.desconto,
+              valorLancamento: lancamento.valorLancamento,
+              dataLancamento: new Date(lancamento.dataLancamento),
+              dataVencimento: new Date(lancamento.dataVencimento),
+              acordo: { connect: { id: result.id } },
+              boletoBancario: lancamento.boletobancarioId ? { connect: { id: lancamento.boletobancarioId } } : undefined,
+            }
+          });
+        });
+
+      }
     }
 
     return result;
@@ -115,6 +145,11 @@ export class AcordosService {
                 condominio: true,
               }
             },
+            locatarios: {
+              include: {
+                pessoa: true,
+              }
+            }
           }
         },
       }
@@ -634,6 +669,7 @@ export class AcordosService {
           multa: data.multa,
           valorLiquido: data.valorLiquido,
           qtdParcelas: data.qtdParcelas,
+          valorParcela: data.valorParcela,
           tipoGeracaoBoleto: data.tipoGeracaoBoleto,
           locacao: data.locacaoId ? { connect: { id: data.locacaoId } } : undefined,
           imovel: data.imovelId ? { connect: { id: data.imovelId } } : undefined,

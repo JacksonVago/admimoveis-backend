@@ -1201,6 +1201,7 @@ model Acordo {
   desconto          Float        @default(0) //Total do desconto
   valorLiquido      Float //Valor total à ser pago
   qtdParcelas       Int //Quantidade de parcelas do acordo
+  valorParcela      Float //Valor das parcelas
   tipoGeracaoBoleto String //Tipo de geração dos boletos (M)ensal - gera os boletos mensalmente  (T)otal gera todos os boleto de uma única vez
   dataEmissao       DateTime     @default(now())
   dataVencimento    DateTime? //Data de vencimento do acordo ou data final de pagamento
@@ -1229,13 +1230,15 @@ model Acordo {
 }
 
 model LancamentoAcordo {
-  id             Int      @id @unique @default(autoincrement())
-  descricao      String //Descrição 
-  valorOriginal  Float
-  juros          Float
-  multa          Float
-  desconto       Float
-  dataLancamento DateTime
+  id              Int      @id @unique @default(autoincrement())
+  descricao       String //Descrição 
+  valorOriginal   Float
+  juros           Float
+  multa           Float
+  desconto        Float
+  valorLancamento Float
+  dataLancamento  DateTime
+  dataVencimento  DateTime
 
   acordo   Acordo @relation(fields: [acordoId], references: [id])
   acordoId Int
