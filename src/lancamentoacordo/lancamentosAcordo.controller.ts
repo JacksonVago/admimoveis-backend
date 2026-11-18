@@ -56,6 +56,10 @@ export class gerarBoletoDto {
 
 export class CreateLancamentoDto {
 
+  @Transform(({ value }) => Number(value))
+  @IsOptional()
+  @IsNumber()
+  id: number;
 
   @IsOptional()
   @IsString()
@@ -67,14 +71,17 @@ export class CreateLancamentoDto {
 
   @Transform(({ value }) => Number(value))
   @IsNumber()
+  @IsOptional()
   juros: number;
 
   @Transform(({ value }) => Number(value))
   @IsNumber()
+  @IsOptional()
   multa: number;
 
   @Transform(({ value }) => Number(value))
   @IsNumber()
+  @IsOptional()
   desconto: number;
 
   @Transform(({ value }) => new Date(value))
@@ -175,7 +182,7 @@ export class LancamentoAcordoController {
   @Permissions(LANCAMENTO_ACORDO_ROUTES.create.permission)
   @FormDataRequest()
   createPagamento(@Body() createLancamentoDto: CreateLancamentoDto) {
-
+    console.log('createLancamentoDto', createLancamentoDto);
     return this.lancamentoService.create(createLancamentoDto);
   }
 

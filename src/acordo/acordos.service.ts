@@ -135,7 +135,11 @@ export class AcordosService {
         documentos: true,
         imovel: true,
         pessoa: true,
-        lancamentos: true,
+        lancamentos: {
+          include: {
+            boletoBancario: true,
+          }
+        },
         boletos: true,
         locacao: {
           include: {
@@ -476,7 +480,11 @@ export class AcordosService {
           },
           documentos: true,
           boletos: true,
-          lancamentos: true,
+          lancamentos: {
+            include: {
+              boletoBancario: true,
+            }
+          },
         },
         skip,
         take: pageSize,
